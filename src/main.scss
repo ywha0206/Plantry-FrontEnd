@@ -1,0 +1,204 @@
+/* Reset SASS */
+@use "tailwindcss/base";
+@use "tailwindcss/components";
+@use "tailwindcss/utilities";
+
+/* 기본 스타일 리셋 */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+};
+  
+
+html{
+  font-size: 100%
+}
+body{
+  font-family: Arial, sans-serif;
+  line-height: 1.5;
+}
+  
+
+/* 목록 스타일 리셋 */
+ol,
+ul{
+  list-style: none;
+}
+
+/* 링크 스타일 리셋 */
+a{text-decoration: none}
+
+/* 이미지 크기 설정 */
+img{
+  max-width: 100%;
+  display: block
+}
+
+/* 테이블 스타일 */
+table{  border-collapse: collapse}
+
+/* 폼 요소 초기화 */
+input,
+button,
+textarea{
+  outline: none;
+  border: none;
+}
+
+/* 버튼 스타일 */
+button{
+  background: none;
+  cursor: pointer;
+}
+
+/* 인풋 커스텀 스타일 */
+
+.sm-inp{
+  border-radius: 5px;
+  width: 120px; height: 25px; border: 1px solid #dbdbdb;
+  &::placeholder{
+    padding: 5px;
+  }
+  padding: 5px;
+}
+.m-inp{
+  border-radius: 5px;
+  width: 150px; height: 30px; border: 1px solid #dbdbdb;
+  &::placeholder{
+    padding: 5px;
+  }
+  padding: 5px;
+}
+.l-inp{
+  border-radius: 5px;
+  width: 200px; height: 35px; border: 1px solid #dbdbdb;
+  &::placeholder{
+    padding: 5px;
+  }
+  padding: 5px;
+}
+.xl-inp{
+  border-radius: 5px;
+  width: 280px; height: 40px; border: 1px solid #dbdbdb;
+  &::placeholder{
+    padding: 5px;
+  }
+  padding: 5px;
+}
+
+.inp-font{color:#858585;}
+
+/* margin style */
+
+.mb-10{margin-bottom: 10px;}
+.mt-10{margin-top: 10px;}
+.mr-10{margin-right: 10px;}
+.ml-10{margin-left: 10px;}
+.mb-25{margin-bottom: 25px;}
+.mt-25{margin-top: 25px;}
+.mr-25{margin-right: 25px;}
+.ml-25{margin-left: 25px;}
+.mb-40{margin-bottom: 40px;}
+.mt-40{margin-top: 40px;}
+.mr-40{margin-right: 40px;}
+.ml-40{margin-left: 40px;}
+.mb-50{margin-bottom: 50px;}
+.mt-50{margin-top: 50px;}
+.mr-50{margin-right: 50px;}
+.ml-50{margin-left: 50px;}
+
+/* 버튼 커스텀 스타일 */
+
+.sm-btn{
+  width: 120px; height: 25px; border: 1px solid #dbdbdb;
+  border-radius: 15px;
+  &::placeholder{
+    padding: 5px;
+  }
+  padding: 5px;
+}
+.m-btn{
+  border-radius: 15px;
+  width: 150px; height: 30px; border: 1px solid #dbdbdb;
+  &::placeholder{
+    padding: 5px;
+  }
+  padding: 5px;
+}
+.l-btn{
+  border-radius: 15px;
+  width: 200px; height: 35px; border: 1px solid #dbdbdb;
+  &::placeholder{
+    padding: 5px;
+  }
+  padding: 5px;
+}
+.xl-btn{
+  border-radius: 15px;
+  width: 280px; height: 40px; border: 1px solid #dbdbdb;
+  &::placeholder{
+    padding: 5px;
+  }
+  padding: 5px;
+}
+
+/* 배경 색 */
+
+.bg-blue {
+  background-color: #3dacfd;
+}
+
+.bg-green {
+  background-color: #5C8471;
+}
+
+.bg-red {
+  background-color: red;
+}
+
+/* 글자색 */
+
+.white {
+  color: white;
+}
+
+.black {
+  color: black;
+}
+
+/* 구분 선 */
+.gubun-basic {
+  display: flex;
+  align-items: center;  
+  justify-content: center;  
+  color: #dbdbdb;
+  font-size: 12px;
+  &::before, &::after {
+    content: '';  
+    height: 1px;  
+    background-color: transparent;  
+    border-top: 1px dashed #dbdbdb;  
+    width: 30%;  
+  }
+
+  &::before {
+    margin-right: 8px;  
+  }
+
+  &::after {
+    margin-left: 8px;  
+  }
+
+  .text {
+    display: inline-block;
+    padding: 0 10px;  
+    white-space: nowrap;  
+  }
+}
+
+.modal-content {
+  min-height: 200px;
+}

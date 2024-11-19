@@ -1,0 +1,40 @@
+.login-container {
+    margin: 0 auto;
+    max-width: 1920px;
+    width: 100%;
+    background-color: #dedee6;
+    height: 700px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-form {
+    width: 400px;
+    height: 650px;
+    padding: 30px;
+    background-color: white;
+    border-radius: 30px;
+}
+
+.login-container {
+    .inp-box{
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;   
+        justify-content: center;
+        margin-top: 30px; 
+        padding: 30px;
+    }
+}
+
+.find-pwd {
+    color: #858585;
+    width: 100%;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.submit-btn{background-color: #3dacfd; color: white; height: 48px; border-radius: 15px;}
+.font-xl{font-size: 25px;}
