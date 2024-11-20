@@ -25,8 +25,8 @@ export default function Sidebar() {
 
   const closeSidebar = () => {
     if(sidebarRef.current){
-      sidebarRef.current.style.transition = 'min-width 0.3 ease'
       sidebarRef.current.style.minWidth = '80px'
+      sidebarRef.current.style.maxWidth = '80px';
     }
     setTimeout(() => {
       setSidebarWidth(80);
@@ -35,7 +35,6 @@ export default function Sidebar() {
 
   const expandSidebar = () => {
     if(sidebarRef.current){
-      sidebarRef.current.style.transition = 'min-width 0.3 ease'
       sidebarRef.current.style.minWidth = '230px'
     }
     setTimeout(() => {
@@ -43,21 +42,11 @@ export default function Sidebar() {
     }, 500);
   };
 
-  const navigateMain = () => {
-    navigate("/admin")
-  }
-
-  const navigateProject = () => {
+  //          handler           //
+  const navigateHandler = (e) => {
 
   }
 
-  const navigateUser = () => {
-
-  }
-
-  const navigateoutSourcing = () => {
-    
-  }
 
   return (
     <>
@@ -83,35 +72,115 @@ export default function Sidebar() {
         <div ref={sidebarRef} id="admin-sidebar-container-w">
           <ul>
             <li onClick={closeSidebar} className="sidebar-close-btn">
-              <img src={arrow} alt="close" />
+              <img src={arrow} style={{width:'15px'}} alt="close" />
             </li>
+            <div className='sidebar-links'>
+              <Link to="/admin" >
+                <li onClick={navigateHandler} className="sidebar-close-btn">
+                  <img src={mainMenu} />
+                  <p>HOME</p>
+                </li>
+              </Link>
+              <Link to="/admin/user">
+                <li onClick={navigateHandler} className="sidebar-close-btn">
+                  <img style={{opacity:'0.6'}} src={userMenu} />
+                  <p>유저 관리</p>
+                </li>
+              </Link>
+              <Link to="/admin/project">
+                <li onClick={navigateHandler} className="sidebar-close-btn">
+                  <img src={projectMenu} />
+                  <p>업무 분담</p>
+                </li>
+              </Link>
+              <Link to="/admin/outsourcing">
+                <li onClick={navigateHandler} className="sidebar-close-btn">
+                  <img style={{opacity:'0.6'}} src={outSourcingMenu} />
+                  <p>외주업체 관리</p>
+                </li>
+              </Link>
+              <Link to="/admin/community">
+                <li onClick={navigateHandler} className="sidebar-close-btn">
+                  <img style={{opacity:'0.6', width:'25px', marginRight:'25px'}} src={communityMenu} />
+                  <p>커뮤니티 관리</p>
+                </li>
+              </Link>
+              <Link to="/admin/schedule">
+                <li onClick={navigateHandler} className="sidebar-close-btn">
+                  <img style={{opacity:'0.6', width:'25px', marginRight:'25px'}} src={scheduleMenu} />
+                  <p>일정 관리</p>
+                </li>
+              </Link>
+              <Link to="/admin/vacation">
+                <li onClick={navigateHandler} className="sidebar-close-btn">
+                  <img style={{opacity:'0.3', width:'25px', marginRight:'25px'}} src={vacationMenu} />
+                  <p>휴가 관리</p>
+                </li>
+              </Link>
+              <Link to="/admin/attendance">
+                <li onClick={navigateHandler} className="sidebar-close-btn">
+                  <img style={{opacity:'0.3', width:'25px', marginRight:'25px'}} src="/images/sidebar-attendance.png" />
+                  <p>근태 관리</p>
+                </li>
+              </Link>
+              <Link to="/admin/outside">
+                <li onClick={navigateHandler} className="sidebar-close-btn">
+                  <img style={{opacity:'0.6', width:'25px', marginRight:'25px'}} src="/images/sidebar-outside.png" />
+                  <p>외근 관리</p>
+                </li>
+              </Link>
+            </div>
           </ul>
         </div>
       )}
       {path === 1 && sidebarWidth === 80 && (
         <div ref={sidebarRef} id="admin-sidebar-container-s">
           <ul>
-            <li onClick={navigateMain} className="sidebar-close-btn">
-              <img src={mainMenu} />
-            </li>
-            <li onClick={navigateUser} className="sidebar-close-btn">
-              <img style={{opacity:'0.6'}} src={userMenu} />
-            </li>
-            <li onClick={navigateProject} className="sidebar-close-btn">
-              <img src={projectMenu} />
-            </li>
-            <li onClick={navigateoutSourcing} className="sidebar-close-btn">
-              <img style={{opacity:'0.6'}} src={outSourcingMenu} />
-            </li>
-            <li onClick={navigateoutSourcing} className="sidebar-close-btn">
-              <img style={{opacity:'0.6'}} src={communityMenu} />
-            </li>
-            <li onClick={navigateoutSourcing} className="sidebar-close-btn">
-              <img style={{opacity:'0.6'}} src={scheduleMenu} />
-            </li>
-            <li onClick={navigateoutSourcing} className="sidebar-close-btn">
-              <img style={{opacity:'0.3'}} src={vacationMenu} />
-            </li>
+            <Link to="/admin" >
+              <li onClick={navigateHandler} className="sidebar-close-btn">
+                <img src={mainMenu} />
+              </li>
+            </Link>
+            <Link to="/admin/user">
+              <li onClick={navigateHandler} className="sidebar-close-btn">
+                <img style={{opacity:'0.6'}} src={userMenu} />
+              </li>
+            </Link>
+            <Link to="/admin/project">
+              <li onClick={navigateHandler} className="sidebar-close-btn">
+                <img src={projectMenu} />
+              </li>
+            </Link>
+            <Link to="/admin/outsourcing">
+              <li onClick={navigateHandler} className="sidebar-close-btn">
+                <img style={{opacity:'0.6'}} src={outSourcingMenu} />
+              </li>
+            </Link>
+            <Link to="/admin/community">
+              <li onClick={navigateHandler} className="sidebar-close-btn">
+                <img style={{opacity:'0.6', width:'25px'}} src={communityMenu} />
+              </li>
+            </Link>
+            <Link to="/admin/schedule">
+              <li onClick={navigateHandler} className="sidebar-close-btn">
+                <img style={{opacity:'0.6', width:'25px'}} src={scheduleMenu} />
+              </li>
+            </Link>
+            <Link to="/admin/vacation">
+              <li onClick={navigateHandler} className="sidebar-close-btn">
+                <img style={{opacity:'0.3', width:'25px'}} src={vacationMenu} />
+              </li>
+            </Link>
+            <Link to="/admin/attendance">
+              <li onClick={navigateHandler} className="sidebar-close-btn">
+                <img style={{opacity:'0.3', width:'25px'}} src="/images/sidebar-attendance.png" />
+              </li>
+            </Link>
+            <Link to="/admin/outside">
+              <li onClick={navigateHandler} className="sidebar-close-btn">
+                <img style={{opacity:'0.6', width:'25px'}} src="/images/sidebar-outside.png" />
+              </li>
+            </Link>
             <li onClick={expandSidebar} className="sidebar-close-btn">
               <img src={closeArrow} />
             </li>

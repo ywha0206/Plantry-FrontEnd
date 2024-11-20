@@ -1,0 +1,20 @@
+#admin-user-container {
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    gap: 12px;
+    .admin-user-aside {
+        width: 300px;
+        background-color: white;
+        border-radius: 20px;
+        padding: 20px;
+    }
+
+    .admin-user-main {
+        min-width: 1298px;
+        flex-grow: 1;
+        background-color: white;
+        border-radius: 20px;
+        padding: 20px;
+    }
+}
