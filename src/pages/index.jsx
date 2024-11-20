@@ -1,7 +1,7 @@
-
 import React from 'react'
 import '@/pages/index.scss'
 import logo from '@/assets/plantryLogo.png'
+import { Link } from 'react-router-dom'
 
 export default function MainIndex() {
   return (
@@ -19,10 +19,10 @@ export default function MainIndex() {
                         <li>체험 및 도입</li>
                         <li>고객센터</li>
                         <li>서비스</li>
-                        <li>로그인</li>
+                        <Link to="/user/login">로그인</Link>
                         <li>회원가입</li>
                     </div>
-                    <img className="profileImg" src="/user_face_icon.png" alt="프로필"/>
+                    <img className="profileImg" src="/images/user_face_icon.png" alt="프로필"/>
 
                 </section>             
             </div>

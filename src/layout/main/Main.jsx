@@ -27,7 +27,10 @@ export default function Main() {
       <Outlet />
     }
     {location.pathname === "/" &&
-      <Outlet />
+      <>
+        <Outlet />
+        <Footer />
+      </>
     }
     </>
   )

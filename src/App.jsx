@@ -6,6 +6,7 @@ import Login from '@/pages/user/Login.jsx'
 import Board from '@/pages/community/board'
 import AdminIndex from './pages/admin/Index'
 import MainIndex from './pages'
+import AdminUser from './pages/admin/User'
 
 function App() {
   const pathName = useLocation("");
@@ -19,6 +20,7 @@ function App() {
           </Route>
           <Route path='/admin'>
             <Route index element={<AdminIndex />} />
+            <Route path='user' element={<AdminUser />}/>
           </Route>
           <Route path='/board'>
             <Route index element={<Board />} />
