@@ -10,7 +10,8 @@ export const CustomButton = ({
     mr,
     text,
     color,
-    bg
+    bg,
+    height
 }) => {
     
     const buttonSizeClasses = sizeClassesBtn[size] || sizeClassesBtn.m;
@@ -20,6 +21,7 @@ export const CustomButton = ({
     const inputMlClasses = mlClasses[ml] || ""
     return (
         <button
+            style={{height:height}}
             type={type}
             onClick={handler}
             className={`${buttonSizeClasses} ${inputMrClasses} ${inputMtClasses} ${inputMbClasses} ${inputMlClasses} bg-${bg} ${color}`}

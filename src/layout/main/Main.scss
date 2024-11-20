@@ -1,60 +1,23 @@
 .main-content {
   display: flex;
-  justify-content: space-between;
-  width: 1200px;
   margin: 0 auto;
   min-height: 800px;
+  height: 959px;
+  box-sizing: border-box;
 }
   
-
-
 .main-layout {
   display: flex;
   flex-direction: column;
-  height: 100vh /* 전체 화면 높이 */;
+  height: 959px;
+  box-sizing: border-box;
+  align-items: center;
 }
-
-
-.main-content {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-
-.sidebar {
-  width: 250px;
-  background-color: #f4f4f4;
-  padding: 20px;
-  position: fixed;
-  height: 100% /* 사이드바가 화면 높이만큼 커지도록 */;
-}
-
-
 
 .content {
+  background-color: #f1f1f8;
   padding: 20px;
-  overflow-y: auto;
-  flex-grow: 1;
-}
-
-
-.header {
-  background-color: #333;
-  color: white;
-  padding: 10px;
-  text-align: center;
-  position: fixed;
-}
-
-
-
-.footer {
-  background-color: #333;
-  color: white;
-  padding: 10px;
-  text-align: center;
-  position: fixed;
-  bottom: 0;
+  box-sizing: border-box;
+  display: flex;
   width: 100%;
 }

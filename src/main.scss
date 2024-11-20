@@ -19,6 +19,8 @@ html{
 body{
   font-family: Arial, sans-serif;
   line-height: 1.5;
+  width: 100%;
+  background-color: #dedee6;
 }
   
 
@@ -115,6 +117,9 @@ button{
 .sm-btn{
   width: 120px; height: 25px; border: 1px solid #dbdbdb;
   border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   &::placeholder{
     padding: 5px;
   }
@@ -123,6 +128,9 @@ button{
 .m-btn{
   border-radius: 15px;
   width: 150px; height: 30px; border: 1px solid #dbdbdb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   &::placeholder{
     padding: 5px;
   }
@@ -131,6 +139,9 @@ button{
 .l-btn{
   border-radius: 15px;
   width: 200px; height: 35px; border: 1px solid #dbdbdb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   &::placeholder{
     padding: 5px;
   }
@@ -139,6 +150,9 @@ button{
 .xl-btn{
   border-radius: 15px;
   width: 280px; height: 40px; border: 1px solid #dbdbdb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   &::placeholder{
     padding: 5px;
   }
@@ -167,6 +181,10 @@ button{
 
 .black {
   color: black;
+}
+
+.gray {
+  color: #3E3E3E;
 }
 
 /* 구분 선 */
