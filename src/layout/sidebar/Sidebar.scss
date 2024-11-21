@@ -2,7 +2,7 @@
     border-top-left-radius: 20px;
     border-bottom-left-radius: 20px;
     background-color: #f4f4f4;
-    padding-top: 10px;
+    padding-top: 20px;
     min-width: 230px;    
     transition: min-width 0.5s ease;  
     white-space: nowrap;
@@ -94,9 +94,55 @@
     border-top-left-radius: 20px;
     border-bottom-left-radius: 20px;
     background-color: #f4f4f4;
-    padding-top: 10px;
-    min-width: 230px;  
+    padding-top: 20px;
+    min-width: 230px;    
     transition: min-width 0.5s ease;  
+    white-space: nowrap;
+    ul {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column; 
+        gap: 40px; 
+
+        img {
+            width: 30px;
+        }
+
+        .sidebar-links {
+            width: 100%;
+            display: flex;
+            flex-direction: column; 
+            gap: 40px; 
+
+            li {
+                display: flex;
+                justify-content: flex-start;
+                padding: 5px 0;
+                padding-left: 20px;
+
+                p {
+                    
+                    padding-left: 30px;
+                    
+                }
+            }
+        }
+        
+    }
+    .sidebar-close-btn {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        cursor: pointer;
+        img {
+            margin-right: 20px;
+        }
+    
+        &:hover {
+            opacity: 0.6;
+        }
+    }  
 }
 
 #sidebar-container-s{
@@ -105,7 +151,34 @@
     background-color: #f4f4f4;
     padding-top: 10px;
     min-width: 80px;    
-    transition: min-width 0.5s ease;  
+    transition: min-width 0.5s ease; 
+    white-space: nowrap;
+    ul {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column; 
+        gap: 40px; 
+
+        img {
+            width: 30px;
+        }
+    }
+    .sidebar-close-btn {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 5px 0;
+        padding-left: 30px;
+        cursor: pointer;
+        img {
+            margin-right: 20px;
+        }
+    
+        &:hover {
+            opacity: 0.6;
+        }
+    } 
 }
 
 .sidebar-close-btn {

@@ -17,6 +17,14 @@ import AdminOutSide from './pages/admin/OutSide'
 import ServicePage from './pages/rending/ServicePage'
 import RenderDefaultLayout from './layout/rending/RenderDefaultLayout'
 import { lazy, Suspense } from 'react'
+import Community from './pages/community/Community'
+import Project from './pages/project/Project'
+import Message from './pages/message/Message'
+import Calendar from './pages/calndar/Calendar'
+import Document from './pages/document/Document'
+import Schedule from './pages/schedule/Schedule'
+import Cs from './pages/cs/Cs'
+import Page from './pages/page/Page'
 const MainIndexComponent = lazy(() => import("./components/render/main"))
 
 
@@ -25,7 +33,7 @@ function App() {
   return (
     <div id='app-container m-0 xl2:mx-auto'>
       <Routes>
-        {/* Routes without Main layout */}
+        {/* 사이드바 안쓰는 레이아웃 */}
         <Route path="/" element={<RenderDefaultLayout />}>
           <Route index element={<Suspense fallback={<div>Loading...</div>}><MainIndexComponent /></Suspense>} />
           <Route path="service" element={<ServicePage />} />
@@ -34,7 +42,7 @@ function App() {
           <Route path="login" element={<Login />} />
         </Route>
 
-        {/* Routes with Main layout */}
+        {/* 관리자 */}
         <Route path="/admin" element={<Main />}>
           <Route index element={<AdminIndex />} />
           <Route path="user" element={<AdminUser />} />
@@ -46,8 +54,45 @@ function App() {
           <Route path="attendance" element={<AdminAttendance />} />
           <Route path="outside" element={<AdminOutSide />} />
         </Route>
-        <Route path="/board">
-          <Route index element={<Board />} />
+
+        {/* 커뮤니티 (게시판) */}
+        <Route path="/community" element={<Main />}>
+          <Route index element={<Community />} />
+        </Route>
+
+        {/* 프로젝트 */}
+        <Route path='/project' element={<Main />}>
+          <Route index element={<Project />}></Route>
+        </Route>
+
+        {/* 메신저 */}
+        <Route path='/message' element={<Main />}>
+          <Route index element={<Message />}/>
+        </Route>
+
+        {/* 문서작업 */}
+        <Route path='/document' element={<Main />}>
+          <Route index element={<Document />}/>
+        </Route>
+
+        {/* 달력 */}
+        <Route path='/calendar' element={<Main />}>
+          <Route index element={<Calendar />}/>
+        </Route>
+
+        {/* 스케줄 */}
+        <Route path='/schedule' element={<Main />}>
+          <Route index element={<Schedule />}/>
+        </Route>
+
+        {/* 고객센터 */}
+        <Route path='/cs' element={<Main />}>
+          <Route index element={<Cs />}/>
+        </Route>
+
+        {/* 페이지 */}
+        <Route path='/page' element={<Main />}>
+          <Route index element={<Page />} />
         </Route>
       </Routes>
     </div>
