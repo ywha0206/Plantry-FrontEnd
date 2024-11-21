@@ -14,34 +14,39 @@ import AdminSchedule from './pages/admin/Schedule'
 import AdminVacation from './pages/admin/Vacation'
 import AdminAttendance from './pages/admin/Attendance'
 import AdminOutSide from './pages/admin/OutSide'
-
+import ServicePage from './pages/rending/ServicePage'
+import RenderDefaultLayout from './layout/rending/RenderDefaultLayout'
+import { lazy, Suspense } from 'react'
+const MainIndexComponent = lazy(() => import("./components/render/main"))
 
 function App() {
   const pathName = useLocation("");
   return (
     <div id='app-container m-0 xl2:mx-auto'>
       <Routes>
-        <Route path='/' element={<Main />}>
-          <Route path='' element={<MainIndex />}>
-            
-          </Route>
-          <Route path='/user'>
-            <Route path='login' element={<Login />}/>
-          </Route>
-          <Route path='/admin'>
-            <Route index element={<AdminIndex />} />
-            <Route path='user' element={<AdminUser />}/>
-            <Route path='project' element={<AdminProject />} />
-            <Route path='outsourcing' element={<AdminOutSourcing />} />
-            <Route path='community' element={<AdminCommunity />} />
-            <Route path='schedule' element={<AdminSchedule />} />
-            <Route path='vacation' element={<AdminVacation />} />
-            <Route path='attendance' element={<AdminAttendance />} />
-            <Route path='outside' element={<AdminOutSide />} />
-          </Route>
-          <Route path='/board'>
-            <Route index element={<Board />} />
-          </Route>
+        {/* Routes without Main layout */}
+        <Route path="/" element={<RenderDefaultLayout />}>
+          <Route index element={<Suspense fallback={<div>Loading...</div>}><MainIndexComponent /></Suspense>} />
+          <Route path="service" element={<ServicePage />} />
+        </Route>
+        <Route path="/user">
+          <Route path="login" element={<Login />} />
+        </Route>
+
+        {/* Routes with Main layout */}
+        <Route path="/admin" element={<Main />}>
+          <Route index element={<AdminIndex />} />
+          <Route path="user" element={<AdminUser />} />
+          <Route path="project" element={<AdminProject />} />
+          <Route path="outsourcing" element={<AdminOutSourcing />} />
+          <Route path="community" element={<AdminCommunity />} />
+          <Route path="schedule" element={<AdminSchedule />} />
+          <Route path="vacation" element={<AdminVacation />} />
+          <Route path="attendance" element={<AdminAttendance />} />
+          <Route path="outside" element={<AdminOutSide />} />
+        </Route>
+        <Route path="/board">
+          <Route index element={<Board />} />
         </Route>
       </Routes>
     </div>
