@@ -169,13 +169,13 @@ export default function AdminAttendance() {
                 <table className='w-full'>
                     <thead className='bg-gray-100 h-16'>
                         <tr>
-                            <th>이름</th>
+                            <th className='rounded-tl-lg'>이름</th>
                             <th>월</th>
                             <th>화</th>
                             <th>수</th>
                             <th>목</th>
                             <th>금</th>
-                            <th>토</th>
+                            <th className='rounded-tr-lg'>토</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -208,6 +208,15 @@ export default function AdminAttendance() {
                         </tr>
                         <tr className='text-center h-16'>
                             <td>신승우</td>
+                            <td>결근</td>
+                            <td>지각</td>
+                            <td>결근</td>
+                            <td>출근</td>
+                            <td>결근</td>
+                            <td>출근</td>
+                        </tr>
+                        <tr className='text-center h-16'>
+                            <td>이상훈(96)</td>
                             <td>결근</td>
                             <td>지각</td>
                             <td>결근</td>
@@ -278,6 +287,243 @@ export default function AdminAttendance() {
                 </select>
                 <div>7 / 11</div>
             </section>
+            <section>
+                <table className='w-full'>
+                    <thead className='h-16 bg-gray-100'>
+                        <tr>
+                            <th className='rounded-tl-lg'>이름</th>
+                            <th>01</th>
+                            <th>02</th>
+                            <th>03</th>
+                            <th>04</th>
+                            <th>05</th>
+                            <th>06</th>
+                            <th>07</th>
+                            <th>08</th>
+                            <th>09</th>
+                            <th>10</th>
+                            <th>11</th>
+                            <th>12</th>
+                            <th>13</th>
+                            <th>14</th>
+                            <th>15</th>
+                            <th>16</th>
+                            <th>17</th>
+                            <th>18</th>
+                            <th>19</th>
+                            <th>20</th>
+                            <th>21</th>
+                            <th>22</th>
+                            <th>23</th>
+                            <th>24</th>
+                            <th>25</th>
+                            <th>26</th>
+                            <th>27</th>
+                            <th>28</th>
+                            <th>29</th>
+                            <th>30</th>
+                            <th className='rounded-tr-lg'>31</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr className='text-center h-16'>
+                            <td>이상훈</td>
+                            <td>o</td>
+                            <td>x</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>x</td>
+                            <td>x</td>
+                            <td>x</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                        </tr>
+                        <tr className='text-center h-16'>
+                            <td>이상훈</td>
+                            <td>o</td>
+                            <td>x</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>x</td>
+                            <td>x</td>
+                            <td>x</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                        </tr>
+                        <tr className='text-center h-16'>
+                            <td>이상훈</td>
+                            <td>o</td>
+                            <td>x</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>x</td>
+                            <td>x</td>
+                            <td>x</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                        </tr>
+                        <tr className='text-center h-16'>
+                            <td>이상훈</td>
+                            <td>o</td>
+                            <td>x</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>x</td>
+                            <td>x</td>
+                            <td>x</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                        </tr>
+                        <tr className='text-center h-16'>
+                            <td>이상훈</td>
+                            <td>o</td>
+                            <td>x</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>x</td>
+                            <td>x</td>
+                            <td>x</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                            <td>o</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            <section className="flex justify-center mt-20">
+            <div className="flex items-center space-x-2">
+                <button className="px-4 py-2 bg-gray-100 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-400 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-200">
+                    <span className="hidden sm:inline">이전</span>
+                    <svg className="w-4 h-4 sm:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <path d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg text-sm font-semibold hover:from-blue-400 hover:to-indigo-400">
+                1
+                </button>
+                <button className="px-4 py-2 bg-gray-100 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-400">
+                2
+                </button>
+                <button className="px-4 py-2 bg-gray-100 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-400">
+                3
+                </button>
+                <button className="px-4 py-2 bg-gray-100 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-400 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-200">
+                    <span className="hidden sm:inline">다음</span>
+                    <svg className="w-4 h-4 sm:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <path d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+            </div>
+        </section>      
         </section>
         }
     </div>

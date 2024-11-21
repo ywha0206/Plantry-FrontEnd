@@ -25,14 +25,31 @@
             li {
                 display: flex;
                 justify-content: flex-start;
-                margin-left: 20px;
+                padding: 5px 0;
+                padding-left: 20px;
 
                 p {
-                    margin-left: 30px;
+                    
+                    padding-left: 30px;
+                    
                 }
             }
         }
         
+    }
+    .sidebar-close-btn {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        cursor: pointer;
+        img {
+            margin-right: 20px;
+        }
+    
+        &:hover {
+            opacity: 0.6;
+        }
     }
 
 }
@@ -53,6 +70,22 @@
 
         img {
             width: 30px;
+        }
+    }
+    .sidebar-close-btn {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 5px 0;
+        padding-left: 30px;
+        cursor: pointer;
+        img {
+            margin-right: 20px;
+        }
+    
+        &:hover {
+            opacity: 0.6;
         }
     }
 }

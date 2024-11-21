@@ -168,6 +168,9 @@ export default function Sidebar() {
       {path === 1 && sidebarWidth === 80 && (
         <div ref={sidebarRef} id="admin-sidebar-container-s">
           <ul>
+            <li onClick={expandSidebar} className="sidebar-close-btn">
+              <img src={closeArrow} />
+            </li>
             <Link to="/admin" >
               <li onClick={homeActive} className={isActive===0 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                 <img src={mainMenu} />
@@ -213,9 +216,7 @@ export default function Sidebar() {
                 <img style={{opacity:'0.6', width:'25px'}} src="/images/sidebar-outside.png" />
               </li>
             </Link>
-            <li onClick={expandSidebar} className="sidebar-close-btn">
-              <img src={closeArrow} />
-            </li>
+            
           </ul>
         </div>
       )}
