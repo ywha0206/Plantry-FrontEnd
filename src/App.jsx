@@ -20,11 +20,10 @@ import { lazy, Suspense } from 'react'
 import Community from './pages/community/Community'
 import Project from './pages/project/Project'
 import Message from './pages/message/Message'
-import Calendar from './pages/calndar/Calendar'
 import Document from './pages/document/Document'
-import Schedule from './pages/schedule/Schedule'
 import Cs from './pages/cs/Cs'
 import Page from './pages/page/Page'
+import Calendar from './pages/calendar/Calendar'
 const MainIndexComponent = lazy(() => import("./components/render/main"))
 
 
@@ -78,11 +77,6 @@ function App() {
         {/* 달력 */}
         <Route path='/calendar' element={<Main />}>
           <Route index element={<Calendar />}/>
-        </Route>
-
-        {/* 스케줄 */}
-        <Route path='/schedule' element={<Main />}>
-          <Route index element={<Schedule />}/>
         </Route>
 
         {/* 고객센터 */}
