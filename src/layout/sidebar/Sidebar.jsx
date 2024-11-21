@@ -107,7 +107,8 @@ export default function Sidebar() {
                   <p>문서</p>
                 </li>
               </Link>
-              <Link to="/schedule">
+              <Link to="/calendar">
+
                 <li onClick={scheduleActive} className={isActive===5 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                   <img style={{opacity:'0.6', width:'25px', marginRight:'25px'}} src={scheduleMenu} />
                   <p>일정</p>

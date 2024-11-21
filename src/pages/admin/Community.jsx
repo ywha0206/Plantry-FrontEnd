@@ -29,33 +29,37 @@ export default function AdminCommunity() {
             />
         </section>
         <section className='mb-6'>
-            <div className='flex justify-between items-center'>
-                <p>팀 (3)</p><img className='w-3 h-2' src='/images/arrow-top.png'/>
-            </div>
-            <div className='flex justify-between items-center px-8 mt-6'>
-                <p>팀 1</p> <img src='/images/button-dot.png'/>
-            </div>
-            <div className='flex justify-between items-center px-8 mt-6'>
-                <p>팀 2</p> <img src='/images/button-dot.png'/>
-            </div>
-            <div className='flex justify-between items-center px-8 mt-6'>
-                <p>팀 3</p> <img src='/images/button-dot.png'/>
-            </div>
-        </section>
-        <section className='mb-6'>
-            <div className='flex justify-between items-center'>
-                <p>부서 (3)</p><img className='w-3 h-2' src='/images/arrow-top.png'/>
-            </div>
-            <div className='flex justify-between items-center px-8 mt-6'>
-                <p>부서 1</p> <img src='/images/button-dot.png'/>
-            </div>
-            <div className='flex justify-between items-center px-8 mt-6'>
-                <p>부서 2</p> <img src='/images/button-dot.png'/>
-            </div>
-            <div className='flex justify-between items-center px-8 mt-6'>
-                <p>부서 3</p> <img src='/images/button-dot.png'/>
-            </div>
-        </section>
+                <div className='flex justify-between items-center'>
+                    <p>팀 (3)</p><img className='w-3 h-2' src='/images/arrow-top.png'/>
+                </div>
+                <article>
+                    <div className='flex justify-between items-center px-8 mt-6'>
+                        <p>팀 1</p> <img src='/images/button-dot.png'/>
+                    </div>
+                    <div className='flex justify-between items-center px-8 mt-6'>
+                        <p>팀 2</p> <img src='/images/button-dot.png'/>
+                    </div>
+                    <div className='flex justify-between items-center px-8 mt-6'>
+                        <p>팀 3</p> <img src='/images/button-dot.png'/>
+                    </div>
+                </article>
+            </section>
+            <section className='mb-6'>
+                <div className='flex justify-between items-center'>
+                    <p>부서 (3)</p><img className='w-3 h-2' src='/images/arrow-top.png'/>
+                </div>
+                <article>
+                    <div className='flex justify-between items-center px-8 mt-6'>
+                        <p>부서 1</p> <img src='/images/button-dot.png'/>
+                    </div>
+                    <div className='flex justify-between items-center px-8 mt-6'>
+                        <p>부서 2</p> <img src='/images/button-dot.png'/>
+                    </div>
+                    <div className='flex justify-between items-center px-8 mt-6'>
+                        <p>부서 3</p> <img src='/images/button-dot.png'/>
+                    </div>
+                </article>
+            </section>
         <section className='mt-auto flex flex-col gap-5'>
             <button className='bg-blue white h-8 rounded-md'>부서 생성</button>
             <button className='bg-blue white h-8 rounded-md'>팀 생성</button>
