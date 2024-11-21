@@ -19,6 +19,7 @@ import RenderDefaultLayout from './layout/rending/RenderDefaultLayout'
 import { lazy, Suspense } from 'react'
 const MainIndexComponent = lazy(() => import("./components/render/main"))
 
+
 function App() {
   const pathName = useLocation("");
   return (
