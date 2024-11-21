@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import '@/pages/admin/index.scss'
+import '@/pages/admin/Admin.scss'
 import { AdminCard1 } from '../../components/admin/AdminCard1'
 import {AdminCard2} from '../../components/admin/AdminCard2'
 import adminProfile from '@/assets/admin-profile.png'

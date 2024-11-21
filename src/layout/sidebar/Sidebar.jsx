@@ -16,6 +16,7 @@ export default function Sidebar() {
   const [path, setPath] = useState(0);
   const [sidebarWidth, setSidebarWidth] = useState(230); // 초기 사이드바 너비 230px로 설정
   const sidebarRef = useRef(null);
+  const [isActive, setIsActive] = useState(0);
   const navigate = useNavigate("");
   useEffect(() => {
     if (location.startsWith('/admin')) {
@@ -43,10 +44,41 @@ export default function Sidebar() {
   };
 
   //          handler           //
-  const navigateHandler = (e) => {
+  const homeActive = () => {
+      setIsActive(0)
+  }
+  const userActive = (e) => {
+      setIsActive(1)
+  };
+  const projectActive = (e) => {
+    setIsActive(2)
+  };
+  const outsourcingActive = (e) => {
+    setIsActive(3)
+  };
+  const communityActive = (e) => {
+    setIsActive(4)
+  };
+  const scheduleActive = (e) => {
+    setIsActive(5)
+  };
+  const vacationActive = (e) => {
+    setIsActive(6)
+  };
+  const attendanceActive = (e) => {
+    setIsActive(7)
+  };
+  const outsideActive = (e) => {
+    setIsActive(8)
+  };
+
+  const activeHandler = () => {
 
   }
 
+  
+
+  
 
   return (
     <>
@@ -76,55 +108,55 @@ export default function Sidebar() {
             </li>
             <div className='sidebar-links'>
               <Link to="/admin" >
-                <li onClick={navigateHandler} className="sidebar-close-btn">
+                <li onClick={homeActive} className={isActive===0 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                   <img src={mainMenu} />
                   <p>HOME</p>
                 </li>
               </Link>
               <Link to="/admin/user">
-                <li onClick={navigateHandler} className="sidebar-close-btn">
-                  <img style={{opacity:'0.6'}} src={userMenu} />
+                <li onClick={userActive} className={isActive===1 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
+                  <img style={{opacity:'0.6'}} src={userMenu}/>
                   <p>유저 관리</p>
                 </li>
               </Link>
               <Link to="/admin/project">
-                <li onClick={navigateHandler} className="sidebar-close-btn">
+                <li onClick={projectActive} className={isActive===2 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                   <img src={projectMenu} />
                   <p>업무 분담</p>
                 </li>
               </Link>
               <Link to="/admin/outsourcing">
-                <li onClick={navigateHandler} className="sidebar-close-btn">
+                <li onClick={outsourcingActive} className={isActive===3 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                   <img style={{opacity:'0.6'}} src={outSourcingMenu} />
                   <p>외주업체 관리</p>
                 </li>
               </Link>
               <Link to="/admin/community">
-                <li onClick={navigateHandler} className="sidebar-close-btn">
+                <li onClick={communityActive} className={isActive===4 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                   <img style={{opacity:'0.6', width:'25px', marginRight:'25px'}} src={communityMenu} />
                   <p>커뮤니티 관리</p>
                 </li>
               </Link>
               <Link to="/admin/schedule">
-                <li onClick={navigateHandler} className="sidebar-close-btn">
+                <li onClick={scheduleActive} className={isActive===5 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                   <img style={{opacity:'0.6', width:'25px', marginRight:'25px'}} src={scheduleMenu} />
                   <p>일정 관리</p>
                 </li>
               </Link>
               <Link to="/admin/vacation">
-                <li onClick={navigateHandler} className="sidebar-close-btn">
+                <li onClick={vacationActive} className={isActive===6 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                   <img style={{opacity:'0.3', width:'25px', marginRight:'25px'}} src={vacationMenu} />
                   <p>휴가 관리</p>
                 </li>
               </Link>
               <Link to="/admin/attendance">
-                <li onClick={navigateHandler} className="sidebar-close-btn">
+                <li onClick={attendanceActive} className={isActive===7 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                   <img style={{opacity:'0.3', width:'25px', marginRight:'25px'}} src="/images/sidebar-attendance.png" />
                   <p>근태 관리</p>
                 </li>
               </Link>
               <Link to="/admin/outside">
-                <li onClick={navigateHandler} className="sidebar-close-btn">
+                <li onClick={outsideActive} className={isActive===8 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                   <img style={{opacity:'0.6', width:'25px', marginRight:'25px'}} src="/images/sidebar-outside.png" />
                   <p>외근 관리</p>
                 </li>
@@ -137,47 +169,47 @@ export default function Sidebar() {
         <div ref={sidebarRef} id="admin-sidebar-container-s">
           <ul>
             <Link to="/admin" >
-              <li onClick={navigateHandler} className="sidebar-close-btn">
+              <li onClick={homeActive} className={isActive===0 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                 <img src={mainMenu} />
               </li>
             </Link>
             <Link to="/admin/user">
-              <li onClick={navigateHandler} className="sidebar-close-btn">
+              <li onClick={userActive} className={isActive===1 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                 <img style={{opacity:'0.6'}} src={userMenu} />
               </li>
             </Link>
             <Link to="/admin/project">
-              <li onClick={navigateHandler} className="sidebar-close-btn">
+              <li onClick={projectActive} className={isActive===2 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                 <img src={projectMenu} />
               </li>
             </Link>
             <Link to="/admin/outsourcing">
-              <li onClick={navigateHandler} className="sidebar-close-btn">
+              <li onClick={outsourcingActive} className={isActive===3 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                 <img style={{opacity:'0.6'}} src={outSourcingMenu} />
               </li>
             </Link>
             <Link to="/admin/community">
-              <li onClick={navigateHandler} className="sidebar-close-btn">
+              <li onClick={communityActive} className={isActive===4 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                 <img style={{opacity:'0.6', width:'25px'}} src={communityMenu} />
               </li>
             </Link>
             <Link to="/admin/schedule">
-              <li onClick={navigateHandler} className="sidebar-close-btn">
+              <li onClick={scheduleActive} className={isActive===5 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                 <img style={{opacity:'0.6', width:'25px'}} src={scheduleMenu} />
               </li>
             </Link>
             <Link to="/admin/vacation">
-              <li onClick={navigateHandler} className="sidebar-close-btn">
+              <li onClick={vacationActive} className={isActive===6 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                 <img style={{opacity:'0.3', width:'25px'}} src={vacationMenu} />
               </li>
             </Link>
             <Link to="/admin/attendance">
-              <li onClick={navigateHandler} className="sidebar-close-btn">
+              <li onClick={attendanceActive} className={isActive===7 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                 <img style={{opacity:'0.3', width:'25px'}} src="/images/sidebar-attendance.png" />
               </li>
             </Link>
             <Link to="/admin/outside">
-              <li onClick={navigateHandler} className="sidebar-close-btn">
+              <li onClick={outsideActive} className={isActive===8 ? 'sidebar-close-btn bg-blue-100' : "sidebar-close-btn"}>
                 <img style={{opacity:'0.6', width:'25px'}} src="/images/sidebar-outside.png" />
               </li>
             </Link>
