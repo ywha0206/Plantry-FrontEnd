@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from '@/layout/sidebar/sidebar'
-import "@/layout/main/Main.scss"
+import "@/layout/layout/Main.scss"
 import Footer from '../footer/Footer';
 import MainIndex from '../../pages';
 
@@ -11,27 +11,24 @@ export default function Main() {
   
   return (
     <>
-    {location.pathname != "/user/login" && location.pathname != "/" &&
+    {location.pathname !== "/user/login" && location.pathname !== "/" && (
       <div className="main-layout">
         <div className="main-content">
-            <Sidebar />
+          <Sidebar />
           <div className="content">
             <Outlet />
           </div>
         </div>
         <Footer />
       </div>
-    }
-
-    {location.pathname == "/user/login" && location.pathname != "/" &&
-      <Outlet />
-    }
-    {location.pathname === "/" &&
+    )}
+  
+    {(location.pathname === "/user/login" || location.pathname === "/") && (
       <>
         <Outlet />
-        <Footer />
+        {location.pathname !== "/user/login" && <Footer />}
       </>
-    }
-    </>
+    )}
+  </>
   )
 }

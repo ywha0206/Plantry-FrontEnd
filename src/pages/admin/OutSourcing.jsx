@@ -1,16 +1,22 @@
-import React from 'react'
+import React, { useState } from 'react'
 import '@/pages/admin/Admin.scss'
 import {CustomSearch} from '@/components/Search'
-import { CustomButton } from '../../components/Button'
-import { Link } from 'react-router-dom'
+import { CustomButton } from '../../components/Button';
 
-export default function AdminUser() {
-    const userHandler = () => {
+export default function AdminOutSourcing() {
+    const [selectOption, setSelectOption] = useState(0);
+
+    const optionChanger = (e)=>{
+        setSelectOption(Number(e.target.value))
+        console.log(selectOption)
+    }
+
+    const userHandler = (e) => {
 
     }
   return (
-    <div id='admin-user-container'>
-      <aside className='admin-user-aside overflow-scroll flex flex-col scrollbar-none'>
+    <div id='admin-outsourcing-container'>
+      <aside className='admin-outsourcing-aside overflow-scroll flex flex-col scrollbar-none'>
         <section className='flex justify-center mb-8'><p className='text-lg'>팀 / 부서 (6)</p></section>
         <section className='flex justify-center mb-8 w-26'>
             <select className='outline-none border rounded-l-md opacity-80 h-11 w-24 text-center text-sm'>
@@ -56,49 +62,51 @@ export default function AdminUser() {
             <button className='bg-blue white h-8 rounded-md'>팀 생성</button>
         </section>
       </aside>
-      <section className='admin-user-main'>
-        <section className='flex mb-32'>
-            <p className='text-lg flex items-center justify-center w-80 rounded-md bg-gray-200 mx-auto'>부서 1</p>
-            <div className="flex"> 
-                <img src='/images/dumy-profile.png' className="w-1/3" />
-                <img src='/images/dumy-profile.png' className="w-1/3" />
-                <img src='/images/dumy-profile.png' className="w-1/3" />
-                <img src='/images/dumy-profile.png' className="w-1/3" />
-            </div>
-        </section>
-        <section className='flex items-center gap-4 mb-12'>
-            <div className='ml-4 text-2xl'>
-                <select className='outline-none border rounded-md text-xl p-2 text-center'>
-                    <option>인사관리</option>
-                    <option>1</option>
-                    <option>1</option>
-                    <option>1</option>
+      <section className='admin-outsourcing-main'>
+      <section className='flex mb-32'>
+                <p className='text-lg flex items-center justify-center w-80 rounded-md bg-gray-200 mx-auto'>부서 1</p>
+                <div className="flex"> 
+                    <img src='/images/dumy-profile.png' className="w-1/3" />
+                    <img src='/images/dumy-profile.png' className="w-1/3" />
+                    <img src='/images/dumy-profile.png' className="w-1/3" />
+                    <img src='/images/dumy-profile.png' className="w-1/3" />
+                </div>
+            </section>
+            <section className='flex items-center gap-4 mb-12'>
+                <div className='ml-4 text-2xl'>
+                    <select value={selectOption} onChange={optionChanger} className='outline-none border rounded-md text-xl p-2 text-center'>
+                        <option value={0}>외주업체 현황</option>
+                        {/* <option value={1}>소속인원</option>
+                        <option value={2}>배정업무</option>
+                        <option value={3}>요청사항</option> */}
+                    </select>
+                </div>
+                <div className='ml-auto flex'>
+                    <CustomSearch 
+                        width1='40'
+                        width2='72'
+                    />
+                </div>
+                <select className='text-center opacity-80 w-24 h-10 outline-none border'>
+                    <option>회사명</option>
+                    <option>번호</option>
+                    <option>파견부서</option>
+                    <option>결제일</option>
                 </select>
-            </div>
-            <div className='ml-auto flex'>
-                <CustomSearch 
-                    width1='40'
-                    width2='72'
-                />
-            </div>
-            <select className='text-center opacity-80 w-24 h-10 ouline-none border'>
-                <option>직급</option>
-                <option>상태</option>
-            </select>
-            <div>7 / 11</div>
-        </section>
-        <table className="w-full table-auto border-collapse mb-16">
+                <div>7 / 11</div>
+            </section>
+            <table className="w-full table-auto border-collapse mb-16">
             <thead className='bg-gray-200 h-16'>
                 <tr className='text-center'>
                     <th className="w-1/10 rounded-tl-lg"><input type="checkbox" /></th>
                     <th className="w-1/10">번호</th>
-                    <th className="w-2/10">이름</th>
-                    <th className="w-2/10">부서</th>
-                    <th className="w-1/10">상태</th>
-                    <th className="w-1/10">근태</th>
-                    <th className="w-1/10">직급</th>
-                    <th className="w-1/10">가입일자</th>
-                    <th className="w-1/10 rounded-tr-lg">비고</th>
+                    <th className="w-2/10">회사명</th>
+                    <th className="w-2/10">전화번호</th>
+                    <th className="w-1/10">파견인원</th>
+                    <th className="w-1/10">파견부서</th>
+                    <th className="w-1/10">배정업무</th>
+                    <th className="w-1/10">결제일</th>
+                    <th className="w-1/10 rounded-tr-lg">진행도</th>
                 </tr>
             </thead>
             <tbody className='h-16'>
@@ -140,7 +148,7 @@ export default function AdminUser() {
                     <td className="w-1/10">비고 없음</td>
                 </tr>
             </tbody>
-        </table>
+        </table>    
         <section className='flex justify-end gap-4 text-xs mb-10'>
             <CustomButton 
                 type='button'
@@ -149,15 +157,6 @@ export default function AdminUser() {
                 bg="blue"
                 size="sm"
                 text="외주업체 등록"
-                height="40px"
-            />
-            <CustomButton 
-                type='button'
-                handler={userHandler}
-                color="white"
-                bg="blue"
-                size="sm"
-                text="사원 등록"
                 height="40px"
             />
         </section>
@@ -185,8 +184,7 @@ export default function AdminUser() {
                     </svg>
                 </button>
             </div>
-        </section>
-
+        </section>           
       </section>
     </div>
   )
