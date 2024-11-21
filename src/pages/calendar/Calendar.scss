@@ -1,0 +1,56 @@
+#calendar-container {
+    height: 100%;
+    max-width: 1650px;
+    display: flex;
+    gap: 12px;
+
+    .calendar-aside {
+        width: 300px;
+        background-color: white;
+        border-radius: 20px;
+        padding: 20px;
+    }
+    .calendar-main {
+        width: 1338px;
+        flex-grow: 1;
+        background-color: white;
+        border-radius: 20px;
+        padding: 20px;
+    }
+
+    .fc-daygrid-day-frame {
+        width: 15px;
+        height: 15px;
+        font-size: 8px;
+    }
+
+    .fc-toolbar-chunk {
+        .fc-today-button {
+            display: none;
+        }
+    }
+
+    .fc-day {
+        width: 15px !important; 
+        height: 15px !important;
+        overflow: hidden;
+    }
+
+    .fc-toolbar {
+        font-size: 6px;
+    }
+
+    .big-calendar {
+        .fc-toolbar {
+            font-size: 12px;
+        }
+
+        .fc-daygrid-day-frame {
+            font-size: 20px;
+            width: 100%;
+            height: 100%;
+        }
+    }
+
+
+}
