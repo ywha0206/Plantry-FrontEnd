@@ -22,7 +22,6 @@ export default function Main() {
         <Footer />
       </div>
     )}
-  
     {(location.pathname === "/user/login" || location.pathname === "/") && (
       <>
         <Outlet />
