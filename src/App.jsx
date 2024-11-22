@@ -26,6 +26,8 @@ import Cs from './pages/cs/Cs'
 import Page from './pages/page/Page'
 import Calendar from './pages/calendar/Calendar'
 import Register from './pages/user/Register'
+import Terms from './pages/user/Terms'
+import Find from './pages/user/Find'
 const MainIndexComponent = lazy(() => import("./components/render/main"))
 
 
@@ -44,6 +46,8 @@ function App() {
         <Route path="/user">
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+          <Route path="terms" element={<Terms />} />
+          <Route path="find" element={<Find />} />
           <Route index element={<Login />} />
         </Route>
 
