@@ -25,6 +25,7 @@ import Document from './pages/document/Document'
 import Cs from './pages/cs/Cs'
 import Page from './pages/page/Page'
 import Calendar from './pages/calendar/Calendar'
+import Register from './pages/user/Register'
 import Favorite from './pages/document/Favorite'
 const MainIndexComponent = lazy(() => import("./components/render/main"))
 
@@ -40,8 +41,11 @@ function App() {
           <Route path="service" element={<ServicePage />} />
           <Route path="price" element={<PricePage />} />
         </Route>
+        {/* 유저 */}
         <Route path="/user">
           <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+          <Route index element={<Login />} />
         </Route>
 
         {/* 관리자 */}

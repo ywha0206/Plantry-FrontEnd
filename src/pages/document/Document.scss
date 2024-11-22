@@ -26,7 +26,7 @@
             top: 30%;
             background-color: transparent;
         }
-    
+
         .modal-custom-width {
             width: 400px;
         }
@@ -36,31 +36,31 @@
                 left: 60%;
                 top: 25%;
             }
-    
+
             .modal-custom-width {
                 width: 350px;
             }
         }
-    
+
         /* 화면 너비가 900px 이하일 때 */
         @media screen and (max-width: 900px) {
             .modal-custom-fixed {
                 left: 50%;
                 top: 20%;
             }
-    
+
             .modal-custom-width {
                 width: 300px;
             }
         }
-    
+
         /* 화면 너비가 600px 이하일 때 */
         @media screen and (max-width: 600px) {
             .modal-custom-fixed {
                 left: 50%;
                 top: 10%;
             }
-    
+
             .modal-custom-width {
                 width: 250px;
             }
@@ -109,7 +109,7 @@
             top: 30%;
             background-color: transparent;
         }
-    
+
         .modal-custom-width {
             width: 400px;
         }
@@ -119,36 +119,36 @@
                 left: 60%;
                 top: 25%;
             }
-    
+
             .modal-custom-width {
                 width: 350px;
             }
         }
-    
+
         /* 화면 너비가 900px 이하일 때 */
         @media screen and (max-width: 900px) {
             .modal-custom-fixed {
                 left: 50%;
                 top: 20%;
             }
-    
+
             .modal-custom-width {
                 width: 300px;
             }
         }
-    
+
         /* 화면 너비가 600px 이하일 때 */
         @media screen and (max-width: 600px) {
             .modal-custom-fixed {
                 left: 50%;
                 top: 10%;
             }
-    
+
             .modal-custom-width {
                 width: 250px;
             }
         }
     }
 
-    
+
 }
