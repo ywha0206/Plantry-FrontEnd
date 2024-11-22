@@ -27,6 +27,7 @@ import Page from './pages/page/Page'
 import Calendar from './pages/calendar/Calendar'
 import Register from './pages/user/Register'
 import Favorite from './pages/document/Favorite'
+import FAQPage from './pages/rending/FAQPage'
 const MainIndexComponent = lazy(() => import("./components/render/main"))
 
 
@@ -40,6 +41,7 @@ function App() {
           <Route index element={<Suspense fallback={<div>Loading...</div>}><MainIndexComponent /></Suspense>} />
           <Route path="service" element={<ServicePage />} />
           <Route path="price" element={<PricePage />} />
+          <Route path="faq" element={<FAQPage />} />
         </Route>
         {/* 유저 */}
         <Route path="/user">

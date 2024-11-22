@@ -1,4 +1,13 @@
+import { useState } from "react";
+
 export default function Price(){
+
+    const [currentPlan, setCurrentPlan] = useState(0); // 기본값은 첫 번째 플랜
+
+    // 플랜 선택 함수
+    const handleUpgrade = (index) => {
+        setCurrentPlan(index); // 클릭된 플랜의 인덱스를 설정
+    };
 
     return (<>
 
@@ -22,7 +31,7 @@ export default function Price(){
             </div>
           
        </article>
-       <article className="tabWrapper flex h-[1007px]">
+       <article className="tabWrapper flex h-[880px]">
             <section className="tab basic mr-[20px] ">
                 <img src="/images/Piggy_bank_perspective_matte 2.png" alt="돼지저금통" />
                 <strong>Basic</strong>
@@ -56,9 +65,12 @@ export default function Price(){
                     </li>
 
                 </ul>
-                <button className="upgradeBtn current">YOUR CURRENT PLAN</button>
-            </section>
-        <section className="tab active standard mr-[20px]">
+                <button
+                    className={`upgradeBtn ${currentPlan === 0 ? "current" : ""}`}
+                    onClick={() => handleUpgrade(0)}>
+                    {currentPlan === 0 ? "YOUR CURRENT PLAN" : "UPGRADE"}
+                </button>            </section>
+        <section className="tab standard mr-[20px]">
         <img src="/images/Money_perspective_matte 2.png" alt="" />
                 <strong>Basic</strong>
                 <span>A simple start for everyone </span>
@@ -91,7 +103,11 @@ export default function Price(){
                     </li>
 
                 </ul>
-                <button className="upgradeBtn active">UPGRADE</button>
+                <button
+                    className={`upgradeBtn ${currentPlan === 1 ? "current" : ""}`}
+                    onClick={() => handleUpgrade(1)}>
+                    {currentPlan === 1 ? "YOUR CURRENT PLAN" : "UPGRADE"}
+                </button>
  
         </section>
         <section className="tab Enterprice">
@@ -99,8 +115,8 @@ export default function Price(){
                 <strong>Basic</strong>
                 <span>A simple start for everyone </span>
                 <div className="money flex relative justify-center items-center">
-                    <span className="doller absolute">&#36;</span>
-                    <p className="text-[40px] font-bold">99</p>
+                    <span className="dollerE absolute">&#36;</span>
+                    <p className="text-[40px] font-bold">499</p>
                     <span className="month absolute">&#47;Month</span>
                 </div>
                 <ul className="ml-[30px] mt-[20px]">
@@ -126,8 +142,11 @@ export default function Price(){
                     </li>
 
                 </ul>
-                <button className="upgradeBtn" >UPGRADE</button>
- 
+                <button
+                    className={`upgradeBtn ${currentPlan === 2 ? "current" : ""}`}
+                    onClick={() => handleUpgrade(2)}>
+                    {currentPlan === 2 ? "YOUR CURRENT PLAN" : "UPGRADE"}
+                </button>
         </section>
 
        </article>
