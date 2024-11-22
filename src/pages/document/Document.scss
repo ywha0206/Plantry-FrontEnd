@@ -1,20 +1,154 @@
-#document-container {
+#document-container1 {
     height: 100%;
     max-width: 1650px;
     display: flex;
     gap: 12px;
 
-    .document-aside {
+    .document-aside1 {
         width: 300px;
         background-color: white;
         border-radius: 20px;
         padding: 20px;
     }
-    .document-main {
+    .document-main1 {
         width: 1338px;
         flex-grow: 1;
         background-color: white;
         border-radius: 20px;
         padding: 20px;
     }
+
+    .file-modal {
+        .modal-custom-fixed {
+            inset: inherit;
+            position: fixed;
+            left: 70%;
+            top: 30%;
+            background-color: transparent;
+        }
+    
+        .modal-custom-width {
+            width: 400px;
+        }
+        /* 화면 너비가 1200px 이하일 때 */
+        @media screen and (max-width: 1200px) {
+            .modal-custom-fixed {
+                left: 60%;
+                top: 25%;
+            }
+    
+            .modal-custom-width {
+                width: 350px;
+            }
+        }
+    
+        /* 화면 너비가 900px 이하일 때 */
+        @media screen and (max-width: 900px) {
+            .modal-custom-fixed {
+                left: 50%;
+                top: 20%;
+            }
+    
+            .modal-custom-width {
+                width: 300px;
+            }
+        }
+    
+        /* 화면 너비가 600px 이하일 때 */
+        @media screen and (max-width: 600px) {
+            .modal-custom-fixed {
+                left: 50%;
+                top: 10%;
+            }
+    
+            .modal-custom-width {
+                width: 250px;
+            }
+        }
+    }
+
+    .folder-modal {
+        .modal-custom-width {
+            width: 500px;
+        }
+    }
+
+    .drive-modal {
+        .modal-custom-width {
+            width: 500px;
+        }
+    }
+
+}
+
+#document-favorite-container {
+    height: 100%;
+    max-width: 1650px;
+    display: flex;
+    gap: 12px;
+
+    .document-favorite-aside {
+        width: 300px;
+        background-color: white;
+        border-radius: 20px;
+        padding: 20px;
+    }
+    .document-favorite-main {
+        width: 1338px;
+        flex-grow: 1;
+        background-color: white;
+        border-radius: 20px;
+        padding: 20px;
+    }
+
+    .file-modal {
+        .modal-custom-fixed {
+            inset: inherit;
+            position: fixed;
+            left: 70%;
+            top: 30%;
+            background-color: transparent;
+        }
+    
+        .modal-custom-width {
+            width: 400px;
+        }
+        /* 화면 너비가 1200px 이하일 때 */
+        @media screen and (max-width: 1200px) {
+            .modal-custom-fixed {
+                left: 60%;
+                top: 25%;
+            }
+    
+            .modal-custom-width {
+                width: 350px;
+            }
+        }
+    
+        /* 화면 너비가 900px 이하일 때 */
+        @media screen and (max-width: 900px) {
+            .modal-custom-fixed {
+                left: 50%;
+                top: 20%;
+            }
+    
+            .modal-custom-width {
+                width: 300px;
+            }
+        }
+    
+        /* 화면 너비가 600px 이하일 때 */
+        @media screen and (max-width: 600px) {
+            .modal-custom-fixed {
+                left: 50%;
+                top: 10%;
+            }
+    
+            .modal-custom-width {
+                width: 250px;
+            }
+        }
+    }
+
+    
 }
