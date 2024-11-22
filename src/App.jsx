@@ -26,6 +26,7 @@ import Cs from './pages/cs/Cs'
 import Page from './pages/page/Page'
 import Calendar from './pages/calendar/Calendar'
 import Register from './pages/user/Register'
+import Favorite from './pages/document/Favorite'
 const MainIndexComponent = lazy(() => import("./components/render/main"))
 
 
@@ -78,6 +79,7 @@ function App() {
         {/* 문서작업 */}
         <Route path='/document' element={<Main />}>
           <Route index element={<Document />}/>
+          <Route path='favorite' element={<Favorite />} />
         </Route>
 
         {/* 달력 */}
