@@ -1,0 +1,80 @@
+name: React Vite CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: 의존성 설치
+        run: |
+          npm install  
+
+      - name: Vite로 빌드
+        run: |
+          npm run build  
+
+      - name: 빌드 아티팩트 업로드
+        uses: actions/upload-artifact@v3
+        with:
+          name: app
+          path: dist/  
+
+  deploy:
+    needs: build  
+    runs-on: ubuntu-latest  
+    steps:
+      - name: 빌드 아티팩트 다운로드
+        uses: actions/download-artifact@v3
+        with:
+          name: app
+          path: dist/
+
+      - name: SSH 키 설정
+        run: |
+          echo "${{ secrets.AWS_EC2_KEY }}" > private_key.pem  
+          chmod 600 private_key.pem  
+
+      - name: EC2에 app 디렉터리 생성
+        run: |
+          ssh -i private_key.pem \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} << EOF
+            mkdir -p /home/${{ secrets.AWS_EC2_USER }}/app
+          EOF
+
+      - name: EC2에 pm2 설치
+        run: |
+          ssh -i private_key.pem \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} << EOF
+            npm install -g pm2
+          EOF
+
+      - name: EC2에 빌드 파일 복사
+        run: |
+          scp -i private_key.pem \
+            -o StrictHostKeyChecking=no \
+            -r dist/* \
+            ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}:/home/${{ secrets.AWS_EC2_USER }}/app  
+
+      - name: EC2에서 애플리케이션 재시작
+        run: |
+          ssh -i private_key.pem \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} << EOF
+            pm2 restart app || nohup serve -s /home/${{ secrets.AWS_EC2_USER }}/app/dist > app.log 2>&1 &
+          EOF  
+
+      - name: SSH 키 정리
+        run: rm -f private_key.pem

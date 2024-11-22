@@ -23,11 +23,15 @@ import Project from './pages/project/Project'
 import Message from './pages/message/Message'
 import Document from './pages/document/Document'
 import Cs from './pages/cs/Cs'
-import Page from './pages/page/Page'
+import Page from './pages/page/PagePage'
 import Calendar from './pages/calendar/Calendar'
 import Register from './pages/user/Register'
 import Terms from './pages/user/Terms'
 import Find from './pages/user/Find'
+import Favorite from './pages/document/Favorite'
+import MyMain from './pages/my/My'
+import MyAttendance from './pages/my/Attendance'
+import FAQPage from './pages/rending/FAQPage'
 const MainIndexComponent = lazy(() => import("./components/render/main"))
 
 
@@ -41,6 +45,7 @@ function App() {
           <Route index element={<Suspense fallback={<div>Loading...</div>}><MainIndexComponent /></Suspense>} />
           <Route path="service" element={<ServicePage />} />
           <Route path="price" element={<PricePage />} />
+          <Route path="faq" element={<FAQPage />} />
         </Route>
         {/* 유저 */}
         <Route path="/user">
@@ -49,6 +54,12 @@ function App() {
           <Route path="terms" element={<Terms />} />
           <Route path="find" element={<Find />} />
           <Route index element={<Login />} />
+        </Route>
+
+        {/* 마이페이지 */}
+        <Route path='/my' element={<Main />}>
+          <Route index element={<MyMain />}/>
+          <Route path='attendance' element={<MyAttendance />}/>
         </Route>
 
         {/* 관리자 */}
@@ -82,6 +93,7 @@ function App() {
         {/* 문서작업 */}
         <Route path='/document' element={<Main />}>
           <Route index element={<Document />}/>
+          <Route path='favorite' element={<Favorite />} />
         </Route>
 
         {/* 달력 */}

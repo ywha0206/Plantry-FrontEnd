@@ -112,7 +112,7 @@
     display: flex;
     gap: 12px;
 
-    .admin-project-aside {
+    .admin-aside {
         width: 300px;
         background-color: white;
         border-radius: 20px;
@@ -125,6 +125,12 @@
         background-color: white;
         border-radius: 20px;
         padding: 20px;
+    }
+
+    .department-modal {
+        .modal-custom-width {
+            width: 500px;
+        }
     }
 }
 
@@ -257,5 +263,36 @@
         background-color: white;
         border-radius: 20px;
         padding: 20px;
+    }
+}
+
+.admin-aside {
+    width: 300px;
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.team-modal {
+    .modal-custom-width {
+        width: 500px;
+    }
+}
+
+.department-modal {
+    .modal-custom-width {
+        width: 500px;
+    }
+}
+
+.outsourcing-modal {
+    .modal-custom-width {
+        width: 500px;
+    }
+}
+
+.user-modal {
+    .modal-custom-width {
+        width: 500px;
     }
 }
