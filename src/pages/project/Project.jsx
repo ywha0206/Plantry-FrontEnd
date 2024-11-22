@@ -1,5 +1,5 @@
 import { ProjectColumn } from '../../components/project/ProjectColumn';
-import '@/pages/project/project.scss'
+import '@/pages/project/Project.scss'
 
 const projectColumns = [
   {
