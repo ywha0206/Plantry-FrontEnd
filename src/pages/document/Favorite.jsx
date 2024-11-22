@@ -8,7 +8,7 @@ import { CustomButton } from '../../components/Button';
 export default function Favorite() {
   const [selectOption, setSelectOption] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-
+  const [drive, setDrive] = useState(false);
     const optionChanger = (e)=>{
         setSelectOption(Number(e.target.value))
         console.log(selectOption)
@@ -25,6 +25,14 @@ export default function Favorite() {
     const onClose = () => {
       setIsOpen(false)
     }
+
+    const makeDrive = () => {
+      setDrive(true)
+    }
+
+    const driveClose = () => {
+      setDrive(false)
+    } 
   return (
     <div id='document-favorite-container'>
       <aside className='document-favorite-aside overflow-scroll flex flex-col scrollbar-none'>
@@ -279,6 +287,13 @@ export default function Favorite() {
             isOpen={isOpen}
             onClose={onClose}
             text="파일 업로드"
+          />
+        </div>
+        <div className='drive-modal'>
+          <Modal
+              isOpen={drive}
+              onClose={driveClose}
+              text="드라이브 만들기"
           />
         </div>
       </section>
