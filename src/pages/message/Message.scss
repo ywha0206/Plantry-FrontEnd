@@ -1,0 +1,689 @@
+#message-container {
+  max-width: 1650px;
+  height: 100%;
+  display: flex;
+
+  .aside {
+    width: 300px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: white;
+    border: 1px solid gainsboro;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    box-sizing: border-box;
+  }
+
+  .aside-top {
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid gainsboro;
+    box-sizing: border-box;
+  }
+
+  .profile {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 5px;
+    box-sizing: border-box;
+    cursor: pointer;
+  }
+
+  .search {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    border: 1px solid gainsboro;
+    border-radius: 15px;
+    & > input {
+      width: 100%;
+      border: none;
+      outline: none;
+      &::placeholder {
+        color: gainsboro;
+      }
+    }
+  }
+
+  .searchImg {
+    width: 20px;
+    height: 20px;
+    margin: 0 5px;
+    cursor: pointer;
+  }
+
+  .list {
+    display: flex;
+    padding: 5px;
+    width: 100%;
+    padding: 8px;
+    flex-direction: column;
+    box-sizing: border-box;
+    & > h3 {
+      align-self: start;
+    }
+  }
+
+  .rooms {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+  }
+
+  .room {
+    width: 100%;
+    padding: 10px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    box-sizing: border-box;
+    margin: 3px 0 3px 0;
+    & > img {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+    }
+    &:hover {
+      background-color: rgba(220, 220, 220, 0.534);
+      border-radius: 8px;
+      transition: 0.3s ease;
+      cursor: pointer;
+    }
+  }
+
+  .selected {
+    background-color: #7e7edf;
+    border-radius: 8px;
+    color: white;
+    &:hover {
+      background-color: #5d5ddd;
+      cursor: pointer;
+    }
+  }
+
+  .name_preview {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .name {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    & > img {
+      width: 12px;
+      height: 12px;
+      margin-left: 5px;
+    }
+  }
+
+  .preview {
+    font-size: 10px;
+  }
+
+  .date_unRead {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+    & > img {
+      align-self: flex-end;
+      width: 15px;
+      height: 15px;
+    }
+    & > span {
+      font-size: 12px;
+    }
+  }
+
+  .create {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding-bottom: 10px;
+    align-items: center;
+    box-sizing: border-box;
+  }
+
+  .create-btn {
+    width: 10em;
+    height: 3em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: none;
+    border-radius: 10px;
+    background-color: #7e7edf;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    &:hover {
+      background-color: #5d5ddd;
+      cursor: pointer;
+    }
+  }
+
+  .view {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid gainsboro;
+    border-left: none !important;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    background-color: #f9f8f9;
+    box-sizing: border-box;
+  }
+
+  .others {
+    height: 58px;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid gainsboro;
+    box-sizing: border-box;
+  }
+
+  .messages {
+    padding: 20px 10px;
+  }
+
+  .profile_name_preview {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    box-sizing: border-box;
+    & > div {
+      margin-left: 10px;
+    }
+  }
+
+  .search_more {
+    width: 50px;
+    display: flex;
+    margin-right: 10px;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .my-message_profile {
+    display: flex;
+    justify-content: flex-end;
+    & > img {
+      margin-left: 10px;
+    }
+  }
+
+  .my-messages_readTime {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .my-message {
+    max-width: 650px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #7e7edf;
+    border-radius: 8px;
+    color: white;
+    box-shadow: 2px 2px 5px 1px gainsboro;
+  }
+
+  .readTime {
+    font-size: 10px;
+    color: rgb(151, 151, 151);
+  }
+
+  .message-profile {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .others-messages {
+    display: flex;
+    justify-content: flex-start;
+    & > img {
+      margin-right: 10px;
+    }
+  }
+
+  .others-messages_readTime {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .others-message {
+    max-width: 650px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: white;
+    border-radius: 8px;
+    color: black;
+    box-shadow: 2px 2px 5px 1px gainsboro;
+  }
+
+  .send-message {
+    width: 700px;
+    height: 50px;
+    align-self: center;
+    margin-top: auto;
+    margin-bottom: 10px;
+    padding: 10px 10px 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 1px 1px 5px 1px gainsboro;
+  }
+
+  .input_fileIcon {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    & > input {
+      outline: none;
+      width: 100%;
+      border: none;
+      font-size: 16px;
+    }
+  }
+
+  .fileIcon:hover {
+    cursor: pointer;
+  }
+
+  .send-btn {
+    width: 100px;
+    height: 35px;
+    border: none;
+    margin-left: 10px;
+    border-radius: 8px;
+    background-color: #7e7edf;
+    color: white;
+    text-align: center;
+    font-size: 16px;
+    &:hover {
+      background-color: #5d5ddd;
+      cursor: pointer;
+    }
+  }
+}
+
+#message-container {
+  height: 100%;
+  display: flex;
+  gap: 12px;
+  .aside {
+    width: 300px;
+    background-color: white;
+    border-radius: 20px;
+    padding: 10px;
+  }
+
+  .view {
+    width: 1338px;
+    flex-grow: 1;
+    background-color: white;
+    border-radius: 20px;
+    padding: 10px;
+  }
+}
+
+//============================================▲메시지메인============================================
+
+#invitation-modal {
+  z-index: 101;
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.message-invite-container {
+  z-index: 101;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  border: none;
+  border-radius: 20px;
+  box-sizing: border-box;
+  background-color: white;
+
+  .title_closeBtn {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px;
+    & > span {
+      font-weight: bold;
+      font-size: 24px;
+      color: gray;
+    }
+    & > img {
+      width: 30px;
+      height: 30px;
+      &:hover {
+        cursor: pointer;
+      }
+    }
+  }
+
+  .options {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    border-bottom: 1px solid gainsboro;
+    & > div {
+      width: 150px;
+      height: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: rgb(185, 185, 185);
+      &:hover {
+        cursor: pointer;
+      }
+    }
+  }
+
+  .selected-option {
+    height: 100%;
+    border-bottom: 2px solid #7e7edf;
+    color: #7e7edf !important;
+  }
+
+  .list_add {
+    width: 100%;
+    padding: 10px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    box-sizing: border-box;
+  }
+
+  .orgChartList {
+    width: 350px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    box-sizing: border-box;
+    & > span {
+      display: flex;
+      align-items: center;
+      height: 35px;
+      color: rgb(131, 131, 131);
+      margin-bottom: 10px;
+    }
+  }
+
+  .allOrgs {
+    display: flex;
+    height: 300px;
+    flex-direction: column;
+    border: 1px solid gainsboro;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  .groups {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 5px;
+    &:hover {
+      cursor: pointer;
+    }
+    & > img {
+      width: 20px;
+      height: 20px;
+      margin-right: 5px;
+      &:first-child {
+        cursor: pointer;
+      }
+    }
+    &:nth-child(2) {
+      padding-left: 20px;
+    }
+  }
+
+  .selected-group {
+    color: #7e7edf;
+  }
+
+  .departments {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 5px 5px 5px 60px;
+    &:hover {
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background-color: gainsboro;
+    }
+    & > img {
+      width: 20px;
+      height: 20px;
+      margin-right: 5px;
+    }
+  }
+
+  .selected-dept {
+    border: none;
+    border-radius: 5px;
+    color: #3d3da1;
+    font-weight: bold;
+    background-color: #7e7edf81;
+    &:hover {
+      border: none;
+      border-radius: 5px;
+      color: #3d3da1;
+      font-weight: bold;
+      background-color: #7e7edf81;
+    }
+  }
+
+  .orgs-Members-List {
+    width: 100%;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid gainsboro;
+    border-top: none !important;
+    box-sizing: border-box;
+  }
+
+  .orgs-member {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    &:hover {
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background-color: gainsboro;
+    }
+  }
+
+  .profile {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+  }
+
+  .name_dept {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .dept > span {
+    font-size: 12px;
+    color: rgb(131, 131, 131);
+  }
+
+  .addBtn {
+    width: 50px;
+    height: 50px;
+    padding: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    border: 1px solid gainsboro;
+    border-radius: 5px;
+    &:hover {
+      cursor: pointer;
+      background-color: rgba(220, 220, 220, 0.212);
+    }
+    & > img {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .selected-Members-List {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 5px;
+  }
+
+  .selected-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    & > span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgb(131, 131, 131);
+    }
+  }
+
+  .resetBtn {
+    width: 80px;
+    height: 35px;
+    border: gainsboro;
+    box-shadow: 1px 1px 5px 1px gainsboro;
+    border-radius: 8px;
+    background-color: white;
+    &:hover {
+      cursor: pointer;
+      background-color: rgba(220, 220, 220, 0.233);
+    }
+  }
+
+  .selected-Members {
+    width: 350px;
+    height: 600px;
+    display: flex;
+    flex-direction: column;
+    background-color: #f9f8f9;
+    box-sizing: border-box;
+  }
+
+  .selected-member_cancelBtn {
+    width: 100%;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    box-sizing: border-box;
+    &:hover {
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background-color: gainsboro;
+    }
+  }
+
+  .selected-member {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+    align-items: center;
+  }
+
+  .cancelBtn {
+    width: 25px;
+    height: 25px;
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
+  .confirmBtn_cancelBtn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    & > button {
+      width: 100px;
+      height: 40px;
+      margin-right: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      box-shadow: 1px 1px 5px 1px gainsboro;
+      &:hover {
+        cursor: pointer;
+      }
+    }
+  }
+
+  .confimBtn {
+    background-color: #7e7edf;
+    color: white;
+    font-size: 16px;
+    box-shadow: 1px 1px 5px 1px gainsboro;
+    &:hover {
+      background-color: #5d5ddd;
+    }
+  }
+
+  .cancel-Btn {
+    color: gray;
+    &:hover {
+      background-color: gainsboro;
+    }
+  }
+}
+
+//============================================▲초대 모달============================================
