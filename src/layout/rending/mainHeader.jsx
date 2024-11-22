@@ -15,11 +15,10 @@ export default function MainHeader(){
                     <section className="gnbWrapper">
                         <div className="gnb">
                             <li><Link to="/service">서비스</Link></li>
-                            <li><Link to="">가격 및 혜택</Link></li>
-                            <li><Link to="">체험 및 도입</Link></li>
-                            <li><Link to="">고객센터</Link></li>
-                            <li><Link to="">로그인</Link></li>
-                            <li><Link to="">회원가입</Link></li>
+                            <li><Link to="/price">가격 및 혜택</Link></li>
+                            <li><Link to="/faq">고객센터</Link></li>
+                            <li><Link to="/user/login">로그인</Link></li>
+                            <li><Link to="/user/terms">회원가입</Link></li>
                         </div>
                         <img className="profileImg" src="/images/user_face_icon.png" alt="프로필"/>
 
