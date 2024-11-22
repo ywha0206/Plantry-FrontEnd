@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
-import Sidebar from '@/layout/sidebar/sidebar'
+import Sidebar from '@/layout/sidebar/Sidebar'
 import "@/layout/layout/Main.scss"
 import Footer from '../footer/Footer';
 import MainIndex from '../../pages';
