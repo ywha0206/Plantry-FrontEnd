@@ -38,7 +38,7 @@ jobs:
         ssh -i private_key.pem -o StrictHostKeyChecking=no $AWS_EC2_USER@$AWS_EC2_HOST << EOF
           # 서버의 기존 파일을 삭제하고 새 빌드 파일을 복사
           sudo rm -rf /var/www/html/*  # 기존 웹 파일 삭제
-          sudo cp -r ./build/* /var/www/html/  # 새로운 빌드 파일 복사
+          sudo cp -r ./dist/* /var/www/html/ # 새로운 빌드 파일 복사
 
           # Nginx 서비스 재시작
           sudo systemctl restart nginx  # Nginx 재시작
