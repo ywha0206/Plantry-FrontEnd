@@ -59,7 +59,10 @@ jobs:
             -o StrictHostKeyChecking=no \
             ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} << EOF
             cd /home/${{ secrets.AWS_EC2_USER }}/app
-            pm2 restart app || nohup serve -s /home/${{ secrets.AWS_EC2_USER }}/app/dist > app.log 2>&1 &
+            # PM2로 기존 애플리케이션 재시작 시도
+            pm2 restart app || \
+            # 실패할 경우, Vite 애플리케이션을 nohup으로 8010 포트에서 실행
+            nohup serve -s dist -l 8010 & 
           EOF
 
       - name: Cleanup
