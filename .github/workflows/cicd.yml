@@ -9,26 +9,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: GitHub 리포지토리 체크아웃
       - uses: actions/checkout@v3
 
-      # Step 2: Node.js 설정
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '16'
 
-      # Step 3: 의존성 설치
       - name: Install dependencies
         run: |
           npm install  
 
-      # Step 4: Vite 빌드
       - name: Build with Vite
         run: |
           npm run build  
 
-      # Step 5: 빌드 아티팩트 업로드
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -39,55 +34,55 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      # Step 1: 빌드 아티팩트 다운로드
       - name: Download build artifact
         uses: actions/download-artifact@v3
         with:
           name: app
           path: dist/
 
-      # Step 2: SSH 키 설정
       - name: Set up SSH key
         run: |
           echo "${{ secrets.AWS_EC2_KEY }}" > private_key.pem  
-          chmod 600 private_key.pem  # SSH 키 권한 설정
+          chmod 600 private_key.pem
 
-      # Step 3: EC2에 app 디렉터리 생성
       - name: Create app directory on EC2
         run: |
-          ssh -i private_key.pem \
+          ssh -i private_key.pem -t \
             -o StrictHostKeyChecking=no \
             ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} << EOF
             mkdir -p /home/${{ secrets.AWS_EC2_USER }}/app
           EOF
 
-      # Step 4: EC2에 pm2 설치 (선택적, 수동 빌드처럼 `serve` 사용 가능)
       - name: Install pm2 on EC2 (optional)
         run: |
-          ssh -i private_key.pem \
+          ssh -i private_key.pem -t \
             -o StrictHostKeyChecking=no \
             ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} << EOF
             npm install -g pm2
           EOF
 
-      # Step 5: EC2에 빌드 파일 복사
-      - name: Copy build files to EC2
+      - name: Copy entire project to EC2
         run: |
-          scp -i private_key.pem \
-            -o StrictHostKeyChecking=no \
-            -r dist/* \
+          scp -i private_key.pem -o StrictHostKeyChecking=no -r * \
             ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}:/home/${{ secrets.AWS_EC2_USER }}/app
 
-      # Step 6: EC2에서 `npm run dev` 실행 (외부 접근 허용)
+      - name: Install dependencies on EC2
+        run: |
+          ssh -i private_key.pem -t \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} << EOF
+            cd /home/${{ secrets.AWS_EC2_USER }}/app
+            npm install
+          EOF
+
       - name: Start development server on EC2
         run: |
-          ssh -i private_key.pem \
+          ssh -i private_key.pem -t \
             -o StrictHostKeyChecking=no \
             ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} << EOF
             cd /home/${{ secrets.AWS_EC2_USER }}/app
             npm run dev -- --host
           EOF
 
-      # Step 7: SSH 키 정리 (보안상 키 파일 삭제)
       - name: Clean up SSH key
         run: rm -f private_key.pem
