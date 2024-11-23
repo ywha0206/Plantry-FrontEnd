@@ -58,7 +58,7 @@ export default function Login() {
     }
   
     const signUp = () => {
-      navigate("/user/register")
+      navigate("/user/terms")
     }
   
     const closeModal = () => {
@@ -93,7 +93,12 @@ export default function Login() {
     return (
       <div className='login-container'>
         <div className='login-form'>
-          <p className='font-xl'>LOGIN</p>
+        <div className="flex justify-between items-start">
+              <p className='text-3xl font-extralight'>LOGIN</p>
+              <Link to="/user/login">
+                <img src="/images/Logo_font.png" alt="logo" className="w-[110px] h-[35px]" />
+              </Link>
+          </div>
           <div className='inp-box'>
             <p className='text-xs inp-font'>id</p>
             <CustomInput
@@ -116,7 +121,7 @@ export default function Login() {
               size="xl"
             />
             <div className='find-pwd'>
-              <p className='text-xs'>Forget password?</p>
+              <p className='text-xs' onClick={() => navigate("/user/find")}>Forget password?</p>
             </div>
             <CustomButton 
               type="button"

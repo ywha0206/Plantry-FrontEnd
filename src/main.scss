@@ -10,6 +10,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
 };
   
 
@@ -25,8 +26,7 @@ body{
   
 
 /* 목록 스타일 리셋 */
-ol,
-ul,li{
+ol,ul,li{
   list-style: none;
 }
 
@@ -47,7 +47,6 @@ input,
 button,
 textarea{
   outline: none;
-  // border: none;
 }
 
 /* 버튼 스타일 */
@@ -171,13 +170,6 @@ button{
 
 .bg-red {
   background-color: red;
-}
-
-.main-bg{
-  background-color: rgba(102, 108, 255, 0.1411764706);
-}
-.bg-purple {
-  background-color: #7e7edf;
 }
 
 /* 글자색 */
