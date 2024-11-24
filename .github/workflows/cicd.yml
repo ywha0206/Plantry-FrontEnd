@@ -34,12 +34,16 @@ jobs:
         echo "$AWS_EC2_KEY" > private_key.pem
         chmod 600 private_key.pem  # 키 권한 설정
 
-        # SSH를 통해 EC2 서버에 접속하여 배포 수행
+        # SSH를 통해 EC2 서버에 접속하여 기존 파일 삭제 및 Nginx 재시작
         ssh -i private_key.pem -o StrictHostKeyChecking=no $AWS_EC2_USER@$AWS_EC2_HOST << EOF
-          # 서버의 기존 파일을 삭제하고 새 빌드 파일을 복사
+          # 기존 웹 파일 삭제
           sudo rm -rf /var/www/html/*  # 기존 웹 파일 삭제
-          sudo cp -r /home/$AWS_EC2_USER/app/lotte-2nd-project-front-team2/dist/* /var/www/html/  # 새로운 빌드 파일 복사
+        EOF
 
-          # Nginx 서비스 재시작
+        # SCP를 통해 dist 폴더의 빌드 파일들을 EC2 서버로 복사
+        scp -i private_key.pem -r ./dist/* $AWS_EC2_USER@$AWS_EC2_HOST:/var/www/html/
+
+        # Nginx 서비스 재시작
+        ssh -i private_key.pem -o StrictHostKeyChecking=no $AWS_EC2_USER@$AWS_EC2_HOST << EOF
           sudo systemctl restart nginx  # Nginx 재시작
         EOF
