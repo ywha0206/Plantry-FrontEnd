@@ -8,19 +8,27 @@ import MainIndex from '../../pages';
 export default function Main() {
   const location = useLocation('');
   const [chat, setChat] = useState(false);
+
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
+  };
   
   return (
     <>
     {location.pathname !== "/user/login" && location.pathname !== "/" && (
+      <>
       <div className="main-layout">
         <div className="main-content">
-          <Sidebar />
-          <div className="content">
+          <Sidebar  isCollapsed={isCollapsed} toggleSidebar={toggleSidebar}  />
+          <div className={`content ${isCollapsed ? "sidebar-collapsed" : ""}`}>
             <Outlet />
           </div>
         </div>
-        <Footer />
       </div>
+      <Footer />
+        </>
+      
     )}
     {(location.pathname === "/user/login" || location.pathname === "/") && (
       <>
