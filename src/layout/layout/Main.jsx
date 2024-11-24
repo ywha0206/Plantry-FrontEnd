@@ -4,15 +4,19 @@ import Sidebar from '@/layout/sidebar/Sidebar'
 import "@/layout/layout/Main.scss"
 import Footer from '../footer/Footer';
 import MainIndex from '../../pages';
+import _ from "lodash";
+
 
 export default function Main() {
   const location = useLocation('');
   const [chat, setChat] = useState(false);
 
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+  const toggleSidebar = _.debounce(() => {
+    setIsCollapsed((prev) => !prev);
+  }, 300); // 300ms 간격으로 이벤트 실행
+
+
   
   return (
     <>

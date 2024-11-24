@@ -4,6 +4,7 @@ import "@/layout/sidebar/Sidebar.scss";
 import closeArrow from "@/assets/sidebar-open.png";
 import mainMenu from "@/assets/sidebar-main.png";
 
+
 export default function Sidebar({ isCollapsed, toggleSidebar }) {
   const location = useLocation().pathname; // 현재 경로 가져오기
   const [path, setPath] = useState(0);

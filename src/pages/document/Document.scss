@@ -1,8 +1,8 @@
 #document-container1 {
     height: 100%;
-    max-width: 1650px;
     display: flex;
     gap: 12px;
+    width: 100%;
 
     .document-aside1 {
         width: 300px;
@@ -11,7 +11,7 @@
         padding: 20px;
     }
     .document-main1 {
-        width: 1338px;
+        width: calc(100% - 312px);
         flex-grow: 1;
         background-color: white;
         border-radius: 20px;
