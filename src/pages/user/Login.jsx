@@ -8,6 +8,7 @@ import { CustomGubun } from '@/components/Gubun';
 import { Modal } from '@/components/Modal';
 import CustomAlert from '@/components/Alert';
 import { CustomMessage } from '@/components/Message';
+import jwt_decode from "jwt-decode";
 
 export default function Login() {
     const navigate = useNavigate();
@@ -79,7 +80,25 @@ export default function Login() {
   
     useEffect(() => {
       if (!alert&&token) {
-        navigate("/my")
+        const decodedToken = jwt_decode(token);
+
+        const role = decodedToken.role;
+
+        if(role === 'ADMIN'){
+
+        } else if(role === 'COMPANY'){
+          navigate("/admin")
+        } else if(role === 'TEAM'){
+          navigate("/project")
+        } else if(role === 'DEPARTMENT'){
+          navigate("/project")
+        } else if(role === 'WORKER'){
+          navigate("/home")
+        } else if(role === 'OUTSOURCING'){
+
+        } else if(role === 'USER'){
+          navigate("/my")
+        }
       }
     }, [alert]);
   
