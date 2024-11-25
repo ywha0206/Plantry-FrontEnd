@@ -3,7 +3,7 @@
     flex-direction: column;
     justify-content: space-between;
     width: 100%;
-    max-width: 1650px;
+    // max-width: 1650px;
     gap: 12px;
     .admin-index-top {
         display: flex;
@@ -83,6 +83,8 @@
         height: 330px;
         display: flex;
         gap: 30px;
+        justify-content: space-between;
+
     }
 }
 
