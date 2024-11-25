@@ -34,6 +34,7 @@ import MyAttendance from './pages/my/Attendance'
 import FAQPage from './pages/rending/FAQPage'
 import ResultPw from './pages/user/ResultPw'
 import ResultId from './pages/user/ResultId'
+import NewPagePages from './pages/page/NewPage'
 const MainIndexComponent = lazy(() => import("./components/render/main"))
 
 
@@ -116,6 +117,8 @@ function App() {
         {/* 페이지 */}
         <Route path='/page' element={<Main />}>
           <Route index element={<Page />} />
+          <Route path="newPage" element={<NewPagePages />} />
+
         </Route>
       </Routes>
     </div>
