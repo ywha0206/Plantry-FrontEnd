@@ -79,7 +79,7 @@ export default function Login() {
   
     useEffect(() => {
       if (!alert&&token) {
-        navigate("/document")
+        navigate("/my")
       }
     }, [alert]);
   
