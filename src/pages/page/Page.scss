@@ -1,6 +1,5 @@
 #page-container1 {
     height: 100%;
-    max-width: 1650px;
     display: flex;
     gap: 12px;
 
@@ -9,13 +8,36 @@
         background-color: white;
         border-radius: 20px;
         padding: 20px;
+        max-height: 810px;
+        min-width: 250px;
+        
+        .newPage{
+            border: 1px solid #ddd;
+        }
+
+        .newPageBtn{
+            background: #7e7edf;
+            height: 40px;
+            
+        }
+
+        .newPageBtn:hover{
+            background: #5d5ddd
+        }
+
     }
     .page-main1 {
-        min-width: 1338px;
         flex-grow: 1;
         background-color: white;
         border-radius: 20px;
         padding: 20px;
+        max-height: 810px;
+        box-sizing: border-box;
+
+        
+    }
+    .page-main-container{
+        max-height: 750px;
     }
 
     .page-aside1 .documentPen{
@@ -82,6 +104,157 @@
             width: 500px;
         }
     }
+
+
+    .CardContainer{
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding: 10px;
+        margin-top: 20px;
+        overflow-y: scroll;
+        height: 670px;
+        width: 100%;
+    }
+
+    .CardContainer .pageCard{
+        margin-bottom: 20px;
+        width: 25%;
+    }
+
+
+   
+    .newPage-main-container{
+        width: 600px;
+        margin: 0 auto;
+        font-family: Arial, sans-serif;
+        color: #333;
+        max-height: 750px;
+        position: relative; /* Ensure relative positioning for absolute children */
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+          }
+          
+          button:hover {
+            background-color: #0056b3;
+          }
+          
+          input {
+            border: 1px solid #ccc;
+            padding: 5px;
+            border-radius: 5px;
+          }
+          
+          select {
+            border: 1px solid #ccc;
+            padding: 5px;
+            border-radius: 5px;
+          }
+          
+        .title-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.5em;
+            border: none;
+            border-bottom: 1px solid #ddd;
+            outline: none;
+          }
+       
+          .sharing-menu {
+            margin-top: 10px;
+          }
+          
+          .email-input {
+            padding: 5px;
+            width: 200px;
+          }
+          
+          .add-user-btn {
+            margin-left: 10px;
+            padding: 5px 10px;
+          }
+          
+          .user-list {
+            margin-top: 10px;
+            list-style: none;
+            padding: 0;
+          }
+          
+          .user-list li {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+          }
+
+          .file-manager {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+          }
+        
+            /* Overlay for background dimming */
+        .emoji-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.3); /* Semi-transparent background */
+            z-index: 999; /* Ensure it covers the entire page */
+        }
+        /* Popup for Emoji Picker */
+        .emoji-popup {
+            position: fixed;
+            top: 10%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Center the popup */
+            background: white;
+            border-radius: 12px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            z-index: 1000; /* Above the overlay */
+
+            .emoji-search {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            }
+
+            .emoji-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+
+            .emoji {
+                font-size: 20px;
+                text-align: center;
+                cursor: pointer;
+
+                &:hover {
+                background-color: #f5f5f5;
+                border-radius: 50%;
+                }
+            }
+            }
+            }
+
+    }
+ 
+
 
 }
 
