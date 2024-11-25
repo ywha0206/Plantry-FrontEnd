@@ -8,7 +8,7 @@ import { CustomGubun } from '@/components/Gubun';
 import { Modal } from '@/components/Modal';
 import CustomAlert from '@/components/Alert';
 import { CustomMessage } from '@/components/Message';
-import jwt_decode from "jwt-decode";
+
 
 export default function Login() {
     const navigate = useNavigate();
@@ -21,6 +21,7 @@ export default function Login() {
     const [message, setMessage] = useState('');
     const [type, setType] = useState('');
     const [msg, setMsg] = useState(false);
+    const [role, setRole] = useState("");
   
     const changeHandler = (e)=>{
       if(e.target.name === 'uid'){
@@ -38,8 +39,10 @@ export default function Login() {
         .post("/api/user/login",data)
         .then((resp)=>{
           if(resp.status === 200){
-            const token = resp.data; 
+            const token = resp.data.token; 
+            const role = resp.data.role;
             setToken(token);
+            setRole(role);
             console.log('로그인 성공, 토큰:', token);
   
             localStorage.setItem('token', token);
@@ -80,25 +83,12 @@ export default function Login() {
   
     useEffect(() => {
       if (!alert&&token) {
-        const decodedToken = jwt_decode(token);
-
-        const role = decodedToken.role;
-
-        if(role === 'ADMIN'){
-
-        } else if(role === 'COMPANY'){
+        if(role === 'COMPANY'){
           navigate("/admin")
-        } else if(role === 'TEAM'){
-          navigate("/project")
-        } else if(role === 'DEPARTMENT'){
-          navigate("/project")
-        } else if(role === 'WORKER'){
-          navigate("/home")
-        } else if(role === 'OUTSOURCING'){
-
-        } else if(role === 'USER'){
+        } else {
           navigate("/my")
         }
+          
       }
     }, [alert]);
   
