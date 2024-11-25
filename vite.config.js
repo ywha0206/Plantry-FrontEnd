@@ -13,7 +13,5 @@ export default defineConfig({
   server: {
     port: 8010,
   },
-  optimizeDeps: {
-    include: ['@editorjs/Paragraph']
-  }
+
 })
