@@ -35,6 +35,8 @@ import FAQPage from './pages/rending/FAQPage'
 import ResultPw from './pages/user/ResultPw'
 import ResultId from './pages/user/ResultId'
 import NewPagePages from './pages/page/NewPage'
+import PageListPage from './pages/page/PageList'
+import PageViewPages from './pages/page/PageView'
 const MainIndexComponent = lazy(() => import("./components/render/main"))
 
 
@@ -118,7 +120,8 @@ function App() {
         <Route path='/page' element={<Main />}>
           <Route index element={<Page />} />
           <Route path="newPage" element={<NewPagePages />} />
-
+          <Route path="list" element={<PageListPage />} />
+          <Route path="view" element={<PageViewPages />} />
         </Route>
       </Routes>
     </div>
