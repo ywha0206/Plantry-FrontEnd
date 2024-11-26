@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Chart from 'react-apexcharts';
-import { YAxis } from 'recharts';
 
 const WorkTimeline = () => {
   const date = '2024-11-18T'; 

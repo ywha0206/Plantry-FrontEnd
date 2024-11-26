@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import '@/pages/admin/Admin.scss'
 import {CustomSearch} from '@/components/Search'
 import { CustomButton } from '../../components/Button'
@@ -7,9 +7,25 @@ import { Modal } from '@/components/Modal'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminHeader from '../../components/admin/AdminHeader'
 import Page from '../../components/Page'
+import { useQuery } from '@tanstack/react-query'
+import { useDispatch, useSelector } from 'react-redux'
+import useUsersStore from '../../store/zustand'
 
 export default function AdminUser() {
-    
+    const dispatch = useDispatch();
+    const selectedTeamId = useSelector((state) => state.team.selectedTeamId);
+    const usersData = useUsersStore(state => state.usersData);
+
+    useEffect(() => {
+        if (!usersData) {
+        console.log("No user data available yet.");
+        }
+        console.log(usersData)
+    }, [usersData]);  // usersData가 변경될 때마다 호출
+
+    if (!usersData) {
+        return <p>Loading...</p>;  // 데이터가 로드될 때까지 로딩 메시지
+    }
     //                                      useState                                           //
     const [user,setUser] = useState(false);
     const [team,setTeam] = useState(false);
@@ -73,52 +89,28 @@ export default function AdminUser() {
                     <th className="w-1/10 rounded-tl-lg"><input type="checkbox" /></th>
                     <th className="w-1/10">번호</th>
                     <th className="w-2/10">이름</th>
-                    <th className="w-2/10">소속</th>
                     <th className="w-1/10">상태</th>
                     <th className="w-1/10">근태</th>
                     <th className="w-1/10">직급</th>
-                    <th className="w-1/10">가입일자</th>
+                    <th className="w-2/10">가입일자</th>
                     <th className="w-1/10 rounded-tr-lg">비고</th>
                 </tr>
             </thead>
-            <tbody className='h-16'>
-                <tr className='text-center'>
-                    <td className="w-1/10"><input type="checkbox" /></td>
-                    <td className="w-1/10">1</td>
-                    <td className="w-2/10">홍길동</td>
-                    <td className="w-2/10">개발</td>
-                    <td className="w-1/10">활동</td>
-                    <td className="w-1/10">정상</td>
-                    <td className="w-1/10">사원</td>
-                    <td className="w-1/10">2024-01-01</td>
-                    <td className="w-1/10">비고 없음</td>
-                </tr>
-            </tbody>
-            <tbody className='h-16'>
-                <tr className='text-center'>
-                    <td className="w-1/10"><input type="checkbox" /></td>
-                    <td className="w-1/10">1</td>
-                    <td className="w-2/10">홍길동</td>
-                    <td className="w-2/10">개발</td>
-                    <td className="w-1/10">활동</td>
-                    <td className="w-1/10">정상</td>
-                    <td className="w-1/10">사원</td>
-                    <td className="w-1/10">2024-01-01</td>
-                    <td className="w-1/10">비고 없음</td>
-                </tr>
-            </tbody>
-            <tbody className='h-16'>
-                <tr className='text-center'>
-                    <td className="w-1/10"><input type="checkbox" /></td>
-                    <td className="w-1/10">1</td>
-                    <td className="w-2/10">홍길동</td>
-                    <td className="w-2/10">개발</td>
-                    <td className="w-1/10">활동</td>
-                    <td className="w-1/10">정상</td>
-                    <td className="w-1/10">사원</td>
-                    <td className="w-1/10">2024-01-01</td>
-                    <td className="w-1/10">비고 없음</td>
-                </tr>
+            <tbody>
+            {usersData.map((v, i) => {
+                return (
+                    <tr key={i} className='text-center h-16'>
+                        <td className="w-1/10"><input type="checkbox" /></td>
+                        <td className="w-1/10">{v.id}</td> {/* 데이터 필드 이름을 정확히 넣어야 함 */}
+                        <td className="w-2/10">{v.name}</td>
+                        <td className="w-2/10">{v.status}</td>
+                        <td className="w-1/10">{v.attendance}</td>
+                        <td className="w-1/10">{v.level}</td>
+                        <td className="w-1/10">{v.createAt}</td>
+                        <td className="w-1/10">머할까</td>
+                    </tr>
+                )
+            })}
             </tbody>
         </table>
         <section className='flex justify-end gap-4 text-xs mb-10'>
