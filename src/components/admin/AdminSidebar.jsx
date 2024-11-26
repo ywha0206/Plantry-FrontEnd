@@ -9,6 +9,9 @@ import DepartmentModal from './DepartmentModal';
 import CustomAlert from '../Alert';
 import axiosInstance from '@/services/axios.jsx'
 import GroupInfoModifyModal from './GroupInfoModifyModal';
+import { useQuery } from '@tanstack/react-query';
+import { useStore } from 'zustand';
+import useUsersStore from '../../store/zustand';
 export default function AdminSidebar({
     onchange
 }) {
@@ -23,10 +26,6 @@ export default function AdminSidebar({
     const [selectOption, setSelectOption] = useState(0);
     const [teamNav,setTeamNav] = useState(true);
     const [departmentNav,setDepartmentNav] = useState(true);
-    const [dep,setDep] = useState([]);
-    const [depCnt,setDepCnt] = useState();
-    const [tea,setTea] = useState([]);
-    const [teamCnt,setTeamCnt] = useState();
     const [activeGroup, setActiveGroup] = useState(null);
     const [selectedTeamNav, setSelectedTeamNav] = useState("");
     //                                       useState                                       //
@@ -35,36 +34,62 @@ export default function AdminSidebar({
     const departmentNavRef = useRef(null);
 
     //                                        useRef                                        //
-
+    
+    
     //                                        useEffect                                     //
-    useEffect (()=> {
-        axiosInstance
-            .get("/api/departments")
-            .then((resp)=>{
-                setDep(resp.data.deps)
-                setDepCnt(resp.data.depCnt)
-            })
-            .catch()
-        
-        axiosInstance
-            .get("/api/teams")
-            .then((resp)=>{
-                setTea(resp.data.teams)
-                setTeamCnt(resp.data.teamCnt)
-            })
-    },[])
+    
+    const { data: departmentData, isLoading: isLoadingDepartments, isError: isErrorDepartments, error: departmentError } = useQuery({
+        queryKey: ['departments'],
+        queryFn: async () => {
+            const response = await axiosInstance.get('/api/departments');
+            return response.data;
+        },
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        cacheTime: 10 * 60 * 1000, // 10 minutes
+    });
 
+    // useQuery for teams
+    const { data: teamData, isLoading: isLoadingTeams, isError: isErrorTeams, error: teamError } = useQuery({
+        queryKey: ['teams'],
+        queryFn: async () => {
+            const response = await axiosInstance.get('/api/teams');
+            return response.data;
+        },
+        staleTime: 5 * 60 * 1000,
+        cacheTime: 10 * 60 * 1000,
+    });
+
+    if (isLoadingDepartments || isLoadingTeams) {
+        return <p>Loading...</p>;
+    }
+
+    if (isErrorDepartments) {
+        return <p>Error loading departments: {departmentError.message}</p>; 
+    }
+
+    if (isErrorTeams) {
+        return <p>Error loading teams: {teamError.message}</p>;
+    }
     //                                        useEffect                                     //
 
     //                                        Handler                                       //
     const changeActiveHandler = (e) => {
         const teamId = e.target.dataset.id;  // 클릭한 팀의 id 값 가져오기
         dispatch(setSelectedTeamId(teamId));
+        
+        axiosInstance
+            .get(`/api/group/users/detail?team=${selectedTeamId}`,null)
+            .then((resp)=>{
+                console.log(resp.data)
+                useUsersStore.getState().setUsersData(resp.data);
+            })
+            .catch((err)=>{
+
+            })
     }
     const optionChanger = (e)=>{
         setSelectOption(Number(e.target.value))
     }
-    
     const openUser = () => {setUser(true)} 
     const closeUser = () => {setUser(false)}
     const openTeam = () => {setTeam(true)} 
@@ -167,10 +192,10 @@ export default function AdminSidebar({
         </section>
         <section className='mb-6'>
             <div className='flex justify-between items-center'>
-                <p>팀 ({teamCnt})</p><img className='w-3 h-2 cursor-pointer' onClick={closeTeamNav} src='/images/arrow-top.png'/>
+                <p>팀 ({teamData.teamCnt})</p><img className='w-3 h-2 cursor-pointer' onClick={closeTeamNav} src='/images/arrow-top.png'/>
             </div>
             <article ref={teamNavRef} className='team-nav'>
-                {tea.map(v => {
+                {teamData.teams.map(v => {
                     return (
                     <div
                         key={v.id}
@@ -185,10 +210,10 @@ export default function AdminSidebar({
         </section>
         <section className='mb-6'>
             <div className='flex justify-between items-center'>
-                <p>부서 ({depCnt})</p><img className='w-3 h-2 cursor-pointer' onClick={closeDepartmentNav} src='/images/arrow-top.png'/>
+                <p>부서 ({departmentData.depCnt})</p><img className='w-3 h-2 cursor-pointer' onClick={closeDepartmentNav} src='/images/arrow-top.png'/>
             </div>
             <article ref={departmentNavRef} className='department-nav'>
-                {dep.map(v => {
+                {departmentData.deps.map(v => {
                     return (
                     <div
                         key={v.id}

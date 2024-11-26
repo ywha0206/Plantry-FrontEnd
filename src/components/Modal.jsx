@@ -4,68 +4,6 @@ import axiosInstance from '@/services/axios.jsx'
 
 export const Modal = ({ isOpen, onClose, children , text }) => {
     if (!isOpen) return null;
-    //                                              useState                                             //
-    const [user, setUser] = useState([])
-    const [user2, setUser2] = useState([])
-    const [selectedLeader , setSelectedLeader] = useState("");
-    const [depName, setDepName] = useState("");
-    const [depDiscription, setDepDiscription] = useState("");
-    const [members, setMembers] = useState([]);
-    //                                              useState                                             //
-
-    //                                              useRef                                               //
-    const selectLeaderRef = useRef(null);
-    const selectMemberRef = useRef(null);
-    //                                              useRef                                               //
-    const getMembers = () => {
-      axiosInstance
-        .get("/api/users")
-        .then((resp) => {
-            if(resp.status === 200){
-              const users = resp.data;
-              setUser(users);  
-            }
-        })
-        .catch()
-        
-    }
-
-    const getMembers2 = () => {
-      axiosInstance
-        .get("/api/users")
-        .then((resp) => {
-            if(resp.status === 200){
-              const users = resp.data;
-              setUser2(users);  
-            }
-        })
-        .catch()
-        
-    }
-    
-    const selectLeader = (e) => {
-        setSelectedLeader(e.target.dataset.id)
-    }
-
-    const selectMember = (e) => {
-        const newId = e.target.dataset.id
-        setMembers(prevMembers => [...prevMembers, newId]);
-    }
-
-    const changeDepName = (e) => {setDepName(e.target.value)}
-
-    const changeDepDiscription = (e) => {setDepDiscription(e.target.value)}
-
-    const makeDep = (e) => {
-      const data = {
-        "name" : depName,
-        "discription" : depDiscription,
-        "leader" : selectedLeader,
-        "members" : members
-      }
-
-      console.log(data)
-    }
 
 return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 modal-custom-fixed">
