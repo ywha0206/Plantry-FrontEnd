@@ -35,6 +35,8 @@ import FAQPage from './pages/rending/FAQPage'
 import ResultPw from './pages/user/ResultPw'
 import ResultId from './pages/user/ResultId'
 import NewPagePages from './pages/page/NewPage'
+import MyModify from './pages/my/MyModify'
+import MyApproval from './pages/my/Approval'
 const MainIndexComponent = lazy(() => import("./components/render/main"))
 
 
@@ -65,6 +67,8 @@ function App() {
         {/* 마이페이지 */}
         <Route path='/my' element={<Main />}>
           <Route index element={<MyMain />}/>
+          <Route path='modify' element={<MyModify />}/>
+          <Route path='approval' element={<MyApproval />}/>
           <Route path='attendance' element={<MyAttendance />}/>
         </Route>
 
