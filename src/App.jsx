@@ -37,6 +37,7 @@ import ResultId from './pages/user/ResultId'
 import NewPagePages from './pages/page/NewPage'
 import MyModify from './pages/my/MyModify'
 import MyApproval from './pages/my/Approval'
+import Home from './pages/home/Home'
 const MainIndexComponent = lazy(() => import("./components/render/main"))
 
 
@@ -52,6 +53,11 @@ function App() {
           <Route path="price" element={<PricePage />} />
           <Route path="faq" element={<FAQPage />} />
         </Route>
+
+        {/* 홈 */}
+        <Route path='/home' element={<Main/>}>
+          <Route index element={<Home/>}/>
+        </Route> 
 
         {/* 유저 */}
         <Route path="/user">
