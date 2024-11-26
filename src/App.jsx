@@ -37,6 +37,9 @@ import ResultId from './pages/user/ResultId'
 import NewPagePages from './pages/page/NewPage'
 import PageListPage from './pages/page/PageList'
 import PageViewPages from './pages/page/PageView'
+import MyModify from './pages/my/MyModify'
+import MyApproval from './pages/my/Approval'
+import Home from './pages/home/Home'
 const MainIndexComponent = lazy(() => import("./components/render/main"))
 
 
@@ -53,6 +56,11 @@ function App() {
           <Route path="faq" element={<FAQPage />} />
         </Route>
 
+        {/* 홈 */}
+        <Route path='/home' element={<Main/>}>
+          <Route index element={<Home/>}/>
+        </Route> 
+
         {/* 유저 */}
         <Route path="/user">
           <Route path="login" element={<Login />} />
@@ -67,6 +75,8 @@ function App() {
         {/* 마이페이지 */}
         <Route path='/my' element={<Main />}>
           <Route index element={<MyMain />}/>
+          <Route path='modify' element={<MyModify />}/>
+          <Route path='approval' element={<MyApproval />}/>
           <Route path='attendance' element={<MyAttendance />}/>
         </Route>
 
