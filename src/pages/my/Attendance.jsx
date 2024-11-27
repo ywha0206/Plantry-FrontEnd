@@ -49,15 +49,35 @@ export default function MyAttendance() {
         </article>
         <article className='attend-arti py-[30px] px-[50px]'>
           <h2>출퇴근현황</h2>
-          <div className='att-search mt-10 p-[10px]'>
+          <div className='att-search mt-10 py-[10px] px-[30px]'>
             <h2 className='text-gray-500 ml-10'>Search Filters</h2>
-            <div className='border rounded-lg h-[40px]'>
-              <select>
-                <option selected disabled hidden>이번 주</option>
-                <option value="1">7일</option>
-                <option value="2">3개월</option>
-                <option value="3">1년</option>
-              </select>
+            <div className='flex justify-between'>
+              <div className='flex justify-between items-end w-[770px]'>
+                <div className='border flex justify-between rounded-lg h-[40px] w-[250px]'>
+                  <div className='flex justify-center items-center border-r w-2/5 font-light'>기간</div>
+                  <select className='w-3/5 rounded-lg search-sel indent-4'>
+                    <option value="" className='search-sel'>1주</option>
+                    <option value="" className='search-sel'>2주</option>
+                    <option value="" className='search-sel'>1개월</option>
+                  </select>
+                </div>
+                <div className='flex items-center justify-between border rounded-lg pr-2 w-[500px]'>
+                  <div className='flex'>
+                    <input type="date" className="indent-2 font-light rounded-lg h-[40px] w-[200px]" />
+                  </div>
+                  -
+                  <div className='flex'>
+                    <input type="date" className="indent-2 font-light rounded-lg h-[40px] w-[200px]" />
+                  </div>
+                </div>
+              </div>
+              <div className='flex items-end'>
+                <label className='flex items-center mr-[20px] text-sm'><input type="checkbox" className='mr-1'/>초과근무 포함</label>
+                <button className='bg-indigo-500 flex items-center btn-profile text-white'>
+                  <span>보기</span>
+                  <img className='' src="/images/white-my-btn-arrow.png" alt="allow" />
+                </button>
+              </div>
             </div>
           </div>
           <div className='att-graph mt-[20px] p-[10px]'>
