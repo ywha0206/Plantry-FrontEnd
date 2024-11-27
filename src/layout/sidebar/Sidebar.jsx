@@ -103,7 +103,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
       </li>
       <>{ path ===0 && (
           <div className="sidebar-links">
-          <Link to="/">
+          <Link to="/home">
             <li
               className={isActive === 0 ? "sidebar-close-btn bg-blue-100" : "sidebar-close-btn"}
             >
