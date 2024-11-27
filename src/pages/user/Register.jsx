@@ -319,6 +319,22 @@ export default function Register() {
                     </div>
                   </>
                 }
+                {
+                  selected === 'Standard' && 
+                  <>
+                  <p className='text-sm custom-mt-30'>결제 정보를 입력해주세요.</p>
+                    <input type='text' placeholder='결제할 카드의 번호를 입력해주세요.'
+                    className="signup-input-lg mt-10" ></input>
+                    <div className='flex justify-between mt-10'>
+                      <input type='text' placeholder='카드 별명'
+                      className="card-inp1 mr-1" ></input>
+                      <input type='text' placeholder='만료일'
+                      className="card-inp2 mr-1" ></input>
+                      <input type='text' placeholder='CVC번호'
+                      className="card-inp2 mr-1" ></input>
+                    </div>
+                  </>
+                }
                 
                 <div className="flex justify-between reg-btn mt-10">
                   <button

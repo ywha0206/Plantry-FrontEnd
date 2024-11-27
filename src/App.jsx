@@ -40,6 +40,7 @@ import PageViewPages from "./pages/page/PageView";
 import MyModify from "./pages/my/MyModify";
 import MyApproval from "./pages/my/Approval";
 import Home from "./pages/home/Home";
+import MyPayment from "./pages/my/Payment";
 
 const MainIndexComponent = lazy(() => import("./components/render/main"));
 
@@ -85,6 +86,7 @@ function App() {
           <Route path="modify" element={<MyModify />} />
           <Route path="approval" element={<MyApproval />} />
           <Route path="attendance" element={<MyAttendance />} />
+          <Route path='payment' element={<MyPayment />}/>
         </Route>
 
         {/* <Route path='/home' element */}
