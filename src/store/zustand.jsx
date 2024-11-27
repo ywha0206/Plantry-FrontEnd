@@ -14,4 +14,9 @@ export const useAttendStore = create((set) => ({
   setTotalCount: (count) => set({ totalCount: count}),
 }));
 
+export const useCalenderStore = create((set) => ({
+  calendarId : 0,
+  setId: (id) => set({calendarId: id})
+}));
+
 export default useUsersStore;

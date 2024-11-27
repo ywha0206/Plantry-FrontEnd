@@ -20,7 +20,6 @@ export default function Community() {
     console.log(selectOption);
   };
 
-  // 즐겨찾기 상태 변경 핸들러
   const toggleFavorite = (key) => {
     setFavorites((prev) => ({ ...prev, [key]: !prev[key] }));
   };
