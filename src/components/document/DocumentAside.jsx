@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import {CustomSearch} from '@/components/Search'
 import { Modal } from "../Modal";
+import NewDrive from "./NewDrive";
 
 export default function DocumentAside(){
     const [drive, setDrive] = useState(false);
@@ -84,7 +85,7 @@ export default function DocumentAside(){
                     <button onClick={makeDrive} className='bg-purple white h-8 rounded-md'>드라이브 생성</button>
                 </section>
                 <div className='drive-modal'>
-                    <Modal
+                    <NewDrive 
                        isOpen={drive}
                        onClose={() => setDrive(false)}
                        text="드라이브 만들기"
