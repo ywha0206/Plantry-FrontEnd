@@ -8,19 +8,29 @@ export default function InviteModal(props) {
 
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [users, setUsers] = useState([]);
-  const addUser = (user) => {
+
+  const [selectedGroup_Id_Name, setSelectedGroup_Id_Name] = useState({
+    group_id: null,
+    group_name: null,
+  });
+
+  const addUser = () => {
     setSelectedUsers((prevUsers) => {
-      // 중복 추가 방지
-      if (!prevUsers.find((u) => u.id === user.id)) {
-        return [...prevUsers, user];
-      }
-      return prevUsers;
+      const usersToAdd = users.filter(
+        (user) =>
+          !prevUsers.some(
+            (selectedUser) => selectedUser.user_id === user.user_id
+          )
+      );
+      return [...prevUsers, ...usersToAdd];
     });
+    setUsers([]);
+    setSelectedGroup_Id_Name({ group_id: null });
   };
 
   const removeUser = (userId) => {
     setSelectedUsers((prevUsers) =>
-      prevUsers.filter((user) => user.id !== userId)
+      prevUsers.filter((user) => user.user_id !== userId)
     );
   };
 
@@ -29,6 +39,7 @@ export default function InviteModal(props) {
   };
 
   if (!isOpen) return null;
+  console.log("selectedUsers :" + JSON.stringify(selectedUsers));
 
   return (
     <div id="invitation-modal">
@@ -72,25 +83,28 @@ export default function InviteModal(props) {
               case 1:
                 return (
                   <InviteModal_userSearch
-                    addUser={addUser}
-                    setSelectedUsers={setSelectedUsers}
+                    users={users}
                     setUsers={setUsers}
+                    setSelectedGroup_Id_Name={setSelectedGroup_Id_Name}
+                    selectedGroup_Id_Name={selectedGroup_Id_Name}
                   />
                 );
               case 2:
                 return (
                   <InviteModal_orgChart
-                    addUser={addUser}
-                    setSelectedUsers={setSelectedUsers}
+                    users={users}
                     setUsers={setUsers}
+                    setSelectedGroup_Id_Name={setSelectedGroup_Id_Name}
+                    selectedGroup_Id_Name={selectedGroup_Id_Name}
                   />
                 );
               case 3:
                 return (
                   <InviteModal_frequent
-                    addUser={addUser}
-                    setSelectedUsers={setSelectedUsers}
+                    users={users}
                     setUsers={setUsers}
+                    setSelectedGroup_Id_Name={setSelectedGroup_Id_Name}
+                    selectedGroup_Id_Name={selectedGroup_Id_Name}
                   />
                 );
               default:
@@ -98,7 +112,11 @@ export default function InviteModal(props) {
             }
           })()}
 
-          <button className="addBtn" onClick={null}>
+          <button
+            className="addBtn"
+            onClick={addUser}
+            disabled={users.length === 0}
+          >
             <img src="../images/arrowRight.png" alt="" />
           </button>
 
@@ -110,69 +128,32 @@ export default function InviteModal(props) {
               </button>
             </div>
             <div className="selected-Users">
-              <div className="selected-User_cancelBtn">
-                <div className="selected-User">
-                  <img
-                    className="profile"
-                    src="../images/sample_item1.jpg"
-                    alt=""
-                  />
-                  <div className="name_dept">
-                    <div className="name">김규찬</div>
-                    <div className="dept">
-                      <span>인사팀</span>
+              {selectedUsers.map((selectedUser) => (
+                <div
+                  className="selected-User_cancelBtn"
+                  key={selectedUser.user_id}
+                >
+                  <div className="selected-User">
+                    <img
+                      className="profile"
+                      src="../images/sample_item1.jpg"
+                      alt=""
+                    />
+                    <div className="name_dept">
+                      <div className="name">{selectedUser.userName}</div>
+                      <div className="dept">
+                        <span>{selectedUser.group}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <img
-                  className="cancelBtn"
-                  src="../images/closeBtn.png"
-                  alt=""
-                  onClick={removeUser}
-                />
-              </div>
-              <div className="selected-User_cancelBtn">
-                <div className="selected-User">
                   <img
-                    className="profile"
-                    src="../images/sample_item1.jpg"
+                    className="cancelBtn"
+                    src="../images/closeBtn.png"
                     alt=""
+                    onClick={() => removeUser(selectedUser.user_id)}
                   />
-                  <div className="name_dept">
-                    <div className="name">김규찬</div>
-                    <div className="dept">
-                      <span>인사팀</span>
-                    </div>
-                  </div>
                 </div>
-                <img
-                  className="cancelBtn"
-                  src="../images/closeBtn.png"
-                  alt=""
-                  onClick={removeUser}
-                />
-              </div>
-              <div className="selected-User_cancelBtn">
-                <div className="selected-User">
-                  <img
-                    className="profile"
-                    src="../images/sample_item1.jpg"
-                    alt=""
-                  />
-                  <div className="name_dept">
-                    <div className="name">김규찬</div>
-                    <div className="dept">
-                      <span>인사팀</span>
-                    </div>
-                  </div>
-                </div>
-                <img
-                  className="cancelBtn"
-                  src="../images/closeBtn.png"
-                  alt=""
-                  onClick={removeUser}
-                />
-              </div>
+              ))}
             </div>
           </div>
         </div>
