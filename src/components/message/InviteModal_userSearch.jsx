@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 
-export default function InviteModal_userSearch({
-  addUser,
-  setSelectedUsers,
-  setUsers,
-}) {
+export default function InviteModal_userSearch(leftBoxProps) {
+  const {
+    users,
+    setUsers,
+    setSelectedGroup_Id_Name,
+    selectedGroup_Id_Name,
+    userList,
+  } = leftBoxProps;
+
   const [selected, setSelected] = useState(false);
 
   const selectHandler = (e) => {
