@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
 import '@/pages/home/Home.scss'
 import adminProfile from '@/assets/admin-profile.png'
+import { useNavigate } from 'react-router-dom'
 
 export default function Home() {
 
+  const navigate = useNavigate();
   const [progress, setProgress] = useState(80)
 
   const currentDate = new Date(); 
@@ -119,8 +121,8 @@ export default function Home() {
                   <p style={{fontSize:'20px'}}>근무 중</p>
                 </div>
                 <div className='flex'>
-                  <button className='btn-home mr-2'>나의결재현황<img className='ml-2' src="/images/home-my-btn-arrow.png" alt="allow" /></button>
-                  <button className='btn-home'>출퇴근현황<img className='ml-2' src="/images/home-my-btn-arrow.png" alt="allow" /></button>
+                  <button onClick={(e) => {e.preventDefault(); navigate("/my/approval");}} className='btn-home mr-2'>나의결재현황<img className='ml-2' src="/images/home-my-btn-arrow.png" alt="allow" /></button>
+                  <button onClick={(e) => {e.preventDefault(); navigate("/my/attendance");}} className='btn-home'>출퇴근현황<img className='ml-2' src="/images/home-my-btn-arrow.png" alt="allow" /></button>
                 </div>
               </div>
               <div className='my-right'>
