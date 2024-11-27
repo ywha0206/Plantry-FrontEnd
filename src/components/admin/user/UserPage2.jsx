@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import React, { useState } from 'react'
 import axiosInstance from '@/services/axios.jsx'
 import ApprovalModal from './modal/ApprovalModal';
+import UserPage2Resp from './loading/UserPage2Resp';
 export default function UserPage2() {
     const [approvalModal, setApprovalModal] = useState(false);
     const [userId, setUserId] = useState(0);
@@ -23,31 +24,15 @@ export default function UserPage2() {
     });
 
     if (isLoadingApprovals) {
-        return <p>Loading...</p>;
+        return <UserPage2Resp text="로딩중입니다"/>;
     }
 
     if (isErrorApprovals) {
-        return <p>Error:</p>;
+        return <UserPage2Resp text={approvalsError.response.data}/>;
     }
 
     if (!Array.isArray(aprovalsData) || aprovalsData.length === 0) {
-        return <section className="overflow-auto max-h-[300px] scrollbar-none">
-                    <table className="w-full table-auto border-collapse mb-16">
-                    <thead className='bg-gray-200 h-16 sticky top-0 z-10'>
-                        <tr className='text-center'>
-                            <th className="w-1/12 rounded-tl-lg"><input type="checkbox" /></th>
-                            <th className="w-1/12">번호</th>
-                            <th className="w-2/12">이름</th>
-                            <th className="w-1/12">이메일</th>
-                            <th className="w-1/12">아이디</th>
-                            <th className="w-3/12">가입일자</th>
-                            <th className="w-1/12 rounded-tr-lg">승인</th>
-                        </tr>
-                    </thead>
-                </table>
-                <div className='flex justify-center items-center'>승인 요청이 없습니다.</div>
-            </section>
-            ;
+        return <UserPage2Resp text="승인요청이없스니다"/>;
         }   
 
     const openApprovalModal = (e) => {
@@ -62,13 +47,13 @@ export default function UserPage2() {
                 <table className="w-full table-auto border-collapse mb-16">
                     <thead className='bg-gray-200 h-16 sticky top-0 z-10'>
                         <tr className='text-center'>
-                            <th className="w-1/10 rounded-tl-lg"><input type="checkbox" /></th>
-                            <th className="w-1/10">번호</th>
-                            <th className="w-2/10">이름</th>
-                            <th className="w-1/10">이메일</th>
-                            <th className="w-1/10">아이디</th>
-                            <th className="w-3/10">가입일자</th>
-                            <th className="w-1/10 rounded-tr-lg">승인</th>
+                            <th className="w-[42px] rounded-tl-lg"><input type="checkbox" /></th>
+                            <th className="w-[103px]">번호</th>
+                            <th className="w-[212px]">이름</th>
+                            <th className="w-[212px]">이메일</th>
+                            <th className="w-[212px]">아이디</th>
+                            <th className="w-[212px]">가입일자</th>
+                            <th className="w-[150px] rounded-tr-lg">승인</th>
                         </tr>
                     </thead>
                     <tbody>

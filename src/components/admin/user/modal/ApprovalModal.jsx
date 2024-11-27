@@ -37,7 +37,7 @@ export default function ApprovalModal({onClose,isOpen,userId}) {
     };
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 modal-custom-fixed">
-        <div className="bg-white rounded-2xl shadow-lg max-w-2xl w-full w-[400px]">
+        <div className="bg-white rounded-2xl shadow-lg max-w-2xl w-[400px]">
             <div className="display-flex mb-8 py-5 px-12 bg-gray-300 rounded-t-2xl">
                 <span className="text-2xl">직원 추가정보 입력</span>
                 <button 
