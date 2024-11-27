@@ -23,7 +23,7 @@ export const ProjectColumn = ({ title, count, color, projects }) => {
         </div>
         <div className={`flex mt-1 w-full rounded-lg ${color} min-h-[4px]`} />
       </div>
-      <div className="flex flex-col mt-3 w-full  overflow-y-auto max-h-[560px]">
+      <div className="flex flex-col mt-3 w-full  overflow-y-auto max-h-[600px]">
       {projects.map((project, index) => (
           <ProjectTaskDynamic
             key={index}

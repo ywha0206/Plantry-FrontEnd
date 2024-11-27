@@ -18,7 +18,6 @@ export default function AdminSidebar({
     const dispatch = useDispatch();
     const selectedTeamId = useSelector((state) => state.team.selectedTeamId);
 
-    //                                      useState                                       //
     const [user,setUser] = useState(false);
     const [team,setTeam] = useState(false);
     const [department,setDepartment] = useState(false);
@@ -28,16 +27,10 @@ export default function AdminSidebar({
     const [departmentNav,setDepartmentNav] = useState(true);
     const [activeGroup, setActiveGroup] = useState(null);
     const [selectedTeamNav, setSelectedTeamNav] = useState("");
-    //                                       useState                                       //
-    //                                        useRef                                        //
+
     const teamNavRef = useRef(null);
     const departmentNavRef = useRef(null);
 
-    //                                        useRef                                        //
-    
-    
-    //                                        useEffect                                     //
-    
     const { data: departmentData, isLoading: isLoadingDepartments, isError: isErrorDepartments, error: departmentError } = useQuery({
         queryKey: ['departments'],
         queryFn: async () => {
@@ -48,7 +41,6 @@ export default function AdminSidebar({
         cacheTime: 10 * 60 * 1000, // 10 minutes
     });
 
-    // useQuery for teams
     const { data: teamData, isLoading: isLoadingTeams, isError: isErrorTeams, error: teamError } = useQuery({
         queryKey: ['teams'],
         queryFn: async () => {
@@ -70,22 +62,10 @@ export default function AdminSidebar({
     if (isErrorTeams) {
         return <p>Error loading teams: {teamError.message}</p>;
     }
-    //                                        useEffect                                     //
 
-    //                                        Handler                                       //
     const changeActiveHandler = (e) => {
         const teamId = e.target.dataset.id;  // 클릭한 팀의 id 값 가져오기
         dispatch(setSelectedTeamId(teamId));
-        
-        axiosInstance
-            .get(`/api/group/users/detail?team=${selectedTeamId}`,null)
-            .then((resp)=>{
-                console.log(resp.data)
-                useUsersStore.getState().setUsersData(resp.data);
-            })
-            .catch((err)=>{
-
-            })
     }
     const optionChanger = (e)=>{
         setSelectOption(Number(e.target.value))
@@ -150,25 +130,11 @@ export default function AdminSidebar({
                 text="팀 생성"
             />
         </section>
-        <section className='user-modal'>
-            <Modal
-                isOpen={user}
-                onClose={closeUser}
-                text="사원 등록"
-            />
-        </section>
         <section className='department-modal'>
             <DepartmentModal
                 isOpen={department}
                 onClose={closeDepartment}
                 text="부서 생성"
-            />
-        </section>
-        <section className='outsourcing-modal'>
-            <Modal
-                isOpen={outsourcing}
-                onClose={closeOutsourcing}
-                text="외주업체 등록"
             />
         </section>
         <section>
@@ -178,17 +144,17 @@ export default function AdminSidebar({
                 text={selectedTeamNav}
             />
         </section>
-        <section className='flex justify-center mb-8'><p className='text-lg'>팀 / 부서 (6)</p></section>
+        <section className='flex justify-center mb-8'><p className='text-lg'>전체 ({teamData.teamCnt + departmentData.depCnt})</p></section>
         <section className='flex justify-center mb-8 w-26'>
             <select className='outline-none border rounded-l-md opacity-80 h-11 w-24 text-center text-sm'>
-                <option>참여자</option>
-                <option>부장</option>
+                <option>이름</option>
+                <option>그룹장</option>
                 <option>담당업무</option>
             </select>
-            <CustomSearch 
-                width1='24'
-                width2='40'
-            />
+            <label className='flex justify-start items-center border rounded-r-md w-[120px] h-11'>
+                <img className='opacity-50 w-6 h-6 ml-4' src='/images/search-icon.png' />
+                <input className='w-[60px] text-sm' placeholder='검색하기'/>
+            </label>
         </section>
         <section className='mb-6'>
             <div className='flex justify-between items-center'>

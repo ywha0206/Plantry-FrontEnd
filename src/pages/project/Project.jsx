@@ -2,6 +2,7 @@ import { CustomSVG } from "../../components/project/CustomSVG";
 import ProjectAside from "../../components/project/ProjectAside";
 import { ProjectColumn } from "../../components/project/ProjectColumn";
 import "@/pages/project/Project.scss";
+import ShareMember from "../../components/ShareMember";
 
 const projectColumns = [
   {
@@ -71,24 +72,24 @@ const projectColumns = [
 
 export default function Project() {
   // Tailwind CSS 클래스 묶음
-  const containerClass = "flex flex-col pb-2.5 w-full rounded-none max-md:max-w-full";
+  const containerClass = "flex pb-2.5 w-full rounded-none max-md:max-w-full";
   const headerButtonClass = "flex flex-col justify-center items-end px-9 py-2 rounded-xl bg-slate-100 max-md:pl-5";
-  const navButtonClass =
-    "flex gap-2.5 justify-center items-center px-2 w-10 h-10 bg-white border-2 border-gray-100 border-dashed min-h-[40px] rounded-[48px]";
   const addBoardClass = "flex gap-2 items-center px-3 py-2 w-full text-sm rounded-lg bg-zinc-200 bg-opacity-30";
 
   return (
-    <div id="project-container" className="flex gap-[20px] min-h-full">
+    <div id="project-container" className="flex min-h-full">
       {/* 사이드바 */}
       <div className="w-[270px]">
         <ProjectAside />
       </div>
 
       {/* 메인 섹션 */}
-      <section className="flex-grow py-8 pl-6 min-w-max bg-white rounded-3xl">
+      <section className="flex-grow py-6 pl-6 min-w-max bg-white rounded-3xl">
+        
         {/* 헤더 */}
         <div className={containerClass}>
-          <header className="flex overflow-hidden relative flex-col px-52 py-2.5 max-md:px-5 max-md:max-w-full">
+          <div className="w-[20%]"></div>
+          <header className="flex overflow-hidden relative flex-col px-52 py-2.5 w-[60%]">
             <div className="flex z-0 flex-col self-center max-w-full w-[364px]">
               <button className={headerButtonClass}>
                 <CustomSVG id="rename" />
@@ -100,17 +101,9 @@ export default function Project() {
           </header>
 
           {/* 네비게이션 */}
-          <nav className="flex z-10 gap-2 items-start self-end mt-0 rounded-3xl max-md:mr-2">
-            <img
-              loading="lazy"
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/694a234b9cbe08c418c3e7a547979eeab73ed28f27d07b54bb0d47d659419974?placeholderIfAbsent=true&apiKey=64129ff822ae4d01a6810b1149e35589"
-              className="object-contain shrink-0 rounded-xl aspect-[3.4] w-[136px]"
-              alt="Board navigation"
-            />
-            <button className={navButtonClass}>
-              <CustomSVG id="group-add" />
-            </button>
-          </nav>
+          <div className="w-[20%] flex justify-end">
+            <ShareMember listName="작업자"/>
+          </div>
         </div>
 
         {/* 프로젝트 컬럼 */}
