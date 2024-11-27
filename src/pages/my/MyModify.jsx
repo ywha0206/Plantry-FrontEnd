@@ -21,7 +21,6 @@ export default function MyModify() {
         event.preventDefault();
         setPass(true);
     }
-
     const passClose = () => {
         setPass(false)
     }
@@ -189,6 +188,7 @@ export default function MyModify() {
                     text="비밀번호 변경"
                 />
             </div>
+
         </section>
     </div>
   </>
