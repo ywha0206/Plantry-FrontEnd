@@ -9,7 +9,7 @@
       border-radius: 20px;
       padding: 20px;
       max-height: 810px;
-      min-width: 250px;
+      min-width: 300px;      
       overflow: hidden;
       scrollbar-width: none;
       
@@ -28,7 +28,6 @@
       }
 
       .flex-col {
-        overflow: hidden;
         transition: all 0.1s ease;
       }
       
