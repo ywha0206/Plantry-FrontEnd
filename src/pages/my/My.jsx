@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import '@/pages/my/My.scss'
 import MyAside from '@/components/my/MyAside.jsx';
 import { useNavigate, useParams } from "react-router-dom";
+import { MyPlanModal } from '../../components/my/PlanModal';
 
 
 export default function MyMain() {
@@ -19,13 +20,25 @@ export default function MyMain() {
     }
   }, [params.page]);
   
+  const paymentHandler = (event) => {
+    event.preventDefault();
+    navigate("/my/payment")
+  }
 
-
-  
   const profileModify = (e) => {
     e.preventDefault();
     navigate("/my/modify");
   }
+  
+  const [plan, setPlan] = useState(false);
+  const upgradePlan = (event) => {
+      event.preventDefault();
+      setPlan(true);
+  }
+  const planClose = () => {
+      setPlan(false)
+  }
+
 
   return (
     <div id='my-main-container'>
@@ -111,11 +124,18 @@ export default function MyMain() {
                 <span className='text-sm text-gray-500'>4일 후 만료</span>
               
               </div>
-              <button className='btn-profile  bg-indigo-500 text-white absolute bottom-[20px] right-[20px]'>결제정보등록</button>
-              <button className='btn-profile border border-indigo-500 text-indigo-800 absolute bottom-[20px] right-[193px]'>등록한 결제정보</button>
+              <button onClick={upgradePlan} className='btn-profile border border-indigo-500 text-indigo-800 absolute bottom-[20px] right-[193px]'>플랜 업그레이드</button>
+              <button onClick={paymentHandler} className='btn-profile  bg-indigo-500 text-white absolute bottom-[20px] right-[20px]'>결제정보등록</button>
             </div>
           </div>
         </article>
+        <div className='plan-modal'>
+                <MyPlanModal
+                    isOpen={plan}
+                    onClose={planClose}
+                    text="요금제 변경"
+                />
+        </div>
       </section>
     </div>
   )

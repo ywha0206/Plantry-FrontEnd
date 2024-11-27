@@ -265,8 +265,7 @@ export default function Register() {
                   {/* Enterprise Plan */}
                   <label
                     className={`planbox-label ${selected === 'Enterprise' ? 'selected' : ''}`}
-                    onClick={() => handlePlanSelection('Enterprise')}
-                  >
+                    onClick={() => handlePlanSelection('Enterprise')}>
                     <div
                       className={`border planbox flex flex-col items-center ${
                         selected === 'Enterprise' ? 'border-indigo-500' : 'border-indigo-200'

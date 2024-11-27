@@ -1,8 +1,28 @@
 import { useState } from "react";
 import MyAside from "../../components/my/MyAside";
+import { MyModal } from "@/components/my/Modal";
+import { MyPlanModal } from "@/components/my/PlanModal";
 
 export default function MyPayment(){
     const [progress, setProgress] = useState(65)
+
+    const [card, setCard] = useState(false);
+    const addCard = (event) => {
+        event.preventDefault();
+        setCard(true);
+    }
+    const cardClose = () => {
+        setCard(false)
+    }
+
+    const [plan, setPlan] = useState(false);
+    const upgradePlan = (event) => {
+        event.preventDefault();
+        setPlan(true);
+    }
+    const planClose = () => {
+        setPlan(false)
+    }
 
     return  (
         <div id='my-payment-container'>
@@ -11,7 +31,7 @@ export default function MyPayment(){
             <article className="payment-arti1">
                 <div className="flex justify-between ">
                     <h2 className="text-xl">등록된 결제정보</h2>
-                    <button className="bg-indigo-500 text-white btn-my">
+                    <button onClick={addCard} className="bg-indigo-500 text-white btn-my">
                         <img src="/images/plus-icon.png" alt="plus" />
                         <span className="ml-2">카드 추가</span>
                     </button>
@@ -107,11 +127,26 @@ export default function MyPayment(){
                         현재 구독 중인 플랜의 이용기한이 4일 남았습니다.
                     </div>
                     <div className="flex justify-around mt-[30px]">
-                        <button className='btn-profile  bg-indigo-500 text-white'>플랜 업그레이드</button>
+                        <button onClick={upgradePlan} className='btn-profile  bg-indigo-500 text-white'>플랜 업그레이드</button>
                         <button className='btn-profile border border-indigo-500 text-indigo-800'>구독 취소</button>
                     </div>
                 </div>
             </article>
+            <div className='card-modal'>
+                <MyModal
+                    isOpen={card}
+                    onClose={cardClose}
+                    text="결제정보 등록"
+                />
+            </div>
+            <div className='plan-modal'>
+                <MyPlanModal
+                    isOpen={plan}
+                    onClose={planClose}
+                    text="요금제 변경"
+                />
+            </div>
+
           </section>
         </div>
       )
