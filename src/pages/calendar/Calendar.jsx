@@ -1,18 +1,70 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import '@/pages/calendar/Calendar.scss'
 import MyCalendar from '../../components/Calendar'
 import {CustomSearch} from '@/components/Search.jsx'
 import { Modal } from '../../components/Modal'
+import PostScheduleModal from '../../components/calendar/PostScheduleModal'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import axiosInstance from '@/services/axios.jsx'
 
 export default function Calendar() {
+
   const [isOpen , setIsOpen] = useState(false);
+  const [calendarId, setCalendarId] = useState(0);
   const onClose = () => {
     setIsOpen(false)
   }
 
+  const queryClient = useQueryClient();
+
   const openModal = () => {
     setIsOpen(true)
   }
+
+  const {data : calendar , isLoading : isLoadingCalendar, isError : isErrorCalendar} = useQuery({
+    queryKey : ['calendar-date',calendarId],
+    queryFn : async () => {
+      try {
+        const response = await axiosInstance.get(`/api/calendar?calendarId=${calendarId}`)
+        return response.data
+      } catch(err) {
+        return err;
+      }
+    }
+  })
+
+  useEffect(()=>{
+    queryClient.setQueryData(['calendar-date'], calendar);
+    console.log(calendar)
+  },[calendar])
+
+  const {data : calendarName, isLoading : isLoadingCalendarName, isError : isErrorCalendarName} = useQuery({
+    queryKey : ['calendar-name'],
+    queryFn : async () => {
+      try {
+        const response = await axiosInstance.get(`/api/calendar/name?id=9`)
+        console.log(response.data)
+        return response.data
+      } catch(err){
+        return err
+      }
+    },
+    enabled : true,
+    refetchOnWindowFocus: false,  
+    staleTime: 300000,  
+    retry: false,
+    cacheTime : 5 * 60 * 1000
+  })
+
+  if(isErrorCalendarName){
+    return <p>{calendarName}</p>
+  }
+
+  if (!Array.isArray(calendarName) || calendarName.length === 0) {
+    return <p>등록된 캘린더가 없습니다...</p>
+  }
+
+  const changeCalendar = (id) =>{setCalendarId(id)}
 
   return (
     <div id='calendar-container'>
@@ -43,9 +95,13 @@ export default function Calendar() {
             <p className='text-sm font-bold'>내 캘린더</p>
           </div>
           <ul className='text-purple-500 ml-6 mt-6 text-sm font-bold'>
-            <li className='mb-2'>• [기본] 전규찬</li>
-            <li className='mb-2'>• 할 일</li>
-            <li className='mb-2'>• 인사팀</li>
+          {
+            calendarName.map((v) => {
+              return (
+              <li key={v.id} onClick={()=>changeCalendar(v.id)} className='mb-2 cursor-pointer hover:text-purple-700'>• {v.name}</li>
+              )
+            })
+          } 
           </ul>
         </section>
       </aside>
@@ -71,11 +127,10 @@ export default function Calendar() {
           />
         </section>
       </section>
-      <Modal 
+      <PostScheduleModal 
         isOpen={isOpen}
         onClose={onClose}
         text="일정 등록"
-        children=""
       />
     </div>
   )
