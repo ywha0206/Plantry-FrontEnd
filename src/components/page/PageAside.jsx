@@ -43,7 +43,7 @@ export default function PageAside() {
         </section>
 
         {/* Toggleable Section */}
-        <article className="pageList overflow-scroll scrollbar-none">
+        <article className="pageList">
             <section className="flex justify-between items-center p-4">
             <div>
                 <p className="text-2xl font-bold">
@@ -65,8 +65,8 @@ export default function PageAside() {
 
             {/* My Page Section */}
             <section
-            className={`mypageArea flex flex-col px-8 overflow-hidden transition-all duration-300 ${
-                isMyPageOpen ? "max-h-screen" : "max-h-0"
+            className={`mypageArea flex flex-col px-8  overflow-scroll scrollbar-none transition-all duration-300 ${
+                isMyPageOpen ? "max-h-[180px]" : "max-h-0"
             }`}
             >
             <Link to="/page/list" className="flex gap-4 items-center mb-1">
@@ -115,8 +115,8 @@ export default function PageAside() {
             </section>
 
             <section
-            className={`mypageArea flex flex-col px-8 overflow-hidden transition-all duration-300 ${
-                isSharePageOpen ? "max-h-screen" : "max-h-0"
+            className={`mypageArea flex flex-col px-8  overflow-scroll scrollbar-none transition-all duration-300 ${
+                isSharePageOpen ? "max-h-[180px] " : "max-h-0"
             }`}>
             <Link to="/page/list"  className="flex gap-4 items-center mb-1">
                 <img src="/images/pagesIcon.png" alt="" />

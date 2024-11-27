@@ -3,6 +3,7 @@ import PageAside from "./PageAside";
 import SharingMenu from "./SharingMenu";
 import FileManager from "./FileManager";
 import Editor from "./Editor";
+import PageLayout from "../../layout/page/PageLayout";
 
 export default function PageView(){
     const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
@@ -129,9 +130,7 @@ export default function PageView(){
 
 
     return (<>
-         <div id="page-container1">
-      <PageAside />
-      <section className="page-main1">
+         <PageLayout>
         <section className="newPage-main-container w-full h-full bg-white">
           {/* Title Input Section */}
           <div className="titleHeader flex">
@@ -219,8 +218,7 @@ export default function PageView(){
             </>
           )}
         </section>
-      </section>
-    </div>
+      </PageLayout>
     
     </>);
 

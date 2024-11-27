@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import PageAside from './PageAside';
 import PageCard from './PageCard';
 import '@/components/page/PageCardcss.scss'
+import PageLayout from '../../layout/page/PageLayout';
 
 export default function PageIndex(){
     const [user,setUser] = useState("Jinhee Ha");
@@ -57,9 +58,7 @@ export default function PageIndex(){
     };
 
     return(<>
-          <div id='page-container1'>
-            <PageAside />
-            <section className='page-main1 '>
+          <PageLayout>
                 <section className="page-main-container w-full h-full bg-white">
                     <h2 className="ml-[40px] text-[40px]	">{user}&#39;s Page</h2>
                     <div className="CardContainer scrollbar-none flex">
@@ -77,9 +76,7 @@ export default function PageIndex(){
                   
                 </section>
                 
-            </section>
-
-        </div>
+            </PageLayout>
         
     </>);
 

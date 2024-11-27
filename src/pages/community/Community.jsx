@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "@/pages/community/Community.scss";
 import { CustomSearch } from "@/components/Search";
-import CommunityCard from "../../components/community/communityCard";
+import CommunityCard from "../../components/community/CommunityCard";
 
 export default function Community() {
   const [selectOption, setSelectOption] = useState(0);
