@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 
-export default function InviteModal_frequent(addUser) {
+export default function InviteModal_frequent(leftBoxProps) {
+  const {
+    users,
+    setUsers,
+    setSelectedGroup_Id_Name,
+    selectedGroup_Id_Name,
+    userList,
+  } = leftBoxProps;
+
   const [selected, setSelected] = useState(false);
 
   const selectHandler = (e) => {
