@@ -165,6 +165,13 @@ export default function MyModify() {
                     </li>
                 </ul>
             </article>
+            {/* <div className='file-modal'>
+                    <Modal
+                        isOpen={isOpen}
+                        onClose={onClose}
+                        text="비밀번호 수정"
+                    />
+            </div> */}
         </section>
     </div>
   </>
