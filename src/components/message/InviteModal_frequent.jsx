@@ -1,12 +1,25 @@
-import React from "react";
+import React, { useState } from "react";
 
 export default function InviteModal_frequent(addUser) {
+  const [selected, setSelected] = useState(false);
+
+  const selectHandler = (e) => {
+    e.preventDefault();
+    if (e.target.className === "orgs-User") {
+      setSelected(true);
+      e.target.className = "orgs-User selectedUser";
+    } else {
+      setSelected(false);
+      e.target.className = "orgs-User";
+    }
+  };
+
   return (
     <div className="inviteLeftBox">
       <span>즐겨찾기</span>
 
       <div className="orgs-Users-List frequent-List">
-        <div className="orgs-User">
+        <div className="orgs-User" onClick={selectHandler}>
           <img className="profile" src="../images/sample_item1.jpg" alt="" />
           <div className="name_dept">
             <div className="name">전규찬</div>
@@ -15,7 +28,7 @@ export default function InviteModal_frequent(addUser) {
             </div>
           </div>
         </div>
-        <div className="orgs-User">
+        <div className="orgs-User" onClick={selectHandler}>
           <img className="profile" src="../images/sample_item1.jpg" alt="" />
           <div className="name_dept">
             <div className="name">김규찬</div>
