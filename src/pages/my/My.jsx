@@ -109,10 +109,11 @@ export default function MyMain() {
                   <div className="progress-fill bg-indigo-400" style={{width: `${progress}%`}}></div>
                 </div>
                 <span className='text-sm text-gray-500'>4일 후 만료</span>
+              
               </div>
-                <button className='btn-profile  bg-indigo-500 text-white absolute bottom-[20px] right-[20px]'>결제정보등록</button>
-                <button className='btn-profile border border-indigo-500 text-indigo-800 absolute bottom-[20px] right-[193px]'>등록한 결제정보</button>
-              </div>
+              <button className='btn-profile  bg-indigo-500 text-white absolute bottom-[20px] right-[20px]'>결제정보등록</button>
+              <button className='btn-profile border border-indigo-500 text-indigo-800 absolute bottom-[20px] right-[193px]'>등록한 결제정보</button>
+            </div>
           </div>
         </article>
       </section>

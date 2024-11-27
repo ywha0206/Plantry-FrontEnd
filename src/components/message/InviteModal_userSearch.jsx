@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { getMessage } from "./Message_API";
 
 export default function InviteModal_userSearch({
   addUser,
@@ -18,8 +17,6 @@ export default function InviteModal_userSearch({
       e.target.className = "orgs-User";
     }
   };
-
-  console.log(selected);
 
   return (
     <div className="inviteLeftBox">

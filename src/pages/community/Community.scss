@@ -1,0 +1,261 @@
+#index-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1650px;
+  gap: 12px;
+  .index-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+  }
+
+  .index-top-left {
+    background-color: #f9f9fc;
+    width: 920px;
+    height: 475px;
+    border-radius: 30px;
+    padding: 30px;
+    display: flex;
+    align-items: center;
+
+    .index-top-project {
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+    }
+    flex: 0.6;
+  }
+
+  .index-top-right {
+    height: 475px;
+    width: 600px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 0.4;
+  }
+
+  .index-top-companyinfo {
+    height: 178px;
+    width: 100%;
+    background-color: white;
+    border-radius: 30px;
+    padding: 30px;
+    display: flex;
+    justify-content: space-around;
+
+    .companyinfo-left {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+  }
+
+  .index-top-attendance {
+    height: 270px;
+    width: 100%;
+    background-color: #f9f9fc;
+    border-radius: 30px;
+    display: flex;
+    padding: 30px;
+    justify-content: space-between;
+    .attendance-left {
+      height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      p {
+        font-size: 50px;
+      }
+    }
+
+    .attendance-right {
+      height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+    }
+  }
+
+  .index-bot {
+    height: 330px;
+    display: flex;
+    gap: 30px;
+  }
+}
+
+#user-container {
+  height: 100%;
+  display: flex;
+  gap: 12px;
+  .user-aside {
+    width: 300px;
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  .user-main {
+    width: 1338px;
+    flex-grow: 1;
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+  }
+}
+
+#project-container {
+  height: 100%;
+  max-width: 1650px;
+  display: flex;
+  gap: 12px;
+
+  .project-aside {
+    width: 300px;
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  .project-main {
+    width: 1338px;
+    flex-grow: 1;
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+  }
+}
+
+#outsourcing-container {
+  height: 100%;
+  max-width: 1650px;
+  display: flex;
+  gap: 12px;
+
+  .outsourcing-aside {
+    width: 300px;
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  .outsourcing-main {
+    width: 1338px;
+    flex-grow: 1;
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+  }
+}
+
+#community-container {
+  height: 100%;
+  max-width: 1650px;
+  display: flex;
+  gap: 12px;
+
+  .community-aside {
+    width: 300px;
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  .community-main {
+    width: 1338px;
+    flex-grow: 1;
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+  }
+}
+
+#schedule-container {
+  height: 100%;
+  max-width: 1650px;
+  display: flex;
+  gap: 12px;
+
+  .schedule-aside {
+    width: 300px;
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  .schedule-main {
+    width: 1338px;
+    flex-grow: 1;
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+  }
+}
+
+#vacation-container {
+  height: 100%;
+  max-width: 1650px;
+  display: flex;
+  gap: 12px;
+
+  .vacation-aside {
+    width: 300px;
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  .vacation-main {
+    width: 1338px;
+    flex-grow: 1;
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+  }
+}
+
+#attendance-container {
+  height: 100%;
+  max-width: 1650px;
+  display: flex;
+  gap: 12px;
+
+  .attendance-aside {
+    width: 300px;
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  .attendance-main {
+    width: 1338px;
+    flex-grow: 1;
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+  }
+}
+
+#outside-container {
+  height: 100%;
+  max-width: 1650px;
+  display: flex;
+  gap: 12px;
+
+  .outside-aside {
+    width: 300px;
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  .outside-main {
+    width: 1338px;
+    flex-grow: 1;
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+  }
+}
