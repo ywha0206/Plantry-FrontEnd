@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import PageAside from './PageAside';
 import PageCard from './PageCard';
 import '@/components/page/PageCardcss.scss'
+import PageLayout from '../../layout/page/PageLayout';
 
 export default function PageList(){
     const [user,setUser] = useState("Jinhee Ha");
@@ -101,9 +102,7 @@ export default function PageList(){
     };
 
     return(<>
-          <div id='page-container1'>
-            <PageAside />
-            <section className='page-main1 '>
+          <PageLayout>
                 <section className="page-main-container w-full h-full bg-white">
                     <div className='flex'>
                     <div className="main-card-avatar cursor-pointer"
@@ -144,9 +143,7 @@ export default function PageList(){
                   
                 </section>
                 
-            </section>
-
-        </div>
+           </PageLayout>
         
     </>);
 
