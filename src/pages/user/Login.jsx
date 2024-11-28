@@ -8,7 +8,10 @@ import { CustomGubun } from '@/components/Gubun';
 import { Modal } from '@/components/Modal';
 import CustomAlert from '@/components/Alert';
 import { CustomMessage } from '@/components/Message';
+import decodeToken from '../../util/decodeToken';
+import useUserStore from '../../store/useUserStore';
 
+// 2024.11.28 하진희 유저 정보 store에 저장하기 
 
 export default function Login() {
     const navigate = useNavigate();
@@ -22,6 +25,9 @@ export default function Login() {
     const [type, setType] = useState('');
     const [msg, setMsg] = useState(false);
     const [role, setRole] = useState("");
+
+    const setUser = useUserStore((state) => state.setUser); // Zustand의 setUser 가져오기
+
   
     const changeHandler = (e)=>{
       if(e.target.name === 'uid'){
@@ -38,14 +44,25 @@ export default function Login() {
       axiosInstance
         .post("/api/user/login",data)
         .then((resp)=>{
+          console.log("로그인 정보",resp);
           if(resp.status === 200){
             const token = resp.data.token; 
+
+            //store에 저장
+            setUser(resp.data.user);
+            
             const role = resp.data.role;
             setToken(token);
             setRole(role);
             console.log('로그인 성공, 토큰:', token);
   
             localStorage.setItem('token', token);
+
+
+            //로그인시 user정보 store에 저장
+           
+
+
             setAlert(true)
             setMessage("로그인 성공하였습니다.")
             setType("success")
@@ -96,8 +113,14 @@ export default function Login() {
       const savedToken = localStorage.getItem('token');
       if (savedToken) {
         setToken(savedToken);
+        const decodedUser = decodeToken(savedToken); // JWT 디코딩
+        if (decodedUser) {
+            setUser(decodedUser); // Zustand 상태 복원
+        }
       }
-    }, []);
+    }, [setUser]);
+  
+  
   
     return (
       <div className='login-container'>

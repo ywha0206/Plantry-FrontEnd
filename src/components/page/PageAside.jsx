@@ -115,9 +115,9 @@ export default function PageAside() {
             </section>
 
             <section
-            className={`mypageArea flex flex-col px-8  overflow-scroll scrollbar-none transition-all duration-300 ${
-                isSharePageOpen ? "max-h-[180px] " : "max-h-0"
-            }`}>
+                className={`mypageArea flex flex-col px-8  overflow-scroll scrollbar-none transition-all duration-300 ${
+                    isSharePageOpen ? "max-h-[180px] " : "max-h-0"
+                }`}>
             <Link to="/page/list"  className="flex gap-4 items-center mb-1">
                 <img src="/images/pagesIcon.png" alt="" />
                 <p className="opacity-60 pt-1">공유 폴더 1</p>
