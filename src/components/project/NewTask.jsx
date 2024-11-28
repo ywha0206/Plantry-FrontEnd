@@ -110,17 +110,14 @@ function NewTask({ setIsAdded }) {
           </label>
           </div>
 
-          {/* Submit Button */}
           
           <div className={colClassName+' flex-wrap'}>
             <CustomSVG id="tag" />
             {tags.map((tag, index) => (
                 <span key={index} className="flex items-center justify-center px-2 py-1 rounded-2xl bg-zinc-700 bg-opacity-10 text-xs">
                     {tag}
-                    <button
-                    onClick={() => handleDeleteTag(index)}
-                    >
-                    <CustomSVG id="cancel" size="14" />
+                    <button onClick={() => handleDeleteTag(index)}>
+                      <CustomSVG id="cancel" size="14" />
                     </button>
                 </span>
             ))}
@@ -148,6 +145,7 @@ function NewTask({ setIsAdded }) {
             
         </div>
 
+          {/* Submit Button */}
         <div className="flex overflow-hidden flex-wrap gap-2 items-start mt-2 w-full">
             <button
               type="submit"

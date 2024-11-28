@@ -1,12 +1,15 @@
 /* eslint-disable react/prop-types */
-import { ProjectTaskDynamic } from './ProjectTask';
 import { CustomSVG } from "./CustomSVG";
 import { useState } from "react";
 import NewTask from './NewTask';
 
-export const ProjectColumn = ({ title, color, projects=[] }) => {
+
+
+export const ProjectColumn = ({ title, color, projects, children, index }) => {
+
+
+
   const columnClassName ="flex items-center p-3 h-6 text-xs hover:bg-gray-100 cursor-pointer"
-  const [selectedIndex, setSelectedIndex] = useState(null);
   const [isNewTaskAdded, setIsNewTaskAdded] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -15,10 +18,6 @@ export const ProjectColumn = ({ title, color, projects=[] }) => {
     if (!isNewTaskAdded) {
       setIsNewTaskAdded(true);
     }
-  };
-  const handleToggle = (index) => {
-    // 클릭한 인덱스가 이미 선택된 상태라면, 선택 해제, 아니면 선택
-    setSelectedIndex(selectedIndex === index ? null : index);
   };
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
@@ -45,15 +44,8 @@ export const ProjectColumn = ({ title, color, projects=[] }) => {
         </div>
         <div className="flex mt-1 w-full rounded-lg min-h-[4px] bg-[linear-gradient(0deg,rgba(245,35,75,0.40_0%,rgba(245,35,75,0.40)_100%),#F5234B)]" style={{background:color,}}></div>
       </div>
-      <div className="flex flex-col mt-3 w-full overflow-y-auto max-h-[600px] scrollbar-none">
-      {projects.map((project, index) => (
-          <ProjectTaskDynamic
-            key={index}
-            isSelected={selectedIndex === index}
-            {...project}
-            handleToggle={() => handleToggle(index)}
-            />
-        ))}
+      <div className="flex flex-col mt-3 w-full overflow-y-auto max-h-[600px] scrollbar-none" id={`column${index}`}>
+        {children}
         {isNewTaskAdded && (<NewTask setIsAdded={setIsNewTaskAdded} />)}
       </div>
         <button onClick={handleAddTask} className="flex gap-2 items-center px-3 py-2 mt-3 w-full text-center text-black text-opacity-50">

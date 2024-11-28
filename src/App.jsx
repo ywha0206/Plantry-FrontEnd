@@ -41,6 +41,7 @@ import MyModify from "./pages/my/MyModify";
 import MyApproval from "./pages/my/Approval";
 import Home from "./pages/home/Home";
 import MyPayment from "./pages/my/Payment";
+import DocumentList from "./pages/document/DocumentList";
 
 const MainIndexComponent = lazy(() => import("./components/render/main"));
 
@@ -123,6 +124,7 @@ function App() {
         <Route path="/document" element={<Main />}>
           <Route index element={<Document />} />
           <Route path="favorite" element={<Favorite />} />
+          <Route path="list/:dynamicPart" element={<DocumentList />} />
         </Route>
 
         {/* 달력 */}
