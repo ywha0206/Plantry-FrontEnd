@@ -1,8 +1,11 @@
 /* eslint-disable react/prop-types */
 import { CustomSVG } from "./CustomSVG";
 
+
+
 export const ProjectTaskDynamic = ({
   isSelected,
+  id,
   title,
   content,
   priority,
@@ -22,9 +25,12 @@ export const ProjectTaskDynamic = ({
   };
 
   const color = getPriorityColor();
+  
+
 
   return (
-    <div className="flex gap-1 p-3 mt-2 w-full bg-white rounded-lg border shadow-sm border-black/10 cursor-pointer" onClick={handleToggle}>
+    <div className="flex gap-1 p-3 mt-2 w-full bg-white rounded-lg border shadow-sm border-black/10 cursor-pointer"
+      onClick={handleToggle}>
       
 
         {/* Conditionally Render Content */}

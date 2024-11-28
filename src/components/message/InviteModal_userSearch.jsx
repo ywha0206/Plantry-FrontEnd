@@ -1,26 +1,46 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
 
-export default function InviteModal_userSearch(leftBoxProps) {
+export default function InviteModal_userSearch(props) {
   const {
     users,
     setUsers,
     setSelectedGroup_Id_Name,
     selectedGroup_Id_Name,
+    selectedUserIds,
+    setSelectedUserIds,
     userList,
-  } = leftBoxProps;
+    setUserList,
+    selectHandler,
+  } = props;
 
-  const [selected, setSelected] = useState(false);
+  const [userIds, setUserIds] = useState([]);
 
-  const selectHandler = (e) => {
-    e.preventDefault();
-    if (e.target.className === "orgs-User") {
-      setSelected(true);
-      e.target.className = "orgs-User selectedUser";
-    } else {
-      setSelected(false);
-      e.target.className = "orgs-User";
+  const [keyword, setKeyword] = useState("");
+  const [searchResult, setSearchResult] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/user")
+      .then((resp) => setUserList(resp.data))
+      .catch((err) => console.log(err));
+  }, []);
+
+  useEffect(() => {
+    if (keyword !== "") {
+      setSearchResult(
+        userList.filter((user) => user.userName.includes(keyword))
+      );
     }
+  }, [keyword, userList]);
+
+  const searchHandler = (e) => {
+    setKeyword(e.target.value);
   };
+
+  console.log("searchResult : " + JSON.stringify(searchResult));
+  console.log("users : " + JSON.stringify(users));
+  console.log("userIds : " + JSON.stringify(userIds));
 
   return (
     <div className="inviteLeftBox">
@@ -28,28 +48,42 @@ export default function InviteModal_userSearch(leftBoxProps) {
 
       <div className="userSearch">
         <div className="search_Input_Img">
-          <input type="text" className="searchInput" onChange={null} />
+          <input
+            type="text"
+            className="searchInput"
+            value={keyword}
+            onChange={searchHandler}
+          />
           <img src="/images/search-icon.png" alt="" className="searchImg" />
         </div>
         <div className="orgs-Users-List searched-Users-List">
-          <div className="orgs-User" onClick={selectHandler}>
-            <img className="profile" src="../images/sample_item1.jpg" alt="" />
-            <div className="name_dept">
-              <div className="name">전규찬</div>
-              <div className="dept">
-                <span>개발팀</span>
-              </div>
-            </div>
-          </div>
-          <div className="orgs-User" onClick={selectHandler}>
-            <img className="profile" src="../images/sample_item1.jpg" alt="" />
-            <div className="name_dept">
-              <div className="name">김규찬</div>
-              <div className="dept">
-                <span>인사팀</span>
-              </div>
-            </div>
-          </div>
+          {searchResult.length > 0
+            ? searchResult.map((result) => (
+                <div
+                  className={`orgs-User ${
+                    selectedUserIds.some(
+                      (selectedUserId) => selectedUserId === result.user_id
+                    )
+                      ? "selectedUser"
+                      : null
+                  }`}
+                  onClick={(e) => selectHandler(e, result.user_id)}
+                  key={result.user_id}
+                >
+                  <img
+                    className="profile"
+                    src="../images/sample_item1.jpg"
+                    alt=""
+                  />
+                  <div className="name_dept">
+                    <div className="name">{result.userName}</div>
+                    <div className="dept">
+                      <span>개발팀</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            : null}
         </div>
       </div>
     </div>
