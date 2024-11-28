@@ -2,12 +2,15 @@ import InviteModal_orgChart from "./InviteModal_orgChart";
 import InviteModal_frequent from "./InviteModal_frequent";
 import InviteModal_userSearch from "./InviteModal_userSearch";
 import { useState } from "react";
+import axios from "axios";
+import axiosInstance from "../../services/axios";
 
 export default function InviteModal(props) {
   const { isOpen, closeHandler, option, optionHandler } = props;
 
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [users, setUsers] = useState([]);
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
 
   const [selectedGroup_Id_Name, setSelectedGroup_Id_Name] = useState({
     group_id: null,
@@ -22,20 +25,69 @@ export default function InviteModal(props) {
             (selectedUser) => selectedUser.user_id === user.user_id
           )
       );
+
       return [...prevUsers, ...usersToAdd];
     });
     setUsers([]);
     setSelectedGroup_Id_Name({ group_id: null });
+    setSelectedUserIds([]);
   };
 
   const removeUser = (userId) => {
     setSelectedUsers((prevUsers) =>
       prevUsers.filter((user) => user.user_id !== userId)
     );
+    setUserIds((prevIds) => prevIds.filter((id) => id !== userId));
+    setUsers((prevUsers) =>
+      prevUsers.filter((user) => user.user_id !== userId)
+    );
   };
 
   const clearAllUsers = () => {
     setSelectedUsers([]);
+    setSelectedGroup_Id_Name({ group_id: null });
+    setSelectedUserIds([]);
+    setUserIds([]);
+  };
+
+  const [userList, setUserList] = useState([]);
+  const [userIds, setUserIds] = useState([]);
+
+  const selectHandler = (e, user_Id) => {
+    e.preventDefault();
+    if (!e.currentTarget.className.trim().includes("selectedUser")) {
+      if (userIds.includes(user_Id)) {
+        setUserIds((prevIds) => prevIds.filter((id) => id !== user_Id));
+      } else {
+        setUserIds((prevIds) => [...prevIds, user_Id]);
+        setUsers(() => [
+          ...users,
+          ...userList.filter((user) => user.user_id === user_Id),
+        ]);
+      }
+      setSelectedUserIds([...selectedUserIds, user_Id]);
+    } else {
+      setUserIds((prevIds) => prevIds.filter((id) => id !== user_Id));
+      setUsers((prevUsers) =>
+        prevUsers.filter((user) => user.user_id !== user_Id)
+      );
+      setSelectedUserIds((prevSelectedIds) =>
+        prevSelectedIds.filter((prevSelectedId) => prevSelectedId !== user_Id)
+      );
+    }
+  };
+
+  const formdata = new FormData();
+  formdata.append("chatMembers", JSON.stringify(selectedUsers));
+  for (let pair of formdata.entries()) {
+    console.log(pair[0] + ": " + pair[1]);
+  }
+
+  const submitHandler = () => {
+    axiosInstance
+      .post("/api/message/room", formdata)
+      .then((resp) => console.log(JSON.stringify(resp.data)))
+      .catch((err) => console.log(err));
   };
 
   if (!isOpen) return null;
@@ -87,6 +139,11 @@ export default function InviteModal(props) {
                     setUsers={setUsers}
                     setSelectedGroup_Id_Name={setSelectedGroup_Id_Name}
                     selectedGroup_Id_Name={selectedGroup_Id_Name}
+                    selectedUserIds={selectedUserIds}
+                    setSelectedUserIds={setSelectedUserIds}
+                    userList={userList}
+                    setUserList={setUserList}
+                    selectHandler={selectHandler}
                   />
                 );
               case 2:
@@ -96,6 +153,11 @@ export default function InviteModal(props) {
                     setUsers={setUsers}
                     setSelectedGroup_Id_Name={setSelectedGroup_Id_Name}
                     selectedGroup_Id_Name={selectedGroup_Id_Name}
+                    selectedUserIds={selectedUserIds}
+                    setSelectedUserIds={setSelectedUserIds}
+                    userList={userList}
+                    setUserList={setUserList}
+                    selectHandler={selectHandler}
                   />
                 );
               case 3:
@@ -105,6 +167,11 @@ export default function InviteModal(props) {
                     setUsers={setUsers}
                     setSelectedGroup_Id_Name={setSelectedGroup_Id_Name}
                     selectedGroup_Id_Name={selectedGroup_Id_Name}
+                    selectedUserIds={selectedUserIds}
+                    setSelectedUserIds={setSelectedUserIds}
+                    userList={userList}
+                    setUserList={setUserList}
+                    selectHandler={selectHandler}
                   />
                 );
               default:
@@ -159,7 +226,9 @@ export default function InviteModal(props) {
         </div>
 
         <div className="confirmBtn_cancelBtn">
-          <button className="confimBtn">확인</button>
+          <button className="confimBtn" onClick={submitHandler}>
+            확인
+          </button>
           <button className="cancel-Btn" onClick={closeHandler}>
             취소
           </button>
