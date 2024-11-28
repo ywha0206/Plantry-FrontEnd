@@ -6,33 +6,17 @@ export default function InviteModal_orgChart({
   setUsers,
   setSelectedGroup_Id_Name,
   selectedGroup_Id_Name,
+  selectedUserIds,
+  setSelectedUserIds,
+  userList,
+  setUserList,
+  selectHandler,
 }) {
-  const [selected, setSelected] = useState(false);
   const [userIds, setUserIds] = useState([]);
-  const selectHandler = (e, user_Id) => {
-    if (e.target.className === "orgs-User") {
-      setSelected(true);
-      if (userIds.includes(user_Id)) {
-        // 이미 선택된 사용자면 선택 해제
-        setUserIds((prevIds) => prevIds.filter((id) => id !== user_Id));
-      } else {
-        // 선택되지 않은 사용자면 선택 추가
-        setUserIds((prevIds) => [...prevIds, user_Id]);
-        setUsers(() => [
-          ...users,
-          ...userList.filter((user) => user.user_id === user_Id),
-        ]);
-        setUserIds([]);
-      }
-      e.target.className = "orgs-User selectedUser";
-    } else if (e.target.className === "orgs-User selectedUser") {
-      setSelected(false);
-      e.target.className = "orgs-User";
-    }
-  };
 
-  console.log("userIds : " + userIds);
+  console.log("selectedUserIds : " + selectedUserIds);
   console.log("users : " + JSON.stringify(users));
+  console.log("userIds : " + JSON.stringify(userIds));
 
   const [groups, setGroups] = useState([]);
 
@@ -43,6 +27,8 @@ export default function InviteModal_orgChart({
       group_name: group_Name,
     }));
   };
+
+  console.log("selectedGroup_Id_Name" + JSON.stringify(selectedGroup_Id_Name));
 
   const [showList, setShowList] = useState({
     type1: false,
@@ -83,16 +69,14 @@ export default function InviteModal_orgChart({
     }
   };
 
-  const [userList, setUserList] = useState([]);
-
   useEffect(() => {
     axios
-      .get("/api/user_group")
+      .get("http://localhost:5000/user_group")
       .then((resp) => setGroups(resp.data))
       .catch((err) => console.log(err));
 
     axios
-      .get("/api/user")
+      .get("http://localhost:5000/user")
       .then((resp) => setUserList(resp.data))
       .catch((err) => console.log(err));
   }, []);
@@ -115,7 +99,7 @@ export default function InviteModal_orgChart({
                 .map((group) => (
                   <div
                     className={`departments ${
-                      selectedGroup_Id_Name === group.group_id
+                      selectedGroup_Id_Name.group_id === group.group_id
                         ? "selected-dept"
                         : ""
                     }`}
@@ -126,7 +110,7 @@ export default function InviteModal_orgChart({
                   >
                     <img
                       className="representIcon"
-                      src="../images/deptartment.jpg"
+                      src="/images/deptartment.jpg"
                       alt=""
                     />
                     <span className="groupName">{group.group_name}</span>
@@ -168,27 +152,35 @@ export default function InviteModal_orgChart({
       </div>
 
       <div className="orgs-Users-List">
-        {userList
-          .filter((user) => user.group === selectedGroup_Id_Name.group_name)
-          .map((user) => (
-            <div
-              className="orgs-User"
-              key={user.user_id}
-              onClick={(e) => selectHandler(e, user.user_id)}
-            >
-              <img
-                className="profile"
-                src="../images/sample_item1.jpg"
-                alt=""
-              />
-              <div className="name_dept">
-                <div className="name">{user.userName}</div>
-                <div className="dept">
-                  <span>{user.group}</span>
+        {userList.length > 0
+          ? userList
+              .filter((user) => user.group === selectedGroup_Id_Name.group_name)
+              .map((user) => (
+                <div
+                  className={`orgs-User ${
+                    selectedUserIds.some(
+                      (selectedUserId) => selectedUserId === user.user_id
+                    )
+                      ? "selectedUser"
+                      : ""
+                  }`}
+                  key={user.user_id}
+                  onClick={(e) => selectHandler(e, user.user_id)}
+                >
+                  <img
+                    className="profile"
+                    src="../images/sample_item1.jpg"
+                    alt=""
+                  />
+                  <div className="name_dept">
+                    <div className="name">{user.userName}</div>
+                    <div className="dept">
+                      <span>{user.group}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
+              ))
+          : null}
       </div>
     </div>
   );

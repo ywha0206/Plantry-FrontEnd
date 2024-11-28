@@ -3,10 +3,10 @@ import ProjectAside from "../../components/project/ProjectAside";
 import { ProjectColumn } from "../../components/project/ProjectColumn";
 import "@/pages/project/Project.scss";
 import ShareMember from "../../components/ShareMember";
-import { AddProjectModal } from "../../components/project/Modal";
+import { AddProjectModal } from "../../components/project/Modal"; 
 import { useEffect, useState } from "react";
 import { ProjectTaskDynamic } from "../../components/project/ProjectTask";
-import Sortable from "sortablejs";
+import Sortable from "sortablejs"; 
 
 const data= {
   coworkers:[
@@ -86,7 +86,7 @@ export default function Project() {
   // Tailwind CSS 클래스 묶음
   const addBoardClass = "flex gap-2 items-center px-3 py-2 w-full text-sm rounded-lg bg-zinc-200 bg-opacity-30";
 
-  const [isModalOpen, setIsModalOpen] = useState(false); // 모달 열림 상태 관리
+  const [isModalOpen, setIsModalOpen] = useState(false); // 모달 열림 상태 관리 
   const [selectedTasks, setSelectedTasks] = useState([]);
   const handleToggle = (id) => {
     // 이미 열린 상태라면 선택 해제, 아니면 배열에 추가
@@ -108,7 +108,7 @@ export default function Project() {
         });
       }}
   }, []);
-
+ 
   return (
     <div id="project-container" className="flex min-h-full">
       {/* 사이드바 */}
@@ -132,10 +132,10 @@ export default function Project() {
               </button>
           </header>
 
-          {/* 네비게이션 */}
+          {/* 네비게이션 */} 
           <div className="w-[30%] flex justify-end">
             <ShareMember listName="작업자" isShareOpen={isModalOpen} setIsShareOpen={setIsModalOpen} members={data.coworkers}>
-              <AddProjectModal isOpen={isModalOpen} onClose={setIsModalOpen} text="작업자 추가" coworker={data.coworkers}/>
+              <AddProjectModal isOpen={isModalOpen} onClose={setIsModalOpen} text="작업자 추가" coworker={data.coworkers}/> 
             </ShareMember>
           </div>
         </div>
