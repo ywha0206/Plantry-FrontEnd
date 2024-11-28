@@ -18,7 +18,7 @@ const initState = {
   linkSharing: "0", // 허용안함
 };
 
-export default function NewDrive({ isOpen, onClose }) {
+export default function NewFolder({ isOpen, onClose }) {
   const [authType, setAuthType] = useState("0"); // 기본값: '나만 사용'
   const [formData, setFormData] = useState(initState);
 
@@ -82,7 +82,7 @@ export default function NewDrive({ isOpen, onClose }) {
   const handleSubmit = async () => {
     try {
       // Axios로 백엔드 API 호출
-      const response = await axiosInstance.post("/api/drive/newDrive", formData);
+      const response = await axiosInstance.post("/api/drive/newFolder", formData);
       console.log("Response:", response.data);
 
       // 성공 시 모달 닫기
@@ -99,7 +99,7 @@ export default function NewDrive({ isOpen, onClose }) {
       <div className="bg-white rounded-lg shadow-lg max-w-2xl w-[550px] modal-custom-width">
         <div className="flex justify-between mb-8 pt-10 px-12  rounded-t-lg">
           <div></div>
-          <span className="text-2xl">드라이브 만들기</span>
+          <span className="text-2xl">새 폴더 만들기</span>
           <button
             onClick={onClose}
             className="text-xl float-right display-block font-bold text-gray-600 hover:text-gray-900"
