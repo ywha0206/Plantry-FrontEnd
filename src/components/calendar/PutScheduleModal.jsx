@@ -25,8 +25,8 @@ export default function PutScheduleModal({ isOpen, onClose, children , text, put
             item.contentId == calendarId
                 ? { ...item, 
                     title: title, 
-                    startDate: sdate, 
-                    endDate: edate 
+                    startDate: new Date(sdate).toLocaleString('sv-SE'), 
+                    endDate: new Date(edate).toLocaleString('sv-SE')
                 }
                 : item
             );
@@ -34,8 +34,8 @@ export default function PutScheduleModal({ isOpen, onClose, children , text, put
             if (!updatedData.some(item => item.contentId == calendarId)) {
             updatedData.push({
                 title: title, 
-                startDate: sdate, 
-                endDate: edate,
+                startDate: new Date(sdate).toLocaleString('sv-SE'), 
+                endDate: new Date(edate).toLocaleString('sv-SE'), 
                 contentId: calendarId
             });
             }
@@ -108,7 +108,7 @@ export default function PutScheduleModal({ isOpen, onClose, children , text, put
             <div className="flex gap-8 justify-start mb-4">
               <span className="w-20 h-[40px]">날짜</span>
               <div className="flex gap-3 items-center">
-                <input value={sdate} onChange={(e)=>setSdate(e.target.value)} className='h-[40px]' type="date"></input> ~ <input value={edate} onChange={(e)=>setEdate(e.target.value)} className='h-[40px]' type="date"></input>
+                <input value={sdate} onChange={(e)=>setSdate(e.target.value)} className='h-[40px] w-[113px]' type="datetime-local"></input> ~ <input value={edate} onChange={(e)=>setEdate(e.target.value)} className='h-[40px] w-[113px]' type="datetime-local"></input>
               </div>
             </div>
             <div className="flex justify-end mb-12">

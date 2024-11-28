@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axiosInstance from '@/services/axios.jsx'
@@ -18,12 +19,13 @@ const MainBigCalendar = () => {
     const queryClient = useQueryClient();
 
     const dropEvent = (e) => {
+        console.log(e.event)
         setDateChanger(true);
         setOldData({
             title : e.event.title,
             contentId : e.event.id,
-            startDate : e.event.startStr,
-            endDate : e.event.endStr
+            startDate : new Date(e.event.start).toLocaleString('sv-SE'),
+            endDate : new Date(e.event.end).toLocaleString('sv-SE')
         })
         setPutData((prev) => {
             const updatedData = prev.map(item => 
@@ -31,8 +33,8 @@ const MainBigCalendar = () => {
             item.contentId === e.event.id
                 ? { ...item, 
                     title: e.event.title, 
-                    startDate: e.event.startStr, 
-                    endDate: e.event.endStr 
+                    startDate : new Date(e.event.start).toLocaleString('sv-SE'),
+                    endDate : new Date(e.event.end).toLocaleString('sv-SE')
                 }
                 : item
             );
@@ -42,8 +44,8 @@ const MainBigCalendar = () => {
             updatedData.push({
                 title: e.event.title,
                 contentId: e.event.id,
-                startDate: e.event.startStr,
-                endDate: e.event.endStr
+                startDate : new Date(e.event.start).toLocaleString('sv-SE'),
+                endDate : new Date(e.event.end).toLocaleString('sv-SE')
             });
             }
             
@@ -91,13 +93,13 @@ const MainBigCalendar = () => {
         setCustomAlertMessage(data)
         setTimeout(() => {
             setCustomAlert(false);
-            onClose();  
         }, 1000);
         },
         onError: (error) => {
             console.error("Error updating user", error);
         },
     });
+    
 
     const handleCustomButtonClick = async () => {
         try {
@@ -120,7 +122,7 @@ const MainBigCalendar = () => {
   return (
     <>
       <FullCalendar
-        plugins={[dayGridPlugin, interactionPlugin]}
+        plugins={[dayGridPlugin, interactionPlugin,timeGridPlugin]}
         events={calendarDate}
         selectable={true}
         editable={true}
@@ -129,19 +131,22 @@ const MainBigCalendar = () => {
         expandRows={true}
         dayMaxEvents={3}
         contentHeight="auto"
+        timezone="local"
         buttonText={{
             prev: '이전',
             next: '다음',
             today: '오늘',
             dayGridMonth: '월간달력',
             dayGridWeek: '주간달력',
-            click: '수정하기'
+            click: '수정하기',
+            timeGrid: '하루보기',
         }}
+
         eventDisplay='block'
         headerToolbar= {{
             left: 'prev,next,click',
             center: 'title',
-            right: 'dayGridMonth,dayGridWeek'
+            right: 'dayGridMonth,dayGridWeek,timeGrid'
         }}
         
         datesSet={(dateInfo) => {
