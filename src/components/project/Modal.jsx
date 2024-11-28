@@ -4,23 +4,33 @@ import { useState } from "react";
 import { CustomSVG } from "./CustomSVG";
 
 
-export const AddProjectModal = ({ isOpen, onClose , text }) => {
+export const AddProjectModal = ({ coworker=[], isOpen, onClose , text }) => {
     if (!isOpen) return null;
 
     const data = {
         sub: "개발부",
         members: [
-            {id: 1, name: "박연화", email:"ppsdd123@gmail.com", icon:"/images/document-folder-profile.png",},
-            {id: 2, name: "이상훈", email:"ppsdd123@gmail.com", icon:"/images/document-folder-profile.png",},
-            {id: 3, name: "하정훈", email:"ppsdd123@gmail.com", icon:"/images/document-folder-profile.png",},
-            {id: 4, name: "하진희", email:"ppsdd123@gmail.com", icon:"/images/document-folder-profile.png",},
+            {id: 10, name: "강은경", email:"ppsdd123@gmail.com", img:"/images/document-folder-profile.png",},
+            {id: 12, name: "강중원", email:"ppsdd123@gmail.com", img:"/images/document-folder-profile.png",},
+            {id: 11, name: "김민희", email:"ppsdd123@gmail.com", img:"/images/document-folder-profile.png",},
+            {id: 14, name: "김주경", email:"ppsdd123@gmail.com", img:"/images/document-folder-profile.png",},
+            {id: 5, name: "박서홍", email:"ppsdd123@gmail.com", img:"/images/document-folder-profile.png",},
+            {id: 1, name: "박연화", email:"ppsdd123@gmail.com", img:"/images/document-folder-profile.png",},
+            {id: 7, name: "신승우", email:"ppsdd123@gmail.com", img:"/images/document-folder-profile.png",},
+            {id: 13, name: "원기연", email:"ppsdd123@gmail.com", img:"/images/document-folder-profile.png",},
+            {id: 2, name: "이상훈", email:"ppsdd123@gmail.com", img:"/images/document-folder-profile.png",},
+            {id: 6, name: "전규찬", email:"ppsdd123@gmail.com", img:"/images/document-folder-profile.png",},
+            {id: 8, name: "정지현", email:"ppsdd123@gmail.com", img:"/images/document-folder-profile.png",},
+            {id: 3, name: "하정훈", email:"ppsdd123@gmail.com", img:"/images/document-folder-profile.png",},
+            {id: 4, name: "하진희", email:"ppsdd123@gmail.com", img:"/images/document-folder-profile.png",},
+            {id: 9, name: "황수빈", email:"ppsdd123@gmail.com", img:"/images/document-folder-profile.png",},
         ]    
     }
 
-    const [tags, setTags] = useState([]); // 선택된 공동작업자
+    const [tags, setTags] = useState(coworker); // 선택된 공동작업자
     const [searchTerm, setSearchTerm] = useState(""); // 검색어 상태
     const [filteredMembers, setFilteredMembers] = useState(data.members); // 필터링된 멤버 리스트
-    const [selectedMemberIds, setSelectedMemberIds] = useState([]); // 선택된 멤버 ID
+    const [selectedMemberIds, setSelectedMemberIds] = useState(coworker.map((work)=>(work.id))); // 선택된 멤버 ID
 
     // 검색 입력 핸들러
     const handleSearch = (e) => {
@@ -86,14 +96,14 @@ return (
                         </select>
                     </div>
                     <div className="w-3/5 flex flex-col">
-                        <span className="bg-white text-gray-500 text-xs relative top-2 w-fit ml-10 px-1">작업자 목록</span>
+                        <span className="bg-white text-gray-500 text-xs relative top-2 w-fit ml-10 px-1">작업자 목록 ({tags.length})</span>
                         <div className="border rounded h-[60px] p-3 flex items-center gap-1 overflow-x-auto overflow-y-hidden scrollbar-thin">
                             {tags.map((tag, index) => (
                                 <span
                                 key={tag.id}
                                 className="flex items-center flex-shrink-0 gap-[2px] px-2 py-[2px] rounded-2xl bg-indigo-200 bg-opacity-70 text-xs text-indigo-500"
                                 >
-                                    <img src={tag.icon} className="h-[24px]" />
+                                    <img src={tag.img} className="h-[24px]" />
                                     <span className="">{tag.name}</span>
                                     <button onClick={() => handleDeleteTag(index)}>
                                         <CustomSVG id="cancel" color="#666CFF" />
@@ -102,7 +112,7 @@ return (
                             ))}
                             <input
                                 type="text"
-                                value={searchTerm}
+                                value={searchTerm} autoFocus
                                 onChange={handleSearch}
                                 className="border-0 flex-shrink-0 min-w-[100px]"
                             />
@@ -115,14 +125,14 @@ return (
             {text === '작업자 추가' &&
                 <>
                         <span className="text-xs font-light text-gray-500 mt-10">함께 작업할 사람을 자유롭게 초대해보세요</span>
-                        <span className="bg-white text-gray-500 text-xs relative top-2 right-[44%] w-fit ml-10 px-1">작업자 목록</span>
+                        <span className="bg-white text-gray-500 text-xs relative top-2 right-[43%] w-fit ml-10 px-1">작업자 목록 ({tags.length})</span>
                         <div className="border rounded-md h-[60px] p-3 flex items-center gap-1 overflow-x-auto overflow-y-hidden scrollbar-thin w-full">
                             {tags.map((tag, index) => (
                                 <span
                                 key={tag.id}
                                 className="flex items-center flex-shrink-0 gap-[2px] px-2 py-[2px] rounded-2xl bg-indigo-200 bg-opacity-70 text-xs text-indigo-500"
                                 >
-                                    <img src={tag.icon} className="h-[24px]" />
+                                    <img src={tag.img} className="h-[24px]" />
                                     <span className="">{tag.name}</span>
                                     <button onClick={() => handleDeleteTag(index)}>
                                         <CustomSVG id="cancel" color="#666CFF" />
@@ -132,7 +142,7 @@ return (
                             <input
                                 type="text"
                                 value={searchTerm}
-                                onChange={handleSearch}
+                                onChange={handleSearch} autoFocus
                                 className="border-0 flex-shrink-0 min-w-[100px]"
                             />
                         </div>
@@ -150,7 +160,7 @@ return (
                                   : "bg-gray-100 hover:border-gray-300"
                               }`}
                         >
-                            <img src={m.icon} alt="user-img" className="w-[45px] h-[45px]" />
+                            <img src={m.img} alt="user-img" className="w-[45px] h-[45px]" />
                             <div className="ml-10 flex flex-col">
                             <p className="font-light">{m.name}</p>
                             <span className="font-light text-gray-500 text-sm">

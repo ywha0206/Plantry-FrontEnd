@@ -5,20 +5,20 @@ import { AddProjectModal } from "./Modal";
 
 const projectData = {
   waiting: {
-    title: "대기중인 프로젝트 (1)",
+    title: "대기중인 프로젝트",
     items: [
       { title: "프로젝트 목록", isActive: false }
     ]
   },
   inProgress: {
-    title: "진행중인 프로젝트 (2)",
+    title: "진행중인 프로젝트",
     items: [
       { title: "프로젝트 목록", isActive: false },
       { title: "활성화된 프로젝트", isActive: true }
     ]
   },
   completed: {
-    title: "완료된 프로젝트 (1)",
+    title: "완료된 프로젝트",
     items: [
       { title: "비활성화된 프로젝트", isActive: false }
     ]
