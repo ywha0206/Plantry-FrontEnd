@@ -2,7 +2,7 @@ import React from 'react'
 
 export default function UserPage2Resp({text}) {
   return (
-    <section className="overflow-auto max-h-[300px] scrollbar-none">
+    <section className="overflow-auto max-h-[300px] scrollbar-none px-[40px]">
             <table className="w-full table-auto border-collapse mb-16">
             <thead className='bg-gray-200 h-16 sticky top-0 z-10'>
                 <tr className='text-center'>
