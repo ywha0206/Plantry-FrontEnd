@@ -43,7 +43,7 @@ export default function UserPage2() {
 
     return (
         <>
-        <section className="overflow-auto max-h-[300px] min-h-[300px] scrollbar-none mb-16">
+        <section className="overflow-auto max-h-[300px] min-h-[300px] scrollbar-none mb-16 px-[40px]">
                 <table className="w-full table-auto border-collapse mb-16">
                     <thead className='bg-gray-200 h-16 sticky top-0 z-10'>
                         <tr className='text-center'>
@@ -75,7 +75,7 @@ export default function UserPage2() {
                     </tbody>
                 </table>
             </section>
-            <button className='bg-purple white w-[80px] h-[40px] rounded-md'>선택삭제</button>
+            <button className='bg-purple white w-[80px] h-[40px] rounded-md ml-[40px]'>선택삭제</button>
             <ApprovalModal 
                 isOpen={approvalModal}
                 onClose={closeApprovalModal}
