@@ -3,6 +3,8 @@ import ProjectAside from "../../components/project/ProjectAside";
 import { ProjectColumn } from "../../components/project/ProjectColumn";
 import "@/pages/project/Project.scss";
 import ShareMember from "../../components/ShareMember";
+import { AddProjectModal } from "../../components/project/Modal";
+import { useState } from "react";
 
 const projectColumns = [
   {
@@ -69,6 +71,9 @@ export default function Project() {
   const headerButtonClass = "flex flex-col justify-center items-end px-9 py-2 rounded-xl bg-zinc-200 max-md:pl-5";
   const addBoardClass = "flex gap-2 items-center px-3 py-2 w-full text-sm rounded-lg bg-zinc-200 bg-opacity-30";
 
+  const [isModalOpen, setIsModalOpen] = useState(false); // 모달 열림 상태 관리
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
   return (
     <div id="project-container" className="flex min-h-full">
       {/* 사이드바 */}
@@ -95,7 +100,9 @@ export default function Project() {
 
           {/* 네비게이션 */}
           <div className="w-[20%] flex justify-end">
-            <ShareMember listName="작업자"/>
+            <ShareMember listName="작업자" isShareOpen={isModalOpen} setIsShareOpen={setIsModalOpen}>
+              <AddProjectModal isOpen={isModalOpen} onClose={setIsModalOpen} text="작업자 추가"/>
+            </ShareMember>
           </div>
         </div>
 

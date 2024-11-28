@@ -2,9 +2,8 @@
 import { useEffect, useState } from "react";
 import { CustomSVG } from "./project/CustomSVG";
 
-const ShareMember = ({ members = [], maxNum="3", listName="참여자", children }) => {
+const ShareMember = ({ members = [], maxNum="3", listName="참여자", children , isShareOpen, setIsShareOpen}) => {
   
-  const [isShareOpen, setIsShareOpen] = useState(false);
   const [isMembersDropdownOpen, setIsMembersDropdownOpen] = useState(false); // 참가자 드롭다운 상태
 
   const toggleShare = () => {setIsShareOpen((prev) => !prev);};
@@ -25,7 +24,6 @@ const ShareMember = ({ members = [], maxNum="3", listName="참여자", children 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest(".relative")) {
-        setIsShareOpen(false);
         setIsMembersDropdownOpen(false);
       }
     };
