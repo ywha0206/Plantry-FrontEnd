@@ -42,7 +42,7 @@ const ShareMember = ({ members = [], maxNum="3", listName="참여자", children 
           {/* 프로필 사진 표시 */}
           <div className="relative flex items-center">
             {members.slice(0, maxNum).map((member, index) => (
-              <img key={member.id} src={member.avatar} alt={member.name}
+              <img key={member.id} src={member.img} alt={member.name}
                 className="w-10 h-10 rounded-full border-2 border-white -ml-3 first:ml-0"
                 style={{zIndex: maxNum - index,}}
                 onMouseEnter={(e) => handleMouseEnter(e, index, member.name)} // 툴팁 표시
@@ -81,7 +81,7 @@ const ShareMember = ({ members = [], maxNum="3", listName="참여자", children 
           <ul className="space-y-2 max-h-[300px] scrollbar-none overflow-auto">
             {members.map((member) => (
               <li key={member.id} className="flex items-center gap-2 text-sm text-gray-700">
-                <img src={member.avatar} alt={member.name} className="w-6 h-6 rounded-full"/>
+                <img src={member.img} alt={member.name} className="w-6 h-6 rounded-full"/>
                 <span>{member.name}</span>
               </li>
             ))}
