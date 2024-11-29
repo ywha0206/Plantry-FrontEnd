@@ -2,7 +2,6 @@ import InviteModal_orgChart from "./InviteModal_orgChart";
 import InviteModal_frequent from "./InviteModal_frequent";
 import InviteModal_userSearch from "./InviteModal_userSearch";
 import { useState } from "react";
-import axios from "axios";
 import axiosInstance from "../../services/axios";
 
 export default function InviteModal(props) {
@@ -20,27 +19,22 @@ export default function InviteModal(props) {
   const addUser = () => {
     setSelectedUsers((prevUsers) => {
       const usersToAdd = users.filter(
-        (user) =>
-          !prevUsers.some(
-            (selectedUser) => selectedUser.user_id === user.user_id
-          )
+        (user) => !prevUsers.some((selectedUser) => selectedUser.id === user.id)
       );
 
       return [...prevUsers, ...usersToAdd];
     });
     setUsers([]);
-    setSelectedGroup_Id_Name({ group_id: null });
+    setSelectedGroup_Id_Name({ group_id: null, group_name: null });
     setSelectedUserIds([]);
   };
 
   const removeUser = (userId) => {
     setSelectedUsers((prevUsers) =>
-      prevUsers.filter((user) => user.user_id !== userId)
+      prevUsers.filter((user) => user.id !== userId)
     );
     setUserIds((prevIds) => prevIds.filter((id) => id !== userId));
-    setUsers((prevUsers) =>
-      prevUsers.filter((user) => user.user_id !== userId)
-    );
+    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
   };
 
   const clearAllUsers = () => {
@@ -60,10 +54,6 @@ export default function InviteModal(props) {
         setUserIds((prevIds) => prevIds.filter((id) => id !== user_Id));
       } else {
         setUserIds((prevIds) => [...prevIds, user_Id]);
-        setUsers(() => [
-          ...users,
-          ...userList.filter((user) => user.user_id === user_Id),
-        ]);
       }
       setSelectedUserIds([...selectedUserIds, user_Id]);
     } else {
@@ -85,7 +75,9 @@ export default function InviteModal(props) {
 
   const submitHandler = () => {
     axiosInstance
-      .post("/api/message/room", formdata)
+      .post("/api/message/room", formdata, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
       .then((resp) => console.log(JSON.stringify(resp.data)))
       .catch((err) => console.log(err));
   };
@@ -196,10 +188,7 @@ export default function InviteModal(props) {
             </div>
             <div className="selected-Users">
               {selectedUsers.map((selectedUser) => (
-                <div
-                  className="selected-User_cancelBtn"
-                  key={selectedUser.user_id}
-                >
+                <div className="selected-User_cancelBtn" key={selectedUser.id}>
                   <div className="selected-User">
                     <img
                       className="profile"
@@ -207,7 +196,7 @@ export default function InviteModal(props) {
                       alt=""
                     />
                     <div className="name_dept">
-                      <div className="name">{selectedUser.userName}</div>
+                      <div className="name">{selectedUser.name}</div>
                       <div className="dept">
                         <span>{selectedUser.group}</span>
                       </div>
@@ -217,7 +206,7 @@ export default function InviteModal(props) {
                     className="cancelBtn"
                     src="../images/closeBtn.png"
                     alt=""
-                    onClick={() => removeUser(selectedUser.user_id)}
+                    onClick={() => removeUser(selectedUser.id)}
                   />
                 </div>
               ))}

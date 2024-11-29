@@ -1,5 +1,7 @@
-import axios from "axios";
 import { useEffect, useRef, useState } from "react";
+import axiosInstance from "../../services/axios";
+import { useQuery } from "@tanstack/react-query";
+import { getDeptsAndTeams } from "./Message_API";
 
 export default function InviteModal_orgChart({
   users,
@@ -14,11 +16,8 @@ export default function InviteModal_orgChart({
 }) {
   const [userIds, setUserIds] = useState([]);
 
-  console.log("selectedUserIds : " + selectedUserIds);
-  console.log("users : " + JSON.stringify(users));
-  console.log("userIds : " + JSON.stringify(userIds));
-
-  const [groups, setGroups] = useState([]);
+  const [depts, setDepts] = useState([]);
+  const [teams, setTeams] = useState([]);
 
   const handleGroupClick = (group_Id, group_Name) => {
     setSelectedGroup_Id_Name((prev) => ({
@@ -28,7 +27,26 @@ export default function InviteModal_orgChart({
     }));
   };
 
-  console.log("selectedGroup_Id_Name" + JSON.stringify(selectedGroup_Id_Name));
+  const {
+    isLoading,
+    data: groupMembersData,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["get-groupMembers", selectedGroup_Id_Name.group_name],
+    queryFn: async () => {
+      const response = await axiosInstance.get("/api/group/users", {
+        params: {
+          team: selectedGroup_Id_Name.group_name,
+        },
+      });
+
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
+    enabled: !!selectedGroup_Id_Name.group_name, // group_name이 존재할 때만 실행
+  });
 
   const [showList, setShowList] = useState({
     type1: false,
@@ -36,6 +54,7 @@ export default function InviteModal_orgChart({
     arrow1: "/images/arrow-down.png",
     arrow2: "/images/arrow-down.png",
   });
+
   const type1Handler = (e) => {
     e.preventDefault();
     if (showList.type1 == false) {
@@ -70,16 +89,21 @@ export default function InviteModal_orgChart({
   };
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/user_group")
-      .then((resp) => setGroups(resp.data))
-      .catch((err) => console.log(err));
-
-    axios
-      .get("http://localhost:5000/user")
-      .then((resp) => setUserList(resp.data))
+    getDeptsAndTeams()
+      .then((resp) => {
+        setDepts(resp.departments);
+        setTeams(resp.teams);
+      })
       .catch((err) => console.log(err));
   }, []);
+
+  const setUsersHandler = (member) => {
+    if (!userIds.includes(member.id)) {
+      setUsers([...users, member]);
+    }
+  };
+
+  if (isError) return <div>Error: {error.message}</div>;
 
   return (
     <div className="inviteLeftBox">
@@ -93,29 +117,25 @@ export default function InviteModal_orgChart({
             <span className="groupName selected-group">부서 목록</span>
           </div>
           {/* 부서 목록 출력 */}
-          {groups.length > 0 && showList.type1 == true
-            ? groups
-                .filter((group) => group.group_type === 0)
-                .map((group) => (
-                  <div
-                    className={`departments ${
-                      selectedGroup_Id_Name.group_id === group.group_id
-                        ? "selected-dept"
-                        : ""
-                    }`}
-                    onClick={() =>
-                      handleGroupClick(group.group_id, group.group_name)
-                    }
-                    key={group.group_id}
-                  >
-                    <img
-                      className="representIcon"
-                      src="/images/deptartment.jpg"
-                      alt=""
-                    />
-                    <span className="groupName">{group.group_name}</span>
-                  </div>
-                ))
+          {depts && showList.type1 == true
+            ? depts.map((dept) => (
+                <div
+                  className={`departments ${
+                    selectedGroup_Id_Name.group_id === dept.id
+                      ? "selected-dept"
+                      : ""
+                  }`}
+                  onClick={() => handleGroupClick(dept.id, dept.name)}
+                  key={dept.id}
+                >
+                  <img
+                    className="representIcon"
+                    src="/images/deptartment.jpg"
+                    alt=""
+                  />
+                  <span className="groupName">{dept.name}</span>
+                </div>
+              ))
             : null}
 
           <div className="groups" onClick={type2Handler}>
@@ -124,62 +144,59 @@ export default function InviteModal_orgChart({
             <span className="groupName selected-group">팀 목록</span>
           </div>
           {/* 팀 목록 출력 */}
-          {groups.length > 0 && showList.type2 == true
-            ? groups
-                .filter((group) => group.group_type === 1)
-                .map((group) => (
-                  <div
-                    className={`departments ${
-                      selectedGroup_Id_Name.group_id === group.group_id
-                        ? "selected-dept"
-                        : ""
-                    }`}
-                    onClick={() =>
-                      handleGroupClick(group.group_id, group.group_name)
-                    }
-                    key={group.group_id}
-                  >
-                    <img
-                      className="representIcon"
-                      src="../images/deptartment.jpg"
-                      alt=""
-                    />
-                    <span className="groupName">{group.group_name}</span>
-                  </div>
-                ))
+          {teams && showList.type2 == true
+            ? teams.map((team) => (
+                <div
+                  className={`departments ${
+                    selectedGroup_Id_Name.group_id === team.id
+                      ? "selected-dept"
+                      : ""
+                  }`}
+                  onClick={() => handleGroupClick(team.id, team.name)}
+                  key={team.id}
+                >
+                  <img
+                    className="representIcon"
+                    src="../images/deptartment.jpg"
+                    alt=""
+                  />
+                  <span className="groupName">{team.name}</span>
+                </div>
+              ))
             : null}
         </div>
       </div>
 
       <div className="orgs-Users-List">
-        {userList.length > 0
-          ? userList
-              .filter((user) => user.group === selectedGroup_Id_Name.group_name)
-              .map((user) => (
-                <div
-                  className={`orgs-User ${
-                    selectedUserIds.some(
-                      (selectedUserId) => selectedUserId === user.user_id
-                    )
-                      ? "selectedUser"
-                      : ""
-                  }`}
-                  key={user.user_id}
-                  onClick={(e) => selectHandler(e, user.user_id)}
-                >
-                  <img
-                    className="profile"
-                    src="../images/sample_item1.jpg"
-                    alt=""
-                  />
-                  <div className="name_dept">
-                    <div className="name">{user.userName}</div>
-                    <div className="dept">
-                      <span>{user.group}</span>
-                    </div>
+        {groupMembersData
+          ? groupMembersData.map((member) => (
+              <div
+                className={`orgs-User ${
+                  selectedUserIds.some(
+                    (selectedUserId) => selectedUserId === member.id
+                  )
+                    ? "selectedUser"
+                    : ""
+                }`}
+                key={member.id}
+                onClick={(e) => {
+                  selectHandler(e, member.id);
+                  setUsersHandler(member);
+                }}
+              >
+                <img
+                  className="profile"
+                  src="../images/sample_item1.jpg"
+                  alt=""
+                />
+                <div className="name_dept">
+                  <div className="name">{member.name}</div>
+                  <div className="dept">
+                    <span>{selectedGroup_Id_Name.group_name}</span>
                   </div>
                 </div>
-              ))
+              </div>
+            ))
           : null}
       </div>
     </div>
