@@ -55,7 +55,7 @@ export default function UserPage1() {
 
     return (
         <>
-        <section className="overflow-auto max-h-[300px] min-h-[300px] scrollbar-none mb-16">
+        <section className="overflow-auto max-h-[300px] min-h-[300px] scrollbar-none mb-16 px-[40px]">
             <table className="w-full table-auto border-collapse mb-16">
                 <thead className='bg-gray-200 h-16 sticky top-0 z-10'>
                     <tr className='text-center'>

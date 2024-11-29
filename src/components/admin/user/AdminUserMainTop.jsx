@@ -55,9 +55,9 @@ export default function AdminUserMainTop({selectOption , optionChanger}) {
         setIsSearch(true)
     };
   return (
-    <section className='flex items-center gap-4 mb-12'>
-        <div className='ml-4 text-2xl'>
-            <select value={selectOption} onChange={optionChanger} className='outline-none border rounded-md text-xl p-2 text-center'>
+    <section className='flex items-center gap-4 mb-12 px-[30px]'>
+        <div className='ml-4 text-xl'>
+            <select value={selectOption} onChange={optionChanger} className='outline-none border rounded-md text-[15px] p-2 text-center'>
                 <option value={0}>인사관리</option>
                 <option value={1}>가입승인요청</option>
             </select>
