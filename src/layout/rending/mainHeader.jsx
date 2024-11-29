@@ -7,7 +7,7 @@ export default function MainHeader(){
                 <div className="headerIn">
                     <div className="headerLogo">
                         
-                        <img src="/images/plantryLogo.png" alt="logo"/>
+                        <img src="/images/Logo-icon.png" alt="logo"/>
                         <Link to="/">
                         <h1>Plantry</h1>
                         </Link>
