@@ -19,7 +19,6 @@ const MainBigCalendar = () => {
     const queryClient = useQueryClient();
 
     const dropEvent = (e) => {
-        console.log(e.event)
         setDateChanger(true);
         setOldData({
             title : e.event.title,
@@ -99,7 +98,6 @@ const MainBigCalendar = () => {
             console.error("Error updating user", error);
         },
     });
-    
 
     const handleCustomButtonClick = async () => {
         try {
