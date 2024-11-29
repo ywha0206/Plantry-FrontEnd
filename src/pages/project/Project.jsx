@@ -133,7 +133,7 @@ export default function Project() {
         });
       }
     });
-  }, [data.columns]);
+  }, []);
  
   const handleTaskMove = (event, columnIndex) => {
     const movedTaskId = parseInt(event.item.dataset.taskId, 10);
@@ -191,7 +191,7 @@ export default function Project() {
               <div></div>
               
               {isEditTitle?
-              <input type="text" className="text-lg text-center text-gray-500 w-fit overflow-visible bg-transparent" value={data.title} name="title" onChange={handleChange} autoFocus/>
+              <input type="text" className="text-lg text-center text-gray-400 w-fit overflow-visible bg-transparent" value={data.title} name="title" onChange={handleChange} autoFocus/>
               :<span className="text-lg text-center text-black">{data.title}</span>}
               
               <button onClick={handleEditTitle}>
