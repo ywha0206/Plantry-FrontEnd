@@ -72,13 +72,17 @@ export default function DocumentAside(){
                 <section className="py-[0px] px-[20px] mb-10">
                 <div className='flex gap-4 items-center opacity-60 mb-6'>
                         <img className='w-6 h-6' src='/images/document-star.png'></img>
-                        <Link to='/document/list/favorite'>
+                        <Link   to={'/document/list/favorite'}
+                                state={{ folderName: "즐겨찾기" }} // folder.name 전달 
+                        >
                             <p>즐겨찾기</p>
                         </Link>
                     </div>
                     <div className='flex gap-4 items-center opacity-60'>
                         <img src='/images/document-recent.png'></img>
-                        <Link to='/document/list/favorite'>
+                        <Link  to={'/document/list/latest'}
+                                state={{ folderName: "최근문서" }} // folder.name 전달 
+                        >
                              <p>최근문서</p>
                         </Link>
 
@@ -108,7 +112,9 @@ export default function DocumentAside(){
                     }`}>
                     {folders.map((folder) => (
                     <div className="flex gap-4 items-center mb-1" key={folder.id}>
-                        <Link to={`/document/list/${folder.id}`} className="flex gap-4 items-center mb-1">
+                        <Link    to={`/document/list/${folder.id}`}
+                                state={{ folderName: folder.name }} // folder.name 전달
+                                className="flex gap-4 items-center mb-1">
                             <img src="/images/document-folder.png" alt="Folder Icon" />
                             <p className="opacity-60 pt-1">{folder.name}</p>
                         </Link>
@@ -137,7 +143,9 @@ export default function DocumentAside(){
                         }`}>
                      {sharedFolders.map((folder) => (
                         <div className="flex gap-4 items-center mb-1" key={folder.id}>
-                            <Link to={`/document/list/${folder.id}`} className="flex gap-4 items-center mb-1">
+                            <Link   to={`/document/list/${folder.id}`}
+                                    state={{ folderName: folder.name }} // folder.name 전달
+                                    className="flex gap-4 items-center mb-1">
                                 <img src="/images/document-folder.png" alt="Folder Icon" />
                                 <p className="opacity-60 pt-1">{folder.name}</p>
                             </Link>

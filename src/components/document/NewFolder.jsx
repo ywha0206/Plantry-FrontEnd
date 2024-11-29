@@ -16,9 +16,10 @@ const initState = {
   shareUsers : [],
   isShared : 0,
   linkSharing: "0", // 허용안함
+  parentId:"",
 };
 
-export default function NewFolder({ isOpen, onClose }) {
+export default function NewFolder({ isOpen, onClose ,parentId }) {
   const [authType, setAuthType] = useState("0"); // 기본값: '나만 사용'
   const [formData, setFormData] = useState(initState);
 
@@ -44,6 +45,13 @@ export default function NewFolder({ isOpen, onClose }) {
       owner: user.uid,
     }));
   }, []);
+  useEffect(() => {
+    console.log("user ,,, ",user);
+    setFormData((prev) => ({
+      ...prev,
+      parentId: parentId,
+    }));
+  }, [parentId]);
 
    // 드라이브 마스터 설정 또는 업데이트
    const handleSelectMaster = () => {
@@ -82,6 +90,7 @@ export default function NewFolder({ isOpen, onClose }) {
   const handleSubmit = async () => {
     try {
       // Axios로 백엔드 API 호출
+      console.log("formData : ",formData);
       const response = await axiosInstance.post("/api/drive/newFolder", formData);
       console.log("Response:", response.data);
 
