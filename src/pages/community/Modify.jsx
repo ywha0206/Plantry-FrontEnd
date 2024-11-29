@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-import CommunitySidebar from "@/components/community/CommunitySideBar";
+import CommunitySidebar from "@/components/community/CommunitySidebar";
+
 
 function CommunityModify() {
   const navigate = useNavigate();

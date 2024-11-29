@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import "@/pages/community/Community.scss";
-import CommunitySidebar from "@/components/community/CommunitySideBar";
+import CommunitySidebar from "@/components/community/CommunitySidebar";
+
 
 function CommunityList() {
   const [searchQuery, setSearchQuery] = useState(""); // 검색어 상태
