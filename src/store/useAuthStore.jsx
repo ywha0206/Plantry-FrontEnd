@@ -7,7 +7,6 @@ import { persist } from "zustand/middleware";
 */
 
 export const useAuthStore = create(
-  persist(
     (set) => ({
       accessToken: null, // 초기값: null
       authorized: false, // 로그인 상태 초기값
@@ -26,5 +25,4 @@ export const useAuthStore = create(
       name: "auth-storage", // 로컬스토리지 키 이름
       getStorage: () => localStorage, // 기본값: localStorage
     }
-  )
 );
