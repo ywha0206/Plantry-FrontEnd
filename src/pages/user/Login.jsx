@@ -10,6 +10,8 @@ import CustomAlert from '@/components/Alert';
 import { CustomMessage } from '@/components/Message';
 import decodeToken from '../../util/decodeToken';
 import useUserStore from '../../store/useUserStore';
+import { useAuthStore } from '../../store/useAuthStore';
+
 
 // 2024.11.28 하진희 유저 정보 store에 저장하기 
 
@@ -26,7 +28,11 @@ export default function Login() {
     const [msg, setMsg] = useState(false);
     const [role, setRole] = useState("");
 
+
     const setUser = useUserStore((state) => state.setUser); // Zustand의 setUser 가져오기
+
+
+    const setAccessToken = useAuthStore((state) => state.setAccessToken);
 
   
     const changeHandler = (e)=>{
@@ -42,7 +48,7 @@ export default function Login() {
         "pwd" : pwd
       }
       axiosInstance
-        .post("/api/user/login",data)
+        .post("/api/auth/login",data)
         .then((resp)=>{
           console.log("로그인 정보",resp);
           if(resp.status === 200){
@@ -52,22 +58,18 @@ export default function Login() {
             setUser(resp.data.user);
             
             const role = resp.data.role;
+            
             setToken(token);
             setRole(role);
-            console.log('로그인 성공, 토큰:', token);
-  
-            localStorage.setItem('token', token);
-
-
-            //로그인시 user정보 store에 저장
+            
+            console.log('로그인 성공, 토큰:', token);            
+            setAccessToken(token); //zustand 상태 업데이트
            
-
 
             setAlert(true)
             setMessage("로그인 성공하였습니다.")
             setType("success")
           }
-          
         })
         .catch((err)=>{
           if (err.status === 404){
@@ -103,7 +105,7 @@ export default function Login() {
         if(role === 'COMPANY'){
           navigate("/admin")
         } else {
-          navigate("/my")
+          navigate("/home")
         }
           
       }
