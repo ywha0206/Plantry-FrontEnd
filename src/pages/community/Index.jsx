@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import Sidebar from "@/components/community/CommunitySideBar";
+import Sidebar from "@/components/community/CommunitySidebar";
 import "@/pages/community/Community.scss";
-import CommunityCard from "@/components/community/communityCard";
+import CommunityCard from "@/components/community/CommunityCard";
 
 export default function CommunityIndex() {
   // 즐겨찾기 상태 관리 (key → label 기반)
