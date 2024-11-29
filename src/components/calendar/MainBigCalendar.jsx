@@ -92,6 +92,26 @@ const MainBigCalendar = () => {
         setCustomAlert(true)
         setCustomAlertType("success")
         setCustomAlertMessage(data)
+        queryClient.setQueryData(['calendar-date'],(prevData)=>{
+            const updatedData = prevData
+                ? prevData.map((item) => {
+                    const updatedItem = putData.find(data => String(data.contentId) === String(item.id));
+                    
+                    if (updatedItem) {
+                        return {
+                            ...item,
+                            title: updatedItem.title, 
+                            start: updatedItem.startDate,  
+                            end: updatedItem.endDate, 
+                            color: item.color, 
+                        };
+                    }
+                    return item;
+                })
+                : [];
+        
+            return updatedData;
+        })
         setTimeout(() => {
             setCustomAlert(false);
         }, 1000);
@@ -117,15 +137,14 @@ const MainBigCalendar = () => {
         return <p>{calendarDate}</p>
     }
     const closeDateChanger = () => {setDateChanger(false)}
-    // 날짜 클릭 이벤트 처리
+
     const handleDateClick = (info) => {
         setClickedDate(info.dateStr)
         setClickDateModal(true)
     };
 
-    // 일정 클릭 이벤트 처리
     const handleEventClick = (info) => {
-        confirm(`이벤트 클릭됨: ${info.event.title}`); // 클릭한 일정의 제목 출력
+        confirm(`이벤트 클릭됨: ${info.event.title}`); 
     };
         
   return (

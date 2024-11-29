@@ -130,9 +130,6 @@ export default function Calendar() {
     return <ul >일정 없다 개꿀!</ul>
   }
 
-  // if (!Array.isArray(calendarContentName) || calendarContentName.length === 0) {
-  //   return <p>로딩중...</p>
-  // }
 
   const changeCalendar = (e,id,color) =>{
     if(e.target.classList.contains(`bg-${color}-200`)){
