@@ -16,6 +16,10 @@
     border-top-left-radius: 20px;
     border-bottom-left-radius: 20px;
     box-sizing: border-box;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
   }
 
   .aside-top {
@@ -495,7 +499,15 @@
   justify-content: center;
   align-items: center;
   background: rgba(0, 0, 0, 0.5);
+  overflow: scroll;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
   .message-invite-container {
     z-index: 101;
     position: absolute;
@@ -578,12 +590,21 @@
     }
   }
   //============================================▼초대모달 컴포넌트(조직도)============================================
+
   .allOrgs {
+    overflow: scroll;
+    border: 1px solid gainsboro;
+    border-bottom: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .groupsDiv {
     display: flex;
     height: 300px;
     flex-direction: column;
-    border: 1px solid gainsboro;
-    border-bottom: none;
+
     padding: 10px;
     box-sizing: border-box;
   }
@@ -601,11 +622,14 @@
       height: 20px;
       margin-right: 5px;
       &:first-child {
+        width: 10px;
+        height: 10px;
         cursor: pointer;
+        opacity: 70%;
+        &:hover {
+          opacity: 100%;
+        }
       }
-    }
-    &:nth-child(2) {
-      padding-left: 20px;
     }
   }
 
@@ -628,6 +652,9 @@
       width: 20px;
       height: 20px;
       margin-right: 5px;
+    }
+    & > span {
+      width: 100%;
     }
   }
 
@@ -684,6 +711,13 @@
     color: rgb(131, 131, 131);
   }
 
+  .selectedUser {
+    background-color: #7e7edf70;
+    &:hover {
+      background-color: #7e7edf70;
+    }
+  }
+
   //============================================▲초대모달 컴포넌트(조직도)==============================================
   //============================================▼초대모달 컴포넌트(사용자 검색)============================================
 
@@ -705,7 +739,11 @@
       }
     }
     .searched-Users-List {
-      height: 532px;
+      height: 535px;
+      overflow: scroll;
+      &::-webkit-scrollbar {
+        display: none;
+      }
     }
     .selectedUser {
       background-color: #7e7edf70;
@@ -715,7 +753,15 @@
   //============================================▼초대모달 컴포넌트(즐겨찾기)============================================
 
   .frequent-List {
-    height: 600px;
+    height: 601px;
+    overflow: scroll;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    .selectedUser {
+      background-color: #7e7edf70;
+    }
   }
 
   //============================================▲초대모달 컴포넌트(즐겨찾기)==============================================

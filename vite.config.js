@@ -12,7 +12,5 @@ export default defineConfig({
   server: {
     port: 8010,
   },
-  define: {
-    global: "globalThis", // `global`을 브라우저 환경에서 `globalThis`로 매핑
-  },
+
 });

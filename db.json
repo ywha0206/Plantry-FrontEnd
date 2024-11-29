@@ -1,0 +1,170 @@
+{
+  "user": [
+    {
+      "user_id": 1,
+      "userName": "김말똥",
+      "hp": "010-1111-1234",
+      "group": "개발팀"
+    },
+    {
+      "user_id": 2,
+      "userName": "아무개",
+      "hp": "010-2222-1234",
+      "group": "디자인팀"
+    },
+    {
+      "user_id": 3,
+      "userName": "김춘추",
+      "hp": "010-3333-1234",
+      "group": "인사팀"
+    },
+    {
+      "user_id": 4,
+      "userName": "김유신",
+      "hp": "010-4444-1234",
+      "group": "홍보팀"
+    },
+    {
+      "user_id": 5,
+      "userName": "장보고",
+      "hp": "010-5555-1234",
+      "group": "개발팀"
+    },
+    {
+      "user_id": 6,
+      "userName": "을지문덕",
+      "hp": "010-6666-1234",
+      "group": "영업팀"
+    },
+    {
+      "user_id": 7,
+      "userName": "갈리오",
+      "hp": "010-7777-1234",
+      "group": "영업팀"
+    },
+    {
+      "user_id": 8,
+      "userName": "말자하",
+      "hp": "010-8888-1234",
+      "group": "디자인팀"
+    },
+    {
+      "user_id": 9,
+      "userName": "사미라",
+      "hp": "010-9999-1234",
+      "group": "홍보팀"
+    },
+    {
+      "user_id": 10,
+      "userName": "피오라",
+      "hp": "010-1234-1234",
+      "group": "부서1"
+    },
+    {
+      "user_id": 11,
+      "userName": "아무무",
+      "hp": "010-1235-1234",
+      "group": "부서2"
+    },
+    {
+      "user_id": 12,
+      "userName": "아우솔",
+      "hp": "010-1236-1234",
+      "group": "부서3"
+    },
+    {
+      "user_id": 13,
+      "userName": "바루스",
+      "hp": "010-1237-1234",
+      "group": "부서4"
+    }
+  ],
+
+  "frequentUser": [
+    {
+      "user_id": 1,
+      "userName": "김말똥",
+      "hp": "010-1111-1234",
+      "group": "개발팀"
+    },
+    {
+      "user_id": 2,
+      "userName": "아무개",
+      "hp": "010-2222-1234",
+      "group": "디자인팀"
+    },
+    {
+      "user_id": 3,
+      "userName": "김춘추",
+      "hp": "010-3333-1234",
+      "group": "인사팀"
+    },
+    {
+      "user_id": 4,
+      "userName": "김유신",
+      "hp": "010-4444-1234",
+      "group": "홍보팀"
+    },
+    {
+      "user_id": 5,
+      "userName": "장보고",
+      "hp": "010-5555-1234",
+      "group": "개발팀"
+    },
+    {
+      "user_id": 6,
+      "userName": "을지문덕",
+      "hp": "010-6666-1234",
+      "group": "영업팀"
+    },
+    {
+      "user_id": 7,
+      "userName": "갈리오",
+      "hp": "010-7777-1234",
+      "group": "영업팀"
+    }
+  ],
+
+  "user_group": [
+    {
+      "group_id": 1,
+      "group_name": "영업팀",
+      "group_type": 1
+    },
+    {
+      "group_id": 2,
+      "group_name": "홍보팀",
+      "group_type": 1
+    },
+    {
+      "group_id": 3,
+      "group_name": "개발팀",
+      "group_type": 1
+    },
+    {
+      "group_id": 4,
+      "group_name": "디자인팀",
+      "group_type": 1
+    },
+    {
+      "group_id": 5,
+      "group_name": "부서1",
+      "group_type": 0
+    },
+    {
+      "group_id": 6,
+      "group_name": "부서2",
+      "group_type": 0
+    },
+    {
+      "group_id": 7,
+      "group_name": "부서3",
+      "group_type": 0
+    },
+    {
+      "group_id": 8,
+      "group_name": "부서4",
+      "group_type": 0
+    }
+  ]
+}

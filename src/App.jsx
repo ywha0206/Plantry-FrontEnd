@@ -3,6 +3,7 @@ import "@/App.scss";
 import Index from "@/pages";
 import Main from "@/layout/layout/Main.jsx";
 import Login from "@/pages/user/Login.jsx";
+
 import AdminIndex from "./pages/admin/Index";
 import MainIndex from "./pages";
 import AdminUser from "./pages/admin/User";
@@ -86,6 +87,7 @@ function App() {
           <Route path="modify" element={<MyModify />} />
           <Route path="approval" element={<MyApproval />} />
           <Route path="attendance" element={<MyAttendance />} />
+          <Route path='payment' element={<MyPayment />}/>
         </Route>
 
         {/* <Route path='/home' element */}
@@ -126,6 +128,7 @@ function App() {
         <Route path="/document" element={<Main />}>
           <Route index element={<Document />} />
           <Route path="favorite" element={<Favorite />} />
+          <Route path="list/:dynamicPart" element={<DocumentList />} />
         </Route>
 
         {/* 달력 */}
@@ -142,6 +145,8 @@ function App() {
         <Route path="/page" element={<Main />}>
           <Route index element={<Page />} />
           <Route path="newPage" element={<NewPagePages />} />
+          <Route path="list" element={<PageListPage />} />
+          <Route path="view" element={<PageViewPages />} />
         </Route>
       </Routes>
     </div>

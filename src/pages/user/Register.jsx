@@ -265,8 +265,7 @@ export default function Register() {
                   {/* Enterprise Plan */}
                   <label
                     className={`planbox-label ${selected === 'Enterprise' ? 'selected' : ''}`}
-                    onClick={() => handlePlanSelection('Enterprise')}
-                  >
+                    onClick={() => handlePlanSelection('Enterprise')}>
                     <div
                       className={`border planbox flex flex-col items-center ${
                         selected === 'Enterprise' ? 'border-indigo-500' : 'border-indigo-200'
@@ -307,6 +306,22 @@ export default function Register() {
                   <p className='text-sm custom-mt-30'>회사 정보를 입력해주세요.</p>
                     <input type='text' placeholder='회사명을 입력해주세요.'
                     className="signup-input-lg mt-10" ></input>
+                    <input type='text' placeholder='결제할 카드의 번호를 입력해주세요.'
+                    className="signup-input-lg mt-10" ></input>
+                    <div className='flex justify-between mt-10'>
+                      <input type='text' placeholder='카드 별명'
+                      className="card-inp1 mr-1" ></input>
+                      <input type='text' placeholder='만료일'
+                      className="card-inp2 mr-1" ></input>
+                      <input type='text' placeholder='CVC번호'
+                      className="card-inp2 mr-1" ></input>
+                    </div>
+                  </>
+                }
+                {
+                  selected === 'Standard' && 
+                  <>
+                  <p className='text-sm custom-mt-30'>결제 정보를 입력해주세요.</p>
                     <input type='text' placeholder='결제할 카드의 번호를 입력해주세요.'
                     className="signup-input-lg mt-10" ></input>
                     <div className='flex justify-between mt-10'>

@@ -1,25 +1,64 @@
 import { useEffect, useState } from "react";
-import { getMessage } from "./Message_API";
+import axiosInstance from "../../services/axios";
+import { useQuery } from "@tanstack/react-query";
 
-export default function InviteModal_userSearch({
-  addUser,
-  setSelectedUsers,
-  setUsers,
-}) {
-  const [selected, setSelected] = useState(false);
+export default function InviteModal_userSearch(props) {
+  const {
+    users,
+    setUsers,
+    setSelectedGroup_Id_Name,
+    selectedGroup_Id_Name,
+    selectedUserIds,
+    setSelectedUserIds,
+    userList,
+    setUserList,
+    selectHandler,
+  } = props;
 
-  const selectHandler = (e) => {
-    e.preventDefault();
-    if (e.target.className === "orgs-User") {
-      setSelected(true);
-      e.target.className = "orgs-User selectedUser";
-    } else {
-      setSelected(false);
-      e.target.className = "orgs-User";
+  const {
+    isLoading,
+    data: allUsers,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["get-allUsers"],
+    queryFn: async () => {
+      const response = await axiosInstance.get("/api/allUsers");
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  setUserList(allUsers);
+
+  const [userIds, setUserIds] = useState([]);
+
+  const [keyword, setKeyword] = useState("");
+  const [searchResult, setSearchResult] = useState([]);
+
+  console.log("userList:", userList);
+
+  useEffect(() => {
+    if (keyword !== "") {
+      setSearchResult(userList.filter((user) => user.name.includes(keyword)));
+    }
+  }, [keyword, userList]);
+
+  const searchHandler = (e) => {
+    setKeyword(e.target.value);
+  };
+
+  const setUsersHandler = (result) => {
+    if (!userIds.includes(result.id)) {
+      setUsers([...users, result]);
     }
   };
 
-  console.log(selected);
+  console.log("searchResult : ", JSON.stringify(searchResult));
+  console.log("users : ", JSON.stringify(users));
+  console.log("userIds : ", JSON.stringify(userIds));
+  console.log("userList : ", JSON.stringify(userList));
 
   return (
     <div className="inviteLeftBox">
@@ -27,28 +66,45 @@ export default function InviteModal_userSearch({
 
       <div className="userSearch">
         <div className="search_Input_Img">
-          <input type="text" className="searchInput" onChange={null} />
+          <input
+            type="text"
+            className="searchInput"
+            value={keyword}
+            onChange={searchHandler}
+          />
           <img src="/images/search-icon.png" alt="" className="searchImg" />
         </div>
         <div className="orgs-Users-List searched-Users-List">
-          <div className="orgs-User" onClick={selectHandler}>
-            <img className="profile" src="../images/sample_item1.jpg" alt="" />
-            <div className="name_dept">
-              <div className="name">전규찬</div>
-              <div className="dept">
-                <span>개발팀</span>
-              </div>
-            </div>
-          </div>
-          <div className="orgs-User" onClick={selectHandler}>
-            <img className="profile" src="../images/sample_item1.jpg" alt="" />
-            <div className="name_dept">
-              <div className="name">김규찬</div>
-              <div className="dept">
-                <span>인사팀</span>
-              </div>
-            </div>
-          </div>
+          {searchResult
+            ? searchResult.map((result) => (
+                <div
+                  className={`orgs-User ${
+                    selectedUserIds.some(
+                      (selectedUserId) => selectedUserId === result.id
+                    )
+                      ? "selectedUser"
+                      : null
+                  }`}
+                  onClick={(e) => {
+                    selectHandler(e, result.id);
+                    setUsersHandler(result);
+                  }}
+                  key={result.id}
+                >
+                  <img
+                    className="profile"
+                    src="../images/sample_item1.jpg"
+                    alt=""
+                  />
+                  <div className="name_dept">
+                    <div className="name">{result.name}</div>
+                    <div className="dept">
+                      <span>개발팀</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            : null}
         </div>
       </div>
     </div>

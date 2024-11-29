@@ -4,73 +4,12 @@ import axiosInstance from '@/services/axios.jsx'
 
 export const Modal = ({ isOpen, onClose, children , text }) => {
     if (!isOpen) return null;
-    //                                              useState                                             //
-    const [user, setUser] = useState([])
-    const [user2, setUser2] = useState([])
-    const [selectedLeader , setSelectedLeader] = useState("");
-    const [depName, setDepName] = useState("");
-    const [depDiscription, setDepDiscription] = useState("");
-    const [members, setMembers] = useState([]);
-    //                                              useState                                             //
-
-    //                                              useRef                                               //
-    const selectLeaderRef = useRef(null);
-    const selectMemberRef = useRef(null);
-    //                                              useRef                                               //
-    const getMembers = () => {
-      axiosInstance
-        .get("/api/users")
-        .then((resp) => {
-            if(resp.status === 200){
-              const users = resp.data;
-              setUser(users);  
-            }
-        })
-        .catch()
-        
-    }
-
-    const getMembers2 = () => {
-      axiosInstance
-        .get("/api/users")
-        .then((resp) => {
-            if(resp.status === 200){
-              const users = resp.data;
-              setUser2(users);  
-            }
-        })
-        .catch()
-        
-    }
-    
-    const selectLeader = (e) => {
-        setSelectedLeader(e.target.dataset.id)
-    }
-
-    const selectMember = (e) => {
-        const newId = e.target.dataset.id
-        setMembers(prevMembers => [...prevMembers, newId]);
-    }
-
-    const changeDepName = (e) => {setDepName(e.target.value)}
-
-    const changeDepDiscription = (e) => {setDepDiscription(e.target.value)}
-
-    const makeDep = (e) => {
-      const data = {
-        "name" : depName,
-        "discription" : depDiscription,
-        "leader" : selectedLeader,
-        "members" : members
-      }
-
-      console.log(data)
-    }
 
 return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 modal-custom-fixed">
-      <div className="bg-white rounded-2xl shadow-lg max-w-2xl w-full modal-custom-width">
-        <div className="display-flex mb-8 py-5 px-12 bg-gray-300 rounded-t-2xl">
+      <div className="bg-white rounded-lg shadow-lg max-w-2xl w-[550px] modal-custom-width">
+        <div className="flex justify-between mb-8 pt-10 px-12  rounded-t-lg">
+           <div></div>
             <span className="text-2xl">{text}</span>
             <button 
             onClick={onClose}
@@ -79,7 +18,7 @@ return (
             닫기
             </button>
         </div>
-        <div className="modal-content mx-12">
+        <div className="modal-content mx-[40px]">
           {text !== '일정 등록' &&
             <>{children}</>
           }
@@ -237,13 +176,13 @@ return (
             <div className="flex gap-8 mb-4 justify-start items-center">
               <span className="w-20">이름</span>
               <div>
-                <input className="h-10 w-72 border rounded-md p-2 text-xs" placeholder="폴더 이름"></input>
+                <input className="h-10 w-[350px] border rounded-md p-2 text-xs" placeholder="폴더 이름"></input>
               </div>
             </div>
             <div className="flex gap-8 mb-4 justify-start items-center">
               <span className="w-20">설명</span>
               <div>
-                <input className="h-10 w-72 border rounded-md p-2 text-xs" placeholder="폴더 설명"></input>
+                <input className="h-10 w-[350px] border rounded-md p-2 text-xs" placeholder="폴더 설명"></input>
               </div>
             </div>
             <div className="flex gap-8 mb-4 justify-start items-center">
@@ -257,8 +196,8 @@ return (
             <div className="flex gap-8 mb-8 justify-start items-start">
               <span className="w-20">드라이브 마스터</span>
               <div className="flex flex-col gap-4">
-                <div className="flex gap-2">
-                  <input className="h-10 w-52 border rounded-md p-2 text-xs" placeholder="구성원 또는 조직으로 검색"></input>
+                <div className="flex gap-2 justify-between">
+                  <input className="h-10 w-[260px] border rounded-md p-2 text-xs" placeholder="구성원 또는 조직으로 검색"></input>
                   <button className="border h-10 w-20 rounded-md px-3 text-xs text-gray-400 bg-gray-100">주소록</button>
                 </div>
                 <div className="flex gap-2">
@@ -281,7 +220,7 @@ return (
               <span className="w-20">공유 인원</span>
               <div className="flex flex-col gap-4">
                 <div className="flex gap-2">
-                  <input className="h-10 w-52 border rounded-md p-2 text-xs" placeholder="구성원 또는 조직으로 검색"></input>
+                  <input className="h-10 w-[260px] border rounded-md p-2 text-xs" placeholder="구성원 또는 조직으로 검색"></input>
                   <button className="border h-10 w-20 rounded-md px-3 text-xs text-gray-400 bg-gray-100">주소록</button>
                 </div>
                 <div className="flex gap-2">
@@ -329,9 +268,9 @@ return (
               </div>
             </div>
             <div className="flex gap-8 mb-8 justify-start items-center">
-              <span className="w-20">링크 공유</span>
+              <span className="w-20 ">링크 공유</span>
               <div>
-                <select className="h-10 w-72 border rounded-md p-2 text-xs outline-none text-center">
+                <select className="h-10 w-[350px] border-none rounded-md p-2 text-xs outline-none text-center">
                   <option>허용함</option>
                   <option>허용안함</option>
                 </select>
@@ -339,7 +278,7 @@ return (
             </div>
             <div className="mb-8 flex justify-end gap-2 mb-8">
               <button onClick={onClose} className="bg-gray-100 w-20 h-8 rounded-md text-xs">취소</button>
-              <button className="bg-purple white w-20 h-8 rounded-md text-xs">만들기</button>
+              <button className="bg-[#5d5ddd] white w-20 h-8 rounded-md text-xs">만들기</button>
             </div>
             </>
           }

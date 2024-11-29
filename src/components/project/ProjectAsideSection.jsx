@@ -1,9 +1,8 @@
 /* eslint-disable react/prop-types */
-import React from "react";
 import ProjectAsideItem from "./ProjectAsideItem";
 import { CustomSVG } from "./CustomSVG";
 
-function ProjectAsideSection({ data, isCompleted, isOpen, toggleSection }) {
+function ProjectAsideSection({ data, isCompleted, isOpen, toggleSection, onStatusChange }) {
   const { title, items } = data;
 
   return (
@@ -16,7 +15,7 @@ function ProjectAsideSection({ data, isCompleted, isOpen, toggleSection }) {
         <h2
           className={`self-stretch my-auto w-[205px] ${isCompleted ? "text-neutral-500" : ""}`}
         >
-          <span className="text-sm">{title}</span>
+          <span className="text-sm">{title} ({items.length})</span>
         </h2>
         <CustomSVG id={isOpen ? "expand-up" : "expand-down"} size={24} />
       </div>
@@ -33,6 +32,7 @@ function ProjectAsideSection({ data, isCompleted, isOpen, toggleSection }) {
               key={index}
               title={item.title}
               isActive={item.isActive}
+              onStatusChange={() => onStatusChange(index)}
             />
           ))}
         </div>

@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"vite\" \"json-server --watch db.json --port 5000\"",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -16,18 +16,30 @@
     "@editorjs/header": "^2.8.8",
     "@editorjs/image": "^2.10.1",
     "@editorjs/list": "^2.0.2",
+    "@editorjs/table": "^2.4.2",
+    "@fullcalendar/core": "^6.1.15",
     "@fullcalendar/daygrid": "^6.1.15",
+    "@fullcalendar/interaction": "^6.1.15",
     "@fullcalendar/react": "^6.1.15",
+    "@fullcalendar/resource-timeline": "^6.1.15",
+    "@fullcalendar/timegrid": "^6.1.15",
     "@reduxjs/toolkit": "^2.3.0",
     "@tailwindcss/line-clamp": "^0.4.4",
-    "@tanstack/react-query": "^5.60.5",
+    "@tanstack/react-query": "^5.61.3",
+    "@tanstack/react-query-devtools": "^5.61.3",
+    "apexcharts": "^4.1.0",
     "axios": "^1.7.7",
     "disqus-react": "^1.1.5",
     "dropzone": "^6.0.0-beta.2",
+    "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
     "quill": "^2.0.2",
     "react": "^18.3.1",
+<<<<<<< HEAD
     "react-comments-section": "^3.2.0",
+=======
+    "react-apexcharts": "^1.6.0",
+>>>>>>> 2915b1e3dd43c9cbdc75c31626b6544143084094
     "react-datepicker": "^7.5.0",
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.3.5",
@@ -38,11 +50,16 @@
     "recharts": "^2.13.3",
     "redux": "^5.0.1",
     "sass": "^1.81.0",
+    "sortablejs": "^1.15.5",
     "styled-components": "^6.1.13",
     "tailwind-scrollbar": "^3.1.0",
+<<<<<<< HEAD
     "tailwind-scrollbar-hide": "^1.1.7",
     "tinymce": "^7.5.1",
     "uuid": "^11.0.3"
+=======
+    "zustand": "^5.0.1"
+>>>>>>> 2915b1e3dd43c9cbdc75c31626b6544143084094
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
@@ -50,11 +67,13 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.0",
     "eslint": "^9.13.0",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
     "globals": "^15.11.0",
+    "json-server": "^0.15.1",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.15",
     "vite": "^5.4.10"

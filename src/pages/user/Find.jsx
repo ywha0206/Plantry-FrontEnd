@@ -16,6 +16,7 @@ export default function Find() {
     navigate("/user/resultId");
   }
 
+
     return (
       <div className='find-container'>
         <div className='login-form'>

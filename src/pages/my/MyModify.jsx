@@ -1,18 +1,29 @@
 import React, { useState } from 'react'
 import '@/pages/my/My.scss'
 import { Link, useNavigate } from 'react-router-dom'
+import { MyModal } from '@/components/my/Modal';
 
 export default function MyModify() {
     const navigate = useNavigate();
-
-  const [deactive , setDeactive] = useState(0);
-  const handleCheckboxChange = (event) => {
-    setDeactive(event.target.checked ? 1 : 0); // 체크 상태에 따라 값 설정
-  };
-  const cancelHandler = (event) => {
-    event.preventDefault();
-    navigate("/my")
-  }
+    const [deactive , setDeactive] = useState(0);
+    
+    const handleCheckboxChange = (event) => {
+        setDeactive(event.target.checked ? 1 : 0); // 체크 상태에 따라 값 설정
+    };
+    const cancelHandler = (event) => {
+        event.preventDefault();
+        navigate("/my")
+    }
+    
+    
+    const [pass, setPass] = useState(false);
+    const modifyPass = (event) => {
+        event.preventDefault();
+        setPass(true);
+    }
+    const passClose = () => {
+        setPass(false)
+    }
 
   return <>
     <div id='my-modify-container'>
@@ -23,8 +34,13 @@ export default function MyModify() {
                     <img className='user-img' src="/images/user_face_icon.png" alt="user-face" />
                     <div className='relative top-5 left-10'>
                         <input type="text" className='my-nick-inp mb-10 font-light text-gray-600' value="yeonwha****" />
-                        <div>
-                            <button className='btn-profile bg-indigo-500 text-white mr-10'>새 프로필 등록</button>
+                        <div className='flex'>
+                            <label for="file" className='mr-10'>
+                                <div  className='rounded-md h-[40px] flex items-center justify-center bg-indigo-500 text-white w-[185px]'>
+                                    새 프로필 업로드
+                                </div>
+                            </label>
+                            <input type="file" id='file' className='hidden-inp'/>
                             <button className='btn-profile border border-red-400 text-red-400'>RESET</button>
                         </div>
                         <span className='text-sm text-gray-400 font-light'>JPG, GIF 혹은 PNG 등록 가능, 10MB 지원</span>
@@ -96,7 +112,7 @@ export default function MyModify() {
                     </tbody>
                 </table>
                 <div className='flex float-right mt-[50px]'>
-                    <button className='btn-profile border border-indigo-500 text-indigo-700 mr-10'>비밀번호 수정</button>
+                    <button onClick={modifyPass} className='btn-profile border border-indigo-500 text-indigo-700 mr-10'>비밀번호 수정</button>
                     <button className='btn-profile bg-indigo-500 text-white mr-10'>마이프로필 수정</button>
                     <button className='btn-profile border text-gray-500' onClick={cancelHandler}>취소</button>
                 </div>
@@ -165,6 +181,14 @@ export default function MyModify() {
                     </li>
                 </ul>
             </article>
+            <div className='pass-modal'>
+                <MyModal
+                    isOpen={pass}
+                    onClose={passClose}
+                    text="비밀번호 변경"
+                />
+            </div>
+
         </section>
     </div>
   </>
