@@ -63,14 +63,13 @@ export default function NewDrive({ isOpen, onClose }) {
       });
     };
 
-  const handleAddSharedUser = () => {
-    if (!currentUser.trim() || formData.sharedUsers.length >= 3) return;
-    setFormData({
-      ...formData,
-      sharedUsers: [...formData.sharedUsers, currentUser],
-    });
-    setCurrentUser(""); // 입력 필드 초기화
-  };
+  // const handleAddSharedUser = () => {
+  //   if (!user.uid.trim() || formData.sharedUsers.length >= 3) return;
+  //   setFormData({
+  //     ...formData,
+  //     sharedUsers: [...formData.sharedUsers, user.uid],
+  //   });
+  // };
 
   const handleRemoveSharedUser = (user) => {
     setFormData({
@@ -81,6 +80,7 @@ export default function NewDrive({ isOpen, onClose }) {
 
   const handleSubmit = async () => {
     try {
+      console.log("formData" ,formData);
       // Axios로 백엔드 API 호출
       const response = await axiosInstance.post("/api/drive/newDrive", formData);
       console.log("Response:", response.data);

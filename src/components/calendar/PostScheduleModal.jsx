@@ -4,13 +4,11 @@ import axiosInstance from '@/services/axios.jsx'
 import { useCalenderNameStore } from '../../store/zustand';
 import CustomAlert from '../Alert';
 
-export default function PostScheduleModal({ isOpen, onClose, children , text,oldData }) {
+export default function PostScheduleModal({ isOpen, onClose, children , text,oldData ,today ,setToday }) {
     if(!isOpen) return null;
     const [title,setTitle] = useState("");
-    const [sdate,setSdate] = useState("");
-    const [edate,setEdate] = useState("");
-    const [stime,setStime] = useState("");
-    const [etime,setEtime] = useState("");
+    const [sdate,setSdate] = useState(today+'T09:00');
+    const [edate,setEdate] = useState(today+'T10:00');
     const [calendarId,setCalendarId] = useState(0);
     const [location, setLocation] = useState("");
     const [importance, setImportance] = useState(1);

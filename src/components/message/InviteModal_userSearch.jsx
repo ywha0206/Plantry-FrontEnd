@@ -1,5 +1,6 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
+import axiosInstance from "../../services/axios";
+import { useQuery } from "@tanstack/react-query";
 
 export default function InviteModal_userSearch(props) {
   const {
@@ -14,23 +15,33 @@ export default function InviteModal_userSearch(props) {
     selectHandler,
   } = props;
 
+  const {
+    isLoading,
+    data: allUsers,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["get-allUsers"],
+    queryFn: async () => {
+      const response = await axiosInstance.get("/api/allUsers");
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  setUserList(allUsers);
+
   const [userIds, setUserIds] = useState([]);
 
   const [keyword, setKeyword] = useState("");
   const [searchResult, setSearchResult] = useState([]);
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:5000/user")
-      .then((resp) => setUserList(resp.data))
-      .catch((err) => console.log(err));
-  }, []);
+  console.log("userList:", userList);
 
   useEffect(() => {
     if (keyword !== "") {
-      setSearchResult(
-        userList.filter((user) => user.userName.includes(keyword))
-      );
+      setSearchResult(userList.filter((user) => user.name.includes(keyword)));
     }
   }, [keyword, userList]);
 
@@ -38,9 +49,16 @@ export default function InviteModal_userSearch(props) {
     setKeyword(e.target.value);
   };
 
-  console.log("searchResult : " + JSON.stringify(searchResult));
-  console.log("users : " + JSON.stringify(users));
-  console.log("userIds : " + JSON.stringify(userIds));
+  const setUsersHandler = (result) => {
+    if (!userIds.includes(result.id)) {
+      setUsers([...users, result]);
+    }
+  };
+
+  console.log("searchResult : ", JSON.stringify(searchResult));
+  console.log("users : ", JSON.stringify(users));
+  console.log("userIds : ", JSON.stringify(userIds));
+  console.log("userList : ", JSON.stringify(userList));
 
   return (
     <div className="inviteLeftBox">
@@ -57,18 +75,21 @@ export default function InviteModal_userSearch(props) {
           <img src="/images/search-icon.png" alt="" className="searchImg" />
         </div>
         <div className="orgs-Users-List searched-Users-List">
-          {searchResult.length > 0
+          {searchResult
             ? searchResult.map((result) => (
                 <div
                   className={`orgs-User ${
                     selectedUserIds.some(
-                      (selectedUserId) => selectedUserId === result.user_id
+                      (selectedUserId) => selectedUserId === result.id
                     )
                       ? "selectedUser"
                       : null
                   }`}
-                  onClick={(e) => selectHandler(e, result.user_id)}
-                  key={result.user_id}
+                  onClick={(e) => {
+                    selectHandler(e, result.id);
+                    setUsersHandler(result);
+                  }}
+                  key={result.id}
                 >
                   <img
                     className="profile"
@@ -76,7 +97,7 @@ export default function InviteModal_userSearch(props) {
                     alt=""
                   />
                   <div className="name_dept">
-                    <div className="name">{result.userName}</div>
+                    <div className="name">{result.name}</div>
                     <div className="dept">
                       <span>개발팀</span>
                     </div>
