@@ -1,11 +1,8 @@
 /* eslint-disable react/prop-types */
 import { CustomSVG } from "./CustomSVG";
 
-
-
 export const ProjectTaskDynamic = ({
   isSelected,
-  id,
   title,
   content,
   priority,
@@ -17,6 +14,7 @@ export const ProjectTaskDynamic = ({
   commentsList = [],
   handleToggle,
 }) => {
+  
   const getPriorityColor = () => {
     if (priority < 2) return "#EC6240";
     if (priority > 2) return "#2A63F6";
@@ -67,7 +65,7 @@ export const ProjectTaskDynamic = ({
               ))}
               <button className="flex items-center justify-center gap-1.5 py-1.5 mt-2 text-sm rounded-lg bg-gray-600/10 text-gray-600/60">
                 <CustomSVG id="add-checkbox" />
-                <span>
+                <span className="text-sm">
                   {checked}/{subTasks.length} 새 하위 목표 생성
                 </span>
               </button>
