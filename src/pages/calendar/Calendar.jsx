@@ -18,7 +18,6 @@ export default function Calendar() {
   const [calendarDeleted, setCalendarDeleted] = useState(false);
   const [changeCalendarAdd,setChangeCalendarAdd] = useState(false);
   const [changeCalendarRemove,setChangeCalendarRemove] = useState(false);
-  const contentNameRef = useRef(null)
   const onClose = () => {
     setIsOpen(false)
   }
@@ -168,7 +167,6 @@ export default function Calendar() {
           </ul>
         )
         : (
-          // calendarContentName이 배열이고 값이 있을 때만 렌더링
           <CalendarContentNameResponse calendarContentName={calendarContentName} />
         )
       }

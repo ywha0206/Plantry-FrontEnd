@@ -37,8 +37,6 @@ export default function PostScheduleModal({ isOpen, onClose, children , text,old
                 title,
                 sdate,
                 edate,
-                stime,
-                etime,
                 calendarId,
                 location,
                 importance,
@@ -95,17 +93,17 @@ export default function PostScheduleModal({ isOpen, onClose, children , text,old
               </div>
             </div>
             <div className="flex gap-8 justify-start mb-4">
-              <span className="w-20 h-[40px]">날짜</span>
+              <span className="w-20 h-[40px]">날짜/시간</span>
               <div className="flex gap-3 items-center">
-                <input value={sdate} onChange={(e)=>setSdate(e.target.value)} className='h-[40px]' type="date"></input> ~ <input value={edate} onChange={(e)=>setEdate(e.target.value)} className='h-[40px]' type="date"></input>
+                <input value={sdate} onChange={(e)=>setSdate(e.target.value)} className='h-[40px] w-[118px]' type="datetime-local"></input> ~ <input value={edate} onChange={(e)=>setEdate(e.target.value)} className='h-[40px] w-[118px]' type="datetime-local"></input>
               </div>
             </div>
-            <div className="flex gap-8 justify-start mb-4">
+            {/* <div className="flex gap-8 justify-start mb-4">
               <span className="w-20 h-[40px]">시간</span>
               <div className="flex gap-3 items-center">
                 <input value={stime} onChange={(e)=>setStime(e.target.value)} className='h-[40px]' type="time"></input> ~ <input value={etime} onChange={(e)=>setEtime(e.target.value)} className='h-[40px]' type="time"></input>
               </div>
-            </div>
+            </div> */}
             <div className="flex gap-8 mb-4 justify-start">
               <span className="w-20 h-[40px]">켈린더</span>
               <div>
