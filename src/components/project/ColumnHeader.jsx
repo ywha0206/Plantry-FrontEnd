@@ -22,7 +22,7 @@ export const ColumnHeader = ({column=[], clearTasks, setMode }) => {
               <div role="menu" aria-labelledby="more" className="absolute mt-1 w-20 py-2 right-2 bg-white border rounded-md text-gray-600 shadow-md z-30">
                 <MenuItem onClick={() => {setMode("edit"); setIsDropdownOpen(false);}}>수정</MenuItem>
                 <MenuItem onClick={toggleDropdown}>삭제</MenuItem>
-                <MenuItem onClick={() => {clearTasks(); setIsDropdownOpen(false);}}>비우기</MenuItem>
+                <MenuItem onClick={() => {clearTasks(); setIsDropdownOpen(false);}} tooltip="보드 안의 모든 목표를 지웁니다." confirm="true">비우기</MenuItem>
               </div>
             )}
           </div>
