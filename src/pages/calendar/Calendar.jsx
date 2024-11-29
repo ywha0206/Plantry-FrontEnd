@@ -149,7 +149,7 @@ export default function Calendar() {
     <div id='calendar-container'>
       <aside className='calendar-aside'>
         <section className='flex justify-center mt-2 mb-6'>
-          <button onClick={openModal} className='bg-blue white px-8 py-2 text-xl rounded-lg flex justify-center items-center'>일정 등록</button>
+          <button onClick={openModal} className='bg-blue white px-8 py-2 text-xl rounded-lg flex justify-center items-center'>캘린더 등록</button>
         </section>
         <section className='mb-[120px]'>
 
@@ -202,11 +202,7 @@ export default function Calendar() {
           <MainBigCalendar /> 
         </section>
       </section>
-      <PostScheduleModal 
-        isOpen={isOpen}
-        onClose={onClose}
-        text="일정 등록"
-      />
+      
     </div>
   )
 }
