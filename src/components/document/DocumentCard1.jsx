@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 export const DocumentCard1 = ({
     cnt,
     fileName,
-    folderId,
+    folderId,folder,onDragStart, onDragOver, onDrop
 }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false); // 토글 상태 관리
 
@@ -31,7 +31,17 @@ export const DocumentCard1 = ({
     };
 
     return (
-        <div className="document-card1 relative">
+        <div className="document-card1 relative"  draggable
+                    onDragStart={() => onDragStart(folder)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => onDrop(folder)}
+                    style={{
+                        border: '1px solid #ccc',
+                        padding: '10px',
+                        margin: '5px',
+                        cursor: 'grab',
+                    }}
+                >
             <div className="relative">
                 <img
                     className="absolute top-[10px] right-[10px] cursor-pointer"
