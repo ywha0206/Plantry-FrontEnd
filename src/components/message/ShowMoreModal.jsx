@@ -1,6 +1,10 @@
-export default function ShowMoreModal() {
+/* eslint-disable react/prop-types */
+import useOnClickOutSide from "./useOnClickOutSide";
+
+export default function ShowMoreModal({ moreFnHandler, showMoreRef }) {
+  useOnClickOutSide(showMoreRef, moreFnHandler);
   return (
-    <div className="viewMore">
+    <div className="viewMore" ref={showMoreRef}>
       <div className="inviteFn">
         <img src="/images/message-invite.png" alt="" className="inviteFnImg" />
         <span>대화상대 초대</span>
