@@ -143,11 +143,6 @@ const MainBigCalendar = () => {
         setClickDateModal(true)
     };
 
-    const handleDateClick = (info) => {
-        setClickedDate(info.dateStr)
-        setClickDateModal(true)
-    };
-
     const handleEventClick = (info) => {
         confirm(`이벤트 클릭됨: ${info.event.title}`); 
     };
