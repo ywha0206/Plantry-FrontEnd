@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { DiscussionEmbed } from "disqus-react";
 
-import CommunitySidebar from "@/components/community/CommunitySideBar";
+import CommunitySidebar from "@/components/community/CommunitySidebar";
 
 function CommunityView() {
   const navigate = useNavigate();
