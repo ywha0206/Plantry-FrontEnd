@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "@/layout/sidebar/Sidebar.scss";
 import closeArrow from "@/assets/sidebar-open.png";
 import mainMenu from "@/assets/sidebar-main.png";
@@ -9,12 +9,16 @@ import outSourcingMenu from '@/assets/sidebar-outsourcing.png';
 import communityMenu from '@/assets/sidebar-task.png';
 import scheduleMenu from '@/assets/sidebar-schedule.png';
 import vacationMenu from '@/assets/sidebar-vacation.png';
+import { useAuthStore } from "../../store/useAuthStore";
+import axiosInstance from '@/services/axios.jsx'
 
 
 export default function Sidebar({ isCollapsed, toggleSidebar }) {
   const location = useLocation().pathname; // 현재 경로 가져오기
   const [path, setPath] = useState(0);
   const sidebarRef = useRef(null); // 사이드바 참조
+  const logout = useAuthStore((state) => state.logout)
+  const navigate = useNavigate();
 
   // 활성화 상태 저장
   const [isActive, setIsActive] = useState(() => {
@@ -34,14 +38,16 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
       "/admin/vacation": { path: 1, active: 6 },
       "/admin/attendance": { path: 1, active: 7 },
       "/admin/outside": { path: 1, active: 8 },
+
+      "/home": { path: 0, active: 0 },
       "/my": { path: 0, active: 1 },
       "/project": { path: 0, active: 2 },
       "/document": { path: 0, active: 3 },
       "/calendar": { path: 0, active: 5 },
       "/community": { path: 0, active: 4 },
       "/cs": { path: 0, active: 6 },
-      "/message": { path: 0, active: 7 },
-      "/page": { path: 0, active: 8 },
+      "/message": { path: 0, active: 6 },
+      "/page": { path: 0, active: 7 },
     };
 
     const { path, active } = pathMapping[location] || { path: null, active: null };
@@ -89,6 +95,24 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
 
   }
 
+  const logoutHandler = async () =>{
+    axiosInstance
+        .post("/api/auth/logout",null)
+        .then((resp)=>{
+          console.log("로그인 정보",resp);
+        })
+        .catch((err)=>{
+          console.error("Logout failed", error);
+        })
+    // try{
+    //   const resp = await axios.post("/api/auth/logout", null);
+    //   console.log(resp.data);
+    // } catch (error) { // error 변수를 선언
+    //   console.error("Logout failed", error); // 오류 로그 출력
+    // }
+    logout();
+    navigate("/user/login");
+  }
 
 
   return (
@@ -151,17 +175,17 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
               {!isCollapsed && <p>게시판</p>}
             </li>
           </Link>
-          <Link to="/cs">
+          {/* <Link to="/cs">
             <li
               className={isActive === 6 ? "sidebar-close-btn bg-blue-100" : "sidebar-close-btn"}
             >
               <img style={{ opacity: "0.6" }} src="/images/sidebar-cs.png" />
               {!isCollapsed && <p>고객센터</p>}
             </li>
-          </Link>
+          </Link> */}
           <Link to="/message">
             <li
-              className={isActive === 7 ? "sidebar-close-btn bg-blue-100" : "sidebar-close-btn"}
+            className={isActive === 6 ? "sidebar-close-btn bg-blue-100" : "sidebar-close-btn"}
             >
               <img style={{ opacity: "0.6" }} src="/images/sidebar-mail.png" />
               {!isCollapsed && <p>메신저</p>}
@@ -169,12 +193,19 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
           </Link>
           <Link to="/page">
             <li
-              className={isActive === 8 ? "sidebar-close-btn bg-blue-100" : "sidebar-close-btn"}
+              className={isActive === 7 ? "sidebar-close-btn bg-blue-100" : "sidebar-close-btn"}
             >
               <img style={{ opacity: "0.6" }} src="/images/sidebar-page.png" />
               {!isCollapsed && <p>페이지</p>}
             </li>
           </Link>
+          <li
+            className={isActive === 8 ? "sidebar-close-btn bg-blue-100" : "sidebar-close-btn"}
+            onClick={logoutHandler}
+          >
+            <img style={{ opacity: "0.6" }} src="/images/logout-icon.png" />
+            {!isCollapsed && <p>로그아웃</p>}
+          </li>
         </div>
       )}
        {path === 1 && (
