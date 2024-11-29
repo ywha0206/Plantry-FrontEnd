@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axiosInstance from '@/services/axios.jsx'
 import DateChangerModal from './DateChangerModal';
 import CustomAlert from '../Alert';
+import ClickDateModal from './ClickDateModal';
 
 const MainBigCalendar = () => {
     const [dateChanger, setDateChanger] = useState(false);
@@ -16,6 +17,8 @@ const MainBigCalendar = () => {
     const [customAlert,setCustomAlert] = useState(false);
     const [customAlertType,setCustomAlertType] = useState("")
     const [customAlertMessage,setCustomAlertMessage] = useState("")
+    const [clickDateModal, setClickDateModal] = useState(false);
+    const [clickedDate, setClickedDate] = useState("")
     const queryClient = useQueryClient();
 
     const dropEvent = (e) => {
@@ -66,7 +69,6 @@ const MainBigCalendar = () => {
         queryFn : async () => {
         try {
             const response = await axiosInstance.get(`/api/calendar`)
-            console.log(response.data)
             return response.data
         } catch(err){
             return err
@@ -115,8 +117,17 @@ const MainBigCalendar = () => {
         return <p>{calendarDate}</p>
     }
     const closeDateChanger = () => {setDateChanger(false)}
+    // 날짜 클릭 이벤트 처리
+    const handleDateClick = (info) => {
+        setClickedDate(info.dateStr)
+        setClickDateModal(true)
+    };
 
-    
+    // 일정 클릭 이벤트 처리
+    const handleEventClick = (info) => {
+        confirm(`이벤트 클릭됨: ${info.event.title}`); // 클릭한 일정의 제목 출력
+    };
+        
   return (
     <>
       <FullCalendar
@@ -137,16 +148,16 @@ const MainBigCalendar = () => {
             dayGridMonth: '월간달력',
             dayGridWeek: '주간달력',
             click: '수정하기',
-            timeGrid: '하루보기',
         }}
-
+        
         eventDisplay='block'
         headerToolbar= {{
             left: 'prev,next,click',
             center: 'title',
-            right: 'dayGridMonth,dayGridWeek,timeGrid'
+            right: 'dayGridMonth,dayGridWeek'
         }}
-        
+        dateClick={handleDateClick}  
+        eventClick={handleEventClick}
         datesSet={(dateInfo) => {
             const dayCells = document.querySelectorAll('.fc-daygrid-day');
             dayCells.forEach((cell) => {
@@ -180,6 +191,11 @@ const MainBigCalendar = () => {
         type={customAlertType}
         message={customAlertMessage}
         isOpen={customAlert}
+      />
+      <ClickDateModal 
+        onclose={()=>setClickDateModal(false)}
+        confirm={clickDateModal}
+        clickedDate = {clickedDate}
       />
       </>
   );

@@ -32,11 +32,28 @@
     .fc-button-group{
         display: flex;
         gap: 5px;
-
+        
         button {
             background-color: #7e7edf;
             border: none;
+            border-radius: 5px;
         }
+
+        button:nth-child(3) {
+            background-color: white;
+            color: #7e7edf;
+            border: 1px solid #7e7edf;
+            border-radius: 5px;
+
+        }
+
+        button:nth-child(3):hover {
+            background-color: #7e7edf;
+            opacity: 0.6;
+            color: white;
+        }
+        
+        
     }
 
     .fc-event {
