@@ -8,6 +8,7 @@ import RenderDefaultLayout from '../layout/rending/RenderDefaultLayout'
 import Main from '../components/render/main'
 
 
+
 export default function MainIndex() {
   return (
         <RenderDefaultLayout>
