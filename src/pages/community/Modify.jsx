@@ -4,6 +4,7 @@ import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import CommunitySidebar from "@/components/community/CommunitySidebar";
 
+
 function CommunityModify() {
   const navigate = useNavigate();
   const { boardType, postId } = useParams(); // URL 파라미터에서 boardType과 postId 가져오기
