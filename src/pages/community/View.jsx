@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { DiscussionEmbed } from "disqus-react";
 
-import CommunitySidebar from "../../components/community/CommunitySideBar";
+import CommunitySidebar from "@/components/community/CommunitySideBar";
 
 function CommunityView() {
   const navigate = useNavigate();
@@ -39,19 +39,19 @@ G사와 해외의 구매처를 사칭하는 피싱 문자 거래건과 관련하
   return (
     <div id="community-container">
       {/* 사이드바 */}
-        <CommunitySidebar
-          favorites={{}}
-          toggleFavorite={() => {}}
-          userRole="user"
-          currentUser="user123"
-          departmentBoards={[
-            { key: "dept1", label: "생산팀" },
-            { key: "dept2", label: "영업팀" },
-          ]}
-          onDeleteBoard={(key) => console.log("삭제:", key)}
-          onUpdateBoard={(key) => console.log("수정:", key)}
-        />
-     
+      <CommunitySidebar
+        favorites={{}}
+        toggleFavorite={() => {}}
+        userRole="user"
+        currentUser="user123"
+        departmentBoards={[
+          { key: "dept1", label: "생산팀" },
+          { key: "dept2", label: "영업팀" },
+        ]}
+        onDeleteBoard={(key) => console.log("삭제:", key)}
+        onUpdateBoard={(key) => console.log("수정:", key)}
+      />
+
       {/* 본문 */}
       <div className="community-view">
         <h2>{dummyData.title}</h2>
