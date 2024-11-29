@@ -162,8 +162,8 @@ export default function Login() {
               handler={submitData}
               color="white"
               bg="green"
-              size="xl"
-              text="Sigh In"
+              size="2sxl"
+              text="Sign In"
               mb="m"
             />
             <CustomButton 
@@ -172,7 +172,7 @@ export default function Login() {
               color="white"
               bg="blue"
               size="xl"
-              text="Sigh Up"
+              text="Sign Up"
             />
           </div>
           <CustomGubun 

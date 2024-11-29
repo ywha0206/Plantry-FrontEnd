@@ -43,6 +43,10 @@ import NewPagePages from "./pages/page/NewPage";
 import MyModify from "./pages/my/MyModify";
 import MyApproval from "./pages/my/Approval";
 import Home from "./pages/home/Home";
+import MyPayment from "./pages/my/Payment";
+import DocumentList from "./pages/document/DocumentList";
+import PageListPage from "./pages/page/PageList";
+import PageViewPages from "./pages/page/PageView";
 const MainIndexComponent = lazy(() => import("./components/render/main"));
 
 function App() {
