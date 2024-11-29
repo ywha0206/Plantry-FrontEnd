@@ -1,4 +1,11 @@
 //============================================▼메시지 메인화면============================================
+.isLoading,
+.isError {
+  padding: 10px;
+  color: gray;
+  font-size: 16px;
+}
+
 #message-container {
   max-width: 1650px;
   height: 100%;
