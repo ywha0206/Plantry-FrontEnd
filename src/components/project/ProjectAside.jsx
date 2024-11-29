@@ -7,20 +7,20 @@ const projectData = {
   waiting: {
     title: "대기중인 프로젝트",
     items: [
-      { title: "프로젝트 목록", isActive: false }
+      { id:0, title: "프로젝트 목록" }
     ]
   },
   inProgress: {
     title: "진행중인 프로젝트",
     items: [
-      { title: "프로젝트 목록", isActive: false },
-      { title: "활성화된 프로젝트", isActive: true }
+      { id:1, title: "프로젝트 목록" },
+      { id:2, title: "활성화된 프로젝트" }
     ]
   },
   completed: {
     title: "완료된 프로젝트",
     items: [
-      { title: "비활성화된 프로젝트", isActive: false }
+      { id:3, title: "비활성화된 프로젝트" }
     ]
   }
 };
@@ -36,23 +36,17 @@ function ProjectAside() {
    const [openSections, setOpenSections] = useState({
     waiting: true,
     inProgress: true,
-    completed: true,
+    completed: false,
   });
-  const [projectStatus, setProjectStatus] = useState(projectData);
+  const [activeItemId, setActiveItemId] = useState(null); // 활성화된 항목의 ID를 상태로 관리
 
+  const handleItemClick = (id) => {
+    setActiveItemId(id); // 클릭된 항목의 ID를 활성화
+  };
   const toggleSection = (key) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleStatusChange = (sectionKey, index) => {
-    setProjectStatus((prevData) => {
-      const updatedSections = { ...prevData };
-      updatedSections[sectionKey].items = updatedSections[sectionKey].items.map((item, idx) =>
-        idx === index ? { ...item, isActive: true } : { ...item, isActive: false }
-      );
-      return updatedSections;
-    });
-  };
   
   const [isModalOpen, setIsModalOpen] = useState(false); // 모달 열림 상태 관리
   const handleOpenModal = () => setIsModalOpen(true);
@@ -75,7 +69,8 @@ function ProjectAside() {
               isCompleted={key === "completed"}
               isOpen={openSections[key]} 
               toggleSection={() => toggleSection(key)}
-              onStatusChange={(index) => handleStatusChange(key, index)} // 상태 변경 핸들러 전달
+              activeItemId={activeItemId} // 상태 변경 핸들러 전달
+              onItemClick={handleItemClick}
             />
           ))}
         </section>

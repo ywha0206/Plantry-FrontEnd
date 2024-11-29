@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '@/services/axios.jsx'
 import PostScheduleModal from './PostScheduleModal';
 import DeleteScheduleConfirm from './DeleteScheduleConfirm';
+import CustomAlert from '../Alert';
 
 export default function ClickDateModal({confirm,onclose,clickedDate}) {
     if(!confirm) return null;
@@ -15,6 +16,9 @@ export default function ClickDateModal({confirm,onclose,clickedDate}) {
     const [deleteConfirm, setDeleteConfirm] = useState(false);
     const [deleteId, setDeleteId] = useState(0);
     const queryClient = useQueryClient();
+    const [customAlert, setCustomAlert] = useState(false);
+    const [customAlertType, setCustomAlertType] = useState("");
+    const [customAlertMessage, setCustomAlertMessage] = useState("");
 
     const {data : tasksData , isLoading : isLoadingTasksData } 
     = useQuery({
@@ -46,15 +50,14 @@ export default function ClickDateModal({confirm,onclose,clickedDate}) {
             return response.data;
         },
         onSuccess: (data) => {
-        //   setCustomAlert(true)
-        //   setCustomAlertType("success")
-        //   setCustomAlertMessage(data)
-          queryClient.invalidateQueries(['calendar-content-morning',today])
-          queryClient.invalidateQueries(['calendar-content-afternoon',today])
-        //   queryClient.invalidateQueries(['calendar-content-name'])
-        //   setTimeout(() => {
-        //     setCustomAlert(false);
-        //   }, 1000);
+            setCustomAlert(true)
+            setCustomAlertType("success")
+            setCustomAlertMessage(data)
+            queryClient.invalidateQueries(['calendar-content-morning',today])
+            queryClient.invalidateQueries(['calendar-content-afternoon',today])
+            setTimeout(()=>{
+                setCustomAlert(false);
+            },1000)
             setDeleteConfirm(false);
         },
         onError: (error) => {
@@ -217,6 +220,9 @@ export default function ClickDateModal({confirm,onclose,clickedDate}) {
                 onClose={()=>setDeleteConfirm(false)}
                 isOpen={deleteConfirm}
                 deleteCalendar={deleteCalendar}
+            />
+            <CustomAlert 
+                type={customAlertType} message={customAlertMessage} isOpen={customAlert}
             />
             </>
         </div>
