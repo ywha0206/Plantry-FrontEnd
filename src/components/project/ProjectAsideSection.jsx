@@ -2,7 +2,7 @@
 import ProjectAsideItem from "./ProjectAsideItem";
 import { CustomSVG } from "./CustomSVG";
 
-function ProjectAsideSection({ data, isCompleted, isOpen, toggleSection }) {
+function ProjectAsideSection({ data, isCompleted, isOpen, toggleSection, onStatusChange }) {
   const { title, items } = data;
 
   return (
@@ -32,6 +32,7 @@ function ProjectAsideSection({ data, isCompleted, isOpen, toggleSection }) {
               key={index}
               title={item.title}
               isActive={item.isActive}
+              onStatusChange={() => onStatusChange(index)}
             />
           ))}
         </div>

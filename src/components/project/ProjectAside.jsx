@@ -38,9 +38,20 @@ function ProjectAside() {
     inProgress: true,
     completed: true,
   });
-  
+  const [projectStatus, setProjectStatus] = useState(projectData);
+
   const toggleSection = (key) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleStatusChange = (sectionKey, index) => {
+    setProjectStatus((prevData) => {
+      const updatedSections = { ...prevData };
+      updatedSections[sectionKey].items = updatedSections[sectionKey].items.map((item, idx) =>
+        idx === index ? { ...item, isActive: true } : { ...item, isActive: false }
+      );
+      return updatedSections;
+    });
   };
   
   const [isModalOpen, setIsModalOpen] = useState(false); // 모달 열림 상태 관리
@@ -63,7 +74,8 @@ function ProjectAside() {
               data={section}
               isCompleted={key === "completed"}
               isOpen={openSections[key]} 
-              toggleSection={() => toggleSection(key)} 
+              toggleSection={() => toggleSection(key)}
+              onStatusChange={(index) => handleStatusChange(key, index)} // 상태 변경 핸들러 전달
             />
           ))}
         </section>

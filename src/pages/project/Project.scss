@@ -74,5 +74,17 @@
     opacity: 0;
     color: transparent; /* 기존 아이콘 숨기기 */
   }
-  
+  /* 겉부분의 디자인 변경 */
+  input[type=color] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: transparent;
+  border: none;
+}
+/* 안쪽부분의 디자인 변경 */
+input[type=color]::-webkit-color-swatch {
+  border-radius: 6px;
+  border: none;
+}
 }

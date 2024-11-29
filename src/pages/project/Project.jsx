@@ -8,7 +8,10 @@ import { useEffect, useState } from "react";
 import { ProjectTaskDynamic } from "../../components/project/ProjectTask";
 import Sortable from "sortablejs"; 
 
-const data= {
+const initialData = {
+
+  id:0,
+  title:"새 프로젝트 (1)",
   coworkers:[
     {id: 14, name: "김주경", email:"ppsdd123@gmail.com", img:"/images/document-folder-profile.png",},
     {id: 5, name: "박서홍", email:"ppsdd123@gmail.com", img:"/images/document-folder-profile.png",},
@@ -20,6 +23,7 @@ const data= {
   ],
   columns: [
     {
+      id:0,
       title: "Get Started",
       color:
         "linear-gradient(0deg,rgba(245,35,75,0.40)0%,rgba(245,35,75,0.40)100%),#F5234B",
@@ -34,6 +38,7 @@ const data= {
       ],
     },
     {
+      id:1,
       title: "🛠️ In Progress",
       color:
         "linear-gradient(0deg,rgba(0,112,245,0.40)0%,rgba(0,112,245,0.40)100%),#0070F5",
@@ -67,6 +72,7 @@ const data= {
       ],
     },
     {
+      id:2,
       title: "✅ Approved",
       color:
         "linear-gradient(0deg,rgba(30,195,55,0.40)0%,rgba(30,195,55,0.40)100%),#1EC337",
@@ -85,9 +91,27 @@ const data= {
 export default function Project() {
   // Tailwind CSS 클래스 묶음
   const addBoardClass = "flex gap-2 items-center px-3 py-2 w-full text-sm rounded-lg bg-zinc-200 bg-opacity-30";
-
+  const [data, setData] = useState(initialData);
   const [isModalOpen, setIsModalOpen] = useState(false); // 모달 열림 상태 관리 
   const [selectedTasks, setSelectedTasks] = useState([]);
+  
+  const [isNewColumnAdded, setIsNewColumnAdded] = useState(false);
+  const handleAddColumn = () => {
+    if (!isNewColumnAdded) {
+      setIsNewColumnAdded(true);
+    }
+  };
+  const [isEditTitle, setIsEditTitle] = useState(false);
+  const handleEditTitle = () => {
+      setIsEditTitle(!isEditTitle);
+  };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
   const handleToggle = (id) => {
     // 이미 열린 상태라면 선택 해제, 아니면 배열에 추가
     setSelectedTasks(prev => {
@@ -99,16 +123,55 @@ export default function Project() {
     });
   };
   useEffect(() => {
-    for (let i = 0; i < data.columns.length; i++) {
-      const column = document.getElementById(`column${i}`);
-      if (column) {
-        Sortable.create(column, {
-          group: 'kanban',
+    data.columns.forEach((column, columnIndex) => {
+      const columnElement = document.getElementById(`column-${columnIndex}`);
+      if (columnElement) {
+        Sortable.create(columnElement, {
+          group: "kanban",
           animation: 150,
+          onEnd: (event) => handleTaskMove(event, columnIndex),
         });
-      }}
-  }, []);
+      }
+    });
+  }, [data.columns]);
  
+  const handleTaskMove = (event, columnIndex) => {
+    const movedTaskId = parseInt(event.item.dataset.taskId, 10);
+    const fromColumnIndex = columnIndex;
+    const toColumnIndex = parseInt(event.to.id.split("-")[1], 10);
+  
+    if (fromColumnIndex !== toColumnIndex) {
+      const fromColumn = data.columns[fromColumnIndex];
+      const toColumn = data.columns[toColumnIndex];
+  
+      const movedTask = fromColumn.projects.find((task) => task.id === movedTaskId);
+  
+      if (movedTask) {
+        const updatedColumns = [...data.columns];
+        updatedColumns[fromColumnIndex] = {
+          ...fromColumn,
+          projects: fromColumn.projects.filter((task) => task.id !== movedTaskId),
+        };
+        updatedColumns[toColumnIndex] = {
+          ...toColumn,
+          projects: [...toColumn.projects, movedTask],
+        };
+  
+        setData((prevState) => ({
+          ...prevState,
+          columns: updatedColumns,
+        }));
+      }
+    }
+  };
+  const clearTasks = (columnId) => {
+    setData((prevData) => ({
+      ...prevData,
+      columns: prevData.columns.map((col) =>
+        col.id === columnId ? { ...col, projects: [] } : col
+      ),
+    }));
+  };
   return (
     <div id="project-container" className="flex min-h-full">
       {/* 사이드바 */}
@@ -126,9 +189,13 @@ export default function Project() {
 
           <header className="flex w-[40%] overflow-hidden relative justify-between items-center px-5 py-1 rounded-xl bg-zinc-100">
               <div></div>
-                <span className="text-lg text-center text-black">새 프로젝트 (1)</span>
-              <button>
-                <CustomSVG id="rename" />
+              
+              {isEditTitle?
+              <input type="text" className="text-lg text-center text-gray-500 w-fit overflow-visible bg-transparent" value={data.title} name="title" onChange={handleChange} autoFocus/>
+              :<span className="text-lg text-center text-black">{data.title}</span>}
+              
+              <button onClick={handleEditTitle}>
+                {isEditTitle?<CustomSVG id="circle-checked" />:<CustomSVG id="rename" />}
               </button>
           </header>
 
@@ -143,23 +210,37 @@ export default function Project() {
         {/* 프로젝트 컬럼 */}
         <div className="flex gap-5 max-md:flex-col">
             {data.columns.map((column, index) => (
-              <ProjectColumn key={index} {...column} index={index}>
+              <ProjectColumn
+                key={column.id}
+                {...column}
+                index={index}
+                clearTasks={() => clearTasks(column.id)}
+                count={column.projects.length}
+                setData={setData}
+              >
                 {column.projects.map((project) => (
                   <ProjectTaskDynamic
-                    key={project.id}  // 고유한 title 또는 id 사용
-                    isSelected={selectedTasks.includes(project.id)}   // id로 선택된 상태 관리
+                    key={project.id}
+                    isSelected={selectedTasks.includes(project.id)}
                     {...project}
-                    handleToggle={() => handleToggle(project.id)}  // id를 파라미터로 전달
+                    data-task-id={project.id}
+                    handleToggle={() => handleToggle(project.id)}
                   />
                 ))}
               </ProjectColumn>
             ))}
           {/* 새 보드 추가 */}
+            {isNewColumnAdded?
+              <ProjectColumn
+                index={data.columns.length}
+                setData={setIsNewColumnAdded}
+                status="new"
+                />:
           <div className="flex flex-col w-64 text-center min-w-[240px] text-black text-opacity-50">
-            <div className={addBoardClass}>
+            <button className={addBoardClass} onClick={handleAddColumn}>
               <CustomSVG id="add" /> <span>새 보드</span>
-            </div>
-          </div>
+            </button>
+          </div>}
         </div>
       </section>
     </div>

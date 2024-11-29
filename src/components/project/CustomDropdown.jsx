@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { CustomSVG } from "./CustomSVG";
 
-function CustomDropdown({ options, placeholder, onSelect }) {
+export function CustomDropdown({ options, placeholder, onSelect }) {
   const [isOpen, setIsOpen] = useState(false); // 드롭다운 열림 상태
   const [selected, setSelected] = useState(""); // 선택된 값
   const dropdownRef = useRef(null); // 드롭다운 외부 클릭 감지를 위한 ref
@@ -45,13 +45,13 @@ function CustomDropdown({ options, placeholder, onSelect }) {
       {isOpen && (
         <ul className="absolute left-0 top-full mt-1 w-full bg-white border rounded shadow-lg max-h-60 overflow-y-auto z-50">
           {options.map((option, index) => (
-            <li
+            <MenuItem
               key={index}
               onClick={() => handleSelect(option)}
-              className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+              className="flex items-center px-4 py-2 hover:bg-gray-200 cursor-pointer"
             >
               {option}
-            </li>
+            </MenuItem>
           ))}
         </ul>
       )}
@@ -59,4 +59,12 @@ function CustomDropdown({ options, placeholder, onSelect }) {
   );
 }
 
-export default CustomDropdown;
+export const MenuItem = ({ onClick, children }) => (
+  <li
+    role="menuitem"
+    className="flex items-center p-2 hover:bg-gray-200 cursor-pointer text-xs"
+    onClick={onClick}
+  >
+    {children}
+  </li>
+);
