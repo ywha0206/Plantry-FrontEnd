@@ -8,6 +8,7 @@ import axiosInstance from '@/services/axios.jsx'
 import DateChangerModal from './DateChangerModal';
 import CustomAlert from '../Alert';
 import ClickDateModal from './ClickDateModal';
+import EventClickConfirm from './EventClickConfirm';
 
 const MainBigCalendar = () => {
     const [dateChanger, setDateChanger] = useState(false);
@@ -18,8 +19,38 @@ const MainBigCalendar = () => {
     const [customAlertType,setCustomAlertType] = useState("")
     const [customAlertMessage,setCustomAlertMessage] = useState("")
     const [clickDateModal, setClickDateModal] = useState(false);
-    const [clickedDate, setClickedDate] = useState("")
+    const [clickedDate, setClickedDate] = useState("");
+    const [eventClickConfirm, setEventClickConfirm] = useState(false);
+    const [isFirstLoad, setIsFirstLoad] = useState(true);
+    const [selectedId, setSelectedId] = useState(0);
+    const [selectedGroupId,setSelectedGroupId] = useState(0)
     const queryClient = useQueryClient();
+    const [lastModified , setLastModified] = useState();
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            if (Date.now() - lastModified >= 2 * 60 * 1000) {
+                mutation.mutateAsync(); // 자동으로 수정 요청 보내기
+            }
+        }, 5 * 60 * 1000);
+    
+        return () => clearTimeout(timeout);
+    }, [lastModified]);
+
+    useEffect(() => {
+        const handleBeforeUnload = (event) => {
+            mutation.mutateAsync();
+            
+            event.preventDefault();
+            event.returnValue = '';
+        };
+    
+        window.addEventListener('beforeunload', handleBeforeUnload);
+    
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, []);
 
     const dropEvent = (e) => {
         setDateChanger(true);
@@ -53,7 +84,7 @@ const MainBigCalendar = () => {
             
             return updatedData;
         });
-        setAlert(true)
+        setLastModified(Date.now());
     }
 
     useEffect(()=>{
@@ -74,12 +105,18 @@ const MainBigCalendar = () => {
             return err
         }
         },
-        enabled : true,
+        enabled : isFirstLoad,
         refetchOnWindowFocus: false,  
         staleTime: 300000,  
         retry: false,
         cacheTime : 5 * 60 * 1000
     })
+
+    useEffect(()=>{
+        if(calendarDate){
+            setIsFirstLoad(false)
+        }
+    },[calendarDate])
 
     const mutation = useMutation({
         mutationFn: async () => {
@@ -112,6 +149,7 @@ const MainBigCalendar = () => {
         
             return updatedData;
         })
+        queryClient.invalidateQueries(['calendar-content-name'])
         setTimeout(() => {
             setCustomAlert(false);
         }, 1000);
@@ -144,7 +182,10 @@ const MainBigCalendar = () => {
     };
 
     const handleEventClick = (info) => {
-        confirm(`이벤트 클릭됨: ${info.event.title}`); 
+        setEventClickConfirm(true)
+        setSelectedId(info.event.id)
+        setSelectedGroupId(info.event.gId)
+        console.log(info.event)
     };
         
   return (
@@ -166,12 +207,11 @@ const MainBigCalendar = () => {
             today: '오늘',
             dayGridMonth: '월간달력',
             dayGridWeek: '주간달력',
-            click: '수정하기',
         }}
         
         eventDisplay='block'
         headerToolbar= {{
-            left: 'prev,next,click',
+            left: 'prev,next',
             center: 'title',
             right: 'dayGridMonth,dayGridWeek'
         }}
@@ -215,6 +255,13 @@ const MainBigCalendar = () => {
         onclose={()=>setClickDateModal(false)}
         confirm={clickDateModal}
         clickedDate = {clickedDate}
+      />
+      <EventClickConfirm 
+        clickedDate={clickedDate}
+        onclose={()=>setEventClickConfirm(false)}
+        isOpen={eventClickConfirm}
+        selectedId={selectedId}
+        selectedGroupId={selectedGroupId}
       />
       </>
   );

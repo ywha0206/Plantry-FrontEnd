@@ -12,20 +12,17 @@ import CalendarContentNameResponse from '../../components/calendar/loading/Calen
 
 export default function Calendar() {
 
-  const [isOpen , setIsOpen] = useState(false);
   const [calendarId, setCalendarId] = useState(0);
   const [calendarAdded, setCalendarAdded] = useState(false);
   const [calendarDeleted, setCalendarDeleted] = useState(false);
   const [changeCalendarAdd,setChangeCalendarAdd] = useState(false);
   const [changeCalendarRemove,setChangeCalendarRemove] = useState(false);
-  const onClose = () => {
-    setIsOpen(false)
-  }
+
 
   const queryClient = useQueryClient();
 
   const openModal = () => {
-    setIsOpen(true)
+    setIsOpens(true)
   }
   const calendarNames = useCalenderNameStore((state) => state.setCalendarNames);
 
@@ -144,15 +141,12 @@ export default function Calendar() {
 
   return (
     <div id='calendar-container'>
-      <aside className='calendar-aside'>
-        <section className='flex justify-center mt-2 mb-6'>
-          <button onClick={openModal} className='bg-blue white px-8 py-2 text-xl rounded-lg flex justify-center items-center'>캘린더 등록</button>
-        </section>
+      <aside className='calendar-aside overflow-scroll flex flex-col scrollbar-none'>
         <section className='mb-[120px]'>
 
         </section>
         <section className='mb-16'>    
-          <div className='flex gap-4'>
+          <div className='flex gap-4 mb-6'>
             <img src='/images/calendar-schedule.png' />
             <p className='text-sm font-bold'>일정 목록</p>
           </div>
@@ -192,6 +186,9 @@ export default function Calendar() {
             })
           } 
           </ul>
+        </section>
+        <section className='mt-auto flex flex-col gap-5'>
+          <button onClick={openModal} className='bg-blue white px-8 py-2 text-xl rounded-lg flex justify-center items-center'>캘린더 등록</button>
         </section>
       </aside>
       <section className='calendar-main'>
