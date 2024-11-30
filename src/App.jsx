@@ -3,7 +3,7 @@ import "@/App.scss";
 import Index from "@/pages";
 import Main from "@/layout/layout/Main.jsx";
 import Login from "@/pages/user/Login.jsx";
-import Board from "@/pages/community/board";
+
 import AdminIndex from "./pages/admin/Index";
 import MainIndex from "./pages";
 import AdminUser from "./pages/admin/User";
@@ -18,7 +18,12 @@ import ServicePage from "./pages/rending/ServicePage";
 import RenderDefaultLayout from "./layout/rending/RenderDefaultLayout";
 import { lazy, Suspense } from "react";
 import PricePage from "./pages/rending/PricePage";
-import Community from "./pages/community/Community";
+import CommunityIndex from "./pages/community/Index";
+import CommunityWrite from "./pages/community/Write";
+import CommunityList from "./pages/community/List";
+import CommunityView from "./pages/community/View";
+import CommunityModify from "./pages/community/Modify";
+
 import Project from "./pages/project/Project";
 import Message from "./pages/message/Message";
 import Document from "./pages/document/Document";
@@ -35,14 +40,13 @@ import FAQPage from "./pages/rending/FAQPage";
 import ResultPw from "./pages/user/ResultPw";
 import ResultId from "./pages/user/ResultId";
 import NewPagePages from "./pages/page/NewPage";
-import PageListPage from "./pages/page/PageList";
-import PageViewPages from "./pages/page/PageView";
 import MyModify from "./pages/my/MyModify";
 import MyApproval from "./pages/my/Approval";
 import Home from "./pages/home/Home";
 import MyPayment from "./pages/my/Payment";
 import DocumentList from "./pages/document/DocumentList";
-
+import PageListPage from "./pages/page/PageList";
+import PageViewPages from "./pages/page/PageView";
 const MainIndexComponent = lazy(() => import("./components/render/main"));
 
 function App() {
@@ -50,7 +54,7 @@ function App() {
   return (
     <div id="app-container m-0 xl2:mx-auto">
       <Routes>
-        {/* 사이드바 안쓰는 레이아웃 */}
+        {/*사이드바 안쓰는 레이아웃 */}
         <Route path="/" element={<RenderDefaultLayout />}>
           <Route
             index
@@ -107,7 +111,11 @@ function App() {
 
         {/* 커뮤니티 (게시판) */}
         <Route path="/community" element={<Main />}>
-          <Route index element={<Community />} />
+          <Route index element={<CommunityIndex />} />
+          <Route path=":boardType/write" element={<CommunityWrite />} />
+          <Route path=":boardType/list" element={<CommunityList />} />
+          <Route path=":boardType/view/:postId" element={<CommunityView />} />
+          <Route path=":boardType/modify" element={<CommunityModify />} />
         </Route>
 
         {/* 프로젝트 */}

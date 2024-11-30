@@ -58,6 +58,7 @@ export const AddProjectModal = ({ coworker=[], isOpen, onClose , text }) => {
       setSearchTerm("");
       setFilteredMembers(data.members);
     }
+    document.getElementById('focus').focus();
   };
 
     // 태그 삭제 핸들러
@@ -112,6 +113,7 @@ return (
                                 </span>
                             ))}
                             <input
+                                id="focus"
                                 type="text" 
                                 value={searchTerm} autoFocus 
                                 onChange={handleSearch}
@@ -143,6 +145,7 @@ return (
                                 </span>
                             ))}
                             <input
+                                id="focus"
                                 type="text"
                                 value={searchTerm} 
                                 onChange={handleSearch} autoFocus 

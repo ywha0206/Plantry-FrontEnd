@@ -1,3 +1,5 @@
+import useOnClickOutSide from "./useOnClickOutSide";
+
 /* eslint-disable react/prop-types */
 export default function AttachFileModal({ file, fileInfos, closeHandler }) {
   console.log("fileInfo : " + JSON.stringify(fileInfos));

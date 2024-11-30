@@ -175,7 +175,7 @@ const MainBigCalendar = () => {
         return <p>{calendarDate}</p>
     }
     const closeDateChanger = () => {setDateChanger(false)}
-
+    // 날짜 클릭 이벤트 처리
     const handleDateClick = (info) => {
         setClickedDate(info.dateStr)
         setClickDateModal(true)

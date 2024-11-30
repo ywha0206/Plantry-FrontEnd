@@ -2,7 +2,7 @@
 import ProjectAsideItem from "./ProjectAsideItem";
 import { CustomSVG } from "./CustomSVG";
 
-function ProjectAsideSection({ data, isCompleted, isOpen, toggleSection, onStatusChange }) {
+function ProjectAsideSection({ data, isCompleted, isOpen, toggleSection, activeItemId, onItemClick }) {
   const { title, items } = data;
 
   return (
@@ -31,8 +31,8 @@ function ProjectAsideSection({ data, isCompleted, isOpen, toggleSection, onStatu
             <ProjectAsideItem
               key={index}
               title={item.title}
-              isActive={item.isActive}
-              onStatusChange={() => onStatusChange(index)}
+              isActive={item.id === activeItemId} // 선택된 항목만 활성화
+              onClick={() => onItemClick(item.id)} // 항목 클릭 시 활성화
             />
           ))}
         </div>
