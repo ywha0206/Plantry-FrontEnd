@@ -74,7 +74,6 @@ export default function PutScheduleModal({ isOpen, onClose, children , text, put
             
                 return updatedData;
             });
-        setAlert(true);
 
         setTimeout(() => {
             onClose();    
