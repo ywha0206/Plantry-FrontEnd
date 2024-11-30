@@ -195,7 +195,7 @@ export default function Project() {
               :<span className="text-lg text-center text-black">{data.title}</span>}
               
               <button onClick={handleEditTitle}>
-                {isEditTitle?<CustomSVG id="circle-checked" />:<CustomSVG id="rename" />}
+                {isEditTitle?<CustomSVG id="check" />:<CustomSVG id="rename" />}
               </button>
           </header>
 

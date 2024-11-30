@@ -1,70 +1,98 @@
 /* eslint-disable react/prop-types */
-import { useState, useRef, useEffect } from "react";
-import { CustomSVG } from "./CustomSVG";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
-export function CustomDropdown({ options, placeholder, onSelect }) {
-  const [isOpen, setIsOpen] = useState(false); // 드롭다운 열림 상태
-  const [selected, setSelected] = useState(""); // 선택된 값
-  const dropdownRef = useRef(null); // 드롭다운 외부 클릭 감지를 위한 ref
+export const MenuItem = ({ onClick, children, tooltip, confirm }) => {
+  const [showTooltip, setShowTooltip] = useState(false); // 툴팁 표시 상태
+  const [confirmReady, setConfirmReady] = useState(false); // 확인 준비 상태
+  const [tooltipPosition, setTooltipPosition] = useState({});
+  const itemRef = useRef(null);
+  const tooltipTimer = useRef(null);
 
-  const handleSelect = (option) => {
-    setSelected(option);
-    setIsOpen(false); // 선택 후 드롭다운 닫기
-    if (onSelect) onSelect(option); // 선택 값 부모로 전달
-  };
-
-  const toggleDropdown = () => {setIsOpen((prev) => !prev);};
-
-  const handleClickOutside = (event) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      setIsOpen(false); // 외부 클릭 시 닫기
+  // 첫 번째 클릭 시 툴팁 표시, 두 번째 클릭 시 동작 실행
+  const handleClick = () => {
+    if (!confirmReady) {
+      setShowTooltip(true); // 툴팁 표시
+      setConfirmReady(true); // 확인 준비 상태로 전환
+      tooltipTimer.current = setTimeout(() => {
+        setShowTooltip(false);
+        setConfirmReady(false); // 시간이 지나면 초기화
+      }, 3000); // 3초 후 초기화
+    } else {
+      // 실제 동작 실행
+      if (onClick) onClick();
+      setConfirmReady(false);
+      setShowTooltip(false); // 툴팁 닫기
+      clearTimeout(tooltipTimer.current); // 타이머 제거
     }
   };
 
+  // 화면 경계 및 툴팁 위치 조정
   useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
+    if (showTooltip && itemRef.current) {
+      const rect = itemRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
+
+      let top = rect.top + scrollY + 3;
+      let left = rect.left + scrollX + rect.width;
+
+      // 경계 조정
+      if (left + 100 > viewportWidth) left = viewportWidth - 110;
+      if (left < 10) left = 10;
+
+      setTooltipPosition({ top, left });
+    }
+  }, [showTooltip]);
+
+  // 외부 클릭 감지
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (itemRef.current && !itemRef.current.contains(event.target)) {
+        setShowTooltip(false);
+        setConfirmReady(false);
+        clearTimeout(tooltipTimer.current);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, []);
 
   return (
-    <div className="relative w-full" ref={dropdownRef}>
-      {/* 드롭다운 버튼 */}
-      <div
-        onClick={toggleDropdown}
-        className="border rounded h-[60px] px-4 flex items-center justify-between cursor-pointer"
+    <div className="relative" ref={itemRef}>
+      <li
+        role="menuitem"
+        className="flex items-center p-2 hover:bg-gray-200 cursor-pointer text-xs"
+        onClick={confirm?handleClick:onClick}
+        onMouseEnter={() => !confirm && tooltip && setShowTooltip(true)}
+        onMouseLeave={() => tooltip && setShowTooltip(false)}
       >
-        <span className={selected ? "text-black" : "text-gray-400"}>
-          {selected || placeholder}
-        </span>
-        <CustomSVG id="expand-down" />
-      </div>
-
-      {/* 드롭다운 리스트 */}
-      {isOpen && (
-        <ul className="absolute left-0 top-full mt-1 w-full bg-white border rounded shadow-lg max-h-60 overflow-y-auto z-50">
-          {options.map((option, index) => (
-            <MenuItem
-              key={index}
-              onClick={() => handleSelect(option)}
-              className="flex items-center px-4 py-2 hover:bg-gray-200 cursor-pointer"
-            >
-              {option}
-            </MenuItem>
-          ))}
-        </ul>
+        {children}
+      </li>
+      {showTooltip && (
+        <Tooltip text={tooltip} position={tooltipPosition} />
       )}
     </div>
   );
-}
+};
 
-export const MenuItem = ({ onClick, children }) => (
-  <li
-    role="menuitem"
-    className="flex items-center p-2 hover:bg-gray-200 cursor-pointer text-xs"
-    onClick={onClick}
-  >
-    {children}
-  </li>
-);
+export const Tooltip = ({ text, position }) => {
+  return createPortal(
+    <div
+      className="absolute px-3 py-1 text-white bg-black bg-opacity-90 rounded-md shadow-md text-xs"
+      style={{
+        position: "absolute",
+        top: position.top,
+        left: position.left,
+        whiteSpace: "nowrap",
+        zIndex: 50,
+      }}
+    >
+      {text}
+    </div>,
+    document.body
+  );
+};

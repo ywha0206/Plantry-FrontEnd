@@ -1,20 +1,22 @@
+/* eslint-disable react/prop-types */
 import InviteModal_orgChart from "./InviteModal_orgChart";
 import InviteModal_frequent from "./InviteModal_frequent";
 import InviteModal_userSearch from "./InviteModal_userSearch";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import axiosInstance from "../../services/axios";
+import useOnClickOutSide from "./useOnClickOutSide";
 
 export default function InviteModal(props) {
-  const { isOpen, closeHandler, option, optionHandler } = props;
-
+  const { isOpen, closeHandler, option, optionHandler, inviteRef } = props;
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [users, setUsers] = useState([]);
   const [selectedUserIds, setSelectedUserIds] = useState([]);
-
   const [selectedGroup_Id_Name, setSelectedGroup_Id_Name] = useState({
     group_id: null,
     group_name: null,
   });
+  const [userList, setUserList] = useState([]);
+  const [userIds, setUserIds] = useState([]);
 
   const addUser = () => {
     setSelectedUsers((prevUsers) => {
@@ -43,9 +45,6 @@ export default function InviteModal(props) {
     setSelectedUserIds([]);
     setUserIds([]);
   };
-
-  const [userList, setUserList] = useState([]);
-  const [userIds, setUserIds] = useState([]);
 
   const selectHandler = (e, user_Id) => {
     e.preventDefault();
@@ -82,12 +81,14 @@ export default function InviteModal(props) {
       .catch((err) => console.log(err));
   };
 
+  useOnClickOutSide(inviteRef, closeHandler);
+
   if (!isOpen) return null;
   console.log("selectedUsers :" + JSON.stringify(selectedUsers));
 
   return (
     <div id="invitation-modal">
-      <div className="message-invite-container">
+      <div className="message-invite-container" ref={inviteRef}>
         <div className="title_closeBtn">
           <span>대화상대 초대</span>
           <img
