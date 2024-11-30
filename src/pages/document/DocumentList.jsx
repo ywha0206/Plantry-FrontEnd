@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useLocation } from 'react-router-dom';
 import '@/pages/document/Document.scss';
@@ -23,6 +23,7 @@ export default function DocumentList() {
     const folderId = decodeURIComponent(location.pathname.split('/').pop());
     const queryClient = useQueryClient();
     const [draggedFolder, setDraggedFolder] = useState(null); // 드래그된 폴더
+
     
 
 
@@ -74,6 +75,7 @@ export default function DocumentList() {
     };
     // 드래그 시작 핸들러
     const handleDragStart = (folder) => {
+        console.log("handelDragStart ",folder)
         setDraggedFolder(folder); // 드래그된 폴더 저장
     }
      
@@ -84,30 +86,96 @@ export default function DocumentList() {
 
     // 폴더 이동 Mutation
     const moveFolderMutation = useMutation({
-        mutationFn: async ({ folderId, targetFolderId }) => {
-            await axiosInstance.put(`/api/drive/folder/${folderId}/move`, { targetFolderId });
+        mutationFn: async ({ folderId, targetFolderId, newOrder }) => {
+            const response = await axiosInstance.put(`/api/drive/folder/${folderId}/move`, {
+                folderId,
+                targetFolderId,
+                order: newOrder,
+            });
+            return response; // Axios response 반환
         },
-        onSuccess: () => {
+        onSuccess: (response) => {
+             // 서버의 응답 메시지를 확인
+        if (response.status === 200) {
+            console.log(response.data); // "Folder updated successfully"
+            alert("폴더 이동 성공!");
             queryClient.invalidateQueries(['folderContents']);
+        } else {
+            alert("폴더 이동 실패: " + response.data);
+        }
+        },
+        onError: (error) => {
+            console.error('Failed to move folder:', error.message);
+            alert('폴더 이동 실패!');
+        },
+        isLoading: (loading) => {
+            // Show loading spinner
         },
     });
-
-    const handleDrop = (targetFolder) => {
-        if (draggedFolder && draggedFolder.id !== targetFolder.id) {
-            // 폴더 이동 처리
-            console.log(`Moving folder ${draggedFolder.name} to ${targetFolder.name}`);
+    const handleDrop = (targetFolder, position) => {
+        console.log("handleDrop called with:", { targetFolder, position });
     
-            // 서버로 폴더 이동 요청
-            moveFolderMutation.mutate({
-                folderId: draggedFolder.id,
-                targetFolderId: targetFolder.id,
-            });
+        // 유효성 검사
+        if (!targetFolder || !draggedFolder) {
+            console.error("Invalid target or dragged folder:", targetFolder, draggedFolder);
+            return;
         }
-        setDraggedFolder(null); // 드래그 상태 초기화
-        setTimeout(() => {
-            alert('폴더 이동 완료!'); // 상태 변경 알림
-        }, 500); // 상태 업데이트 후 약간의 딜레이를 줘서 변경 확인
+    
+        // 자기 자신 위로 드롭하는 경우 무시
+        if (draggedFolder.id === targetFolder.id) {
+            console.warn("Cannot drop folder onto itself");
+            return;
+        }
+    
+        // 타겟 폴더의 인덱스 찾기
+        const targetIndex = subFolders.findIndex((folder) => folder.id === targetFolder.id);
+        if (targetIndex === -1) {
+            console.error("Target folder not found in subFolders:", targetFolder);
+            return;
+        }
+    
+        // 정렬 계산
+        let orderBefore = 0;
+        let orderAfter = 0;
+    
+        if (position === "before") {
+            // 타겟 폴더 이전의 폴더와 타겟 폴더 사이의 값 계산
+            if (targetIndex > 0) {
+                orderBefore = subFolders[targetIndex - 1]?.order || 0;
+            }
+            orderAfter = subFolders[targetIndex]?.order || (orderBefore + 1);
+        } else if (position === "after") {
+            // 타겟 폴더와 타겟 폴더 이후의 폴더 사이의 값 계산
+            orderBefore = subFolders[targetIndex]?.order || 0;
+            if (targetIndex < subFolders.length - 1) {
+                orderAfter = subFolders[targetIndex + 1]?.order || (orderBefore + 1);
+            } else {
+                orderAfter = orderBefore + 1; // 마지막 위치로 추가
+            }
+        }
+    
+        // 새로운 order 값 계산
+        const newOrder = (orderBefore + orderAfter) / 2.0;
+    
+        console.log("Calculated order values:", { orderBefore, orderAfter, newOrder });
+    
+        // 폴더 이동 Mutation 호출
+        moveFolderMutation.mutate({
+            folderId: draggedFolder.id,
+            targetFolderId: targetFolder.id,
+            newOrder,
+        });
+    
+        // 드래그 상태 초기화
+        setDraggedFolder(null);
     };
+    
+    
+    
+    
+    
+    
+    
 
     // 드래그 앤 드롭 업로드 핸들러
     const handleFileDrop = useCallback(
@@ -130,24 +198,28 @@ export default function DocumentList() {
         }
     };
 
-    const wheelHandler = (e) =>{
-        const container = e.currentTarget;
-        container.scrollLeft += e.deltaY; // 세로 스크롤 값을 가로로 적용
-        e.preventDefault(); // 기본 휠 동작 방지
-    }
+  
+
 
     if (isLoading) return <div>Loading...</div>;
     if (isError) return <div>Error loading folder contents.</div>;
 
-    const subFolders = (data?.subFolders || []).map((folder) => ({
+    const subFolders = (data?.subFolders || [])
+    .map((folder) => ({
         ...folder,
-        type: 'folder', // 폴더 타입 추가
-    }));
+        type: 'folder',
+        order: folder.order || 0, // 기본값 설정
+    }))
+    .sort((a, b) => (a.order || 0) - (b.order || 0)); // order 기준 정렬
+
     
     const files = (data?.files || []).map((file) => ({
         ...file,
         type: 'file', // 파일 타입 추가
     }));
+
+    const maxOrder = Math.max(...subFolders.map(folder => folder.order || 0));
+
     return (
         <DocumentLayout>
             <section className="flex gap-4 items-center">
@@ -206,20 +278,24 @@ export default function DocumentList() {
             </section>
 
             {viewType === 'box' ? (
-                <div>
-                    <section   onWheel={() =>wheelHandler()} className="flex gap-6 ml-16 mt-12 h-[200px] inline-block overflow-scroll scrollbar-none overflow-x-auto">
+                <div className='h-[1000px] mx-[30px] w-full overflow-scroll scrollbar-none'>
+                    <div className='sticky pl-[20px] pb-[5px] h-[26px]  text-[15px] top-0 z-10 bg-white'>폴더</div>
+                    <section  className="flex items-center flex-wrap"
+                         >
                         {subFolders.map((folder) => (
                             <DocumentCard1
                                 key={folder.id}
                                 folderId={folder.id}
                                 fileName={folder.name}
                                 folder={folder}
+                                cnt={folder.cnt}
                                 onDragStart={handleDragStart}
-                                onDrop={handleDrop}
-                                onDragOver={(e) => e.preventDefault()}
-                            />
+                                onDrop={(e) => handleDrop(folder, "before")} // 여기에 위치 정보를 함께 전달
+                                onDragOver={handleDragOver}
+                                />
                         ))}
                     </section>
+                    <div className='text-[15px] my-[20px]'>file</div>
                     <section className="ml-16 mt-12 inline-block overflow-scroll scrollbar-none overflow-x-auto">
                         {files.map((file) => (
                             <DocumentCard2 key={file.id} fileName={file.name} />
@@ -240,7 +316,14 @@ export default function DocumentList() {
                     </thead>
                     <tbody>
                         {[...subFolders, ...files].map((item) => (
-                            <tr key={item.id}>
+                             <tr
+                                key={folder.id}
+                                draggable
+                                onDragStart={() => handleDragStart(folder)} // 드래그 시작 핸들러
+                                onDragOver={(e) => handleDragOver(e)} // 드래그 오버 핸들러
+                                onDrop={(e) => handleDrop(folder, "before")} // 드롭 시 동작 (리스트에서는 기본적으로 "before")
+                                className="draggable-row"
+                            >
                                 <td><input type="checkbox"  /></td>
                                 <td>
                                     <Link to={`/document/list/${item.id}`} state={{ folderName: item.name }}>
@@ -262,7 +345,8 @@ export default function DocumentList() {
             )}
 
             <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} text="파일 업로드" />
-            <NewFolder isOpen={folder} onClose={() => setFolder(false)} parentId={folderId} />
+            <NewFolder isOpen={folder} onClose={() => setFolder(false)} parentId={folderId}     maxOrder={maxOrder} // 최대 order 값을 계산해서 전달
+ />
         </DocumentLayout>
     );
 }
