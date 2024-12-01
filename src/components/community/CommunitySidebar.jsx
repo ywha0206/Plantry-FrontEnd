@@ -190,7 +190,7 @@ export default function CommunitySidebar({
           className="new-user-board-button"
         >
           <img
-            src="/images/Component.png"
+            src="/images/component.png"
             alt="새 게시글"
             className="button-icon"
           />

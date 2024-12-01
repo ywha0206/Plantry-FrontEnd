@@ -7,8 +7,8 @@ import CustomAlert from '../Alert';
 export default function PostScheduleModal({ isOpen, onClose, children , text,oldData ,today ,setToday }) {
     if(!isOpen) return null;
     const [title,setTitle] = useState("");
-    const [sdate,setSdate] = useState(today+'T09:00');
-    const [edate,setEdate] = useState(today+'T10:00');
+    const [sdate,setSdate] = useState(new Date(today).toLocaleString('sv-SE'));
+    const [edate,setEdate] = useState(new Date(today).toLocaleString('sv-SE'));
     const [calendarId,setCalendarId] = useState(0);
     const [location, setLocation] = useState("");
     const [importance, setImportance] = useState(1);
@@ -46,9 +46,20 @@ export default function PostScheduleModal({ isOpen, onClose, children , text,old
         onSuccess: (data) => {
           setCustomAlert(true)
           setCustomAlertType("success")
-          setCustomAlertMessage(data)
-          queryClient.invalidateQueries(['calendarDate'])
+          setCustomAlertMessage(data.message)
           queryClient.invalidateQueries(['calendar-content-name'])
+          queryClient.setQueryData(['calendar-date'], (prevData) => [...prevData,{
+            title,
+            start : sdate,
+            end : edate,
+            color : data.color,
+            id : data.id,
+            location : location,
+            importance,
+            alert,
+            memo,
+            sheave : calendarId
+          }])
           setTimeout(() => {
             setCustomAlert(false);
             onClose();  
@@ -73,7 +84,7 @@ export default function PostScheduleModal({ isOpen, onClose, children , text,old
       <CustomAlert 
         type={customAlertType} message={customAlertMessage} isOpen={customAlert}
       />
-      <div className="bg-white rounded-2xl shadow-lg max-w-2xl w-[600px] modal-custom-width max-h-[600px] overflow-scroll scrollbar-none">
+      <div className="bg-white rounded-2xl shadow-lg max-w-2xl w-[800px] modal-custom-width max-h-[800px] overflow-scroll scrollbar-none">
         <div className="display-flex mb-8 py-3.5 px-12 bg-white border-b rounded-t-2xl z-10 sticky top-0">
             <span className="text-xl font-bold">{text}</span>
             <button 
@@ -83,7 +94,7 @@ export default function PostScheduleModal({ isOpen, onClose, children , text,old
             X
             </button>
         </div>
-        <div className="modal-content mx-12">
+        <div className="mx-12">
         <div className="flex gap-8 mb-4 justify-start">
               <span className="w-20 h-[40px]">제목</span>
               <div>
@@ -93,15 +104,9 @@ export default function PostScheduleModal({ isOpen, onClose, children , text,old
             <div className="flex gap-8 justify-start mb-4">
               <span className="w-20 h-[40px]">날짜/시간</span>
               <div className="flex gap-3 items-center">
-                <input value={sdate} onChange={(e)=>setSdate(e.target.value)} className='h-[40px] w-[118px]' type="datetime-local"></input> ~ <input value={edate} onChange={(e)=>setEdate(e.target.value)} className='h-[40px] w-[118px]' type="datetime-local"></input>
+                <input value={sdate} onChange={(e)=>setSdate(new Date(e.target.value).toLocaleString('sv-SE'))} className='h-[40px] w-[118px]' type="datetime-local"></input> ~ <input value={edate} onChange={(e)=>setEdate(new Date(e.target.value).toLocaleString('sv-SE'))} className='h-[40px] w-[118px]' type="datetime-local"></input>
               </div>
             </div>
-            {/* <div className="flex gap-8 justify-start mb-4">
-              <span className="w-20 h-[40px]">시간</span>
-              <div className="flex gap-3 items-center">
-                <input value={stime} onChange={(e)=>setStime(e.target.value)} className='h-[40px]' type="time"></input> ~ <input value={etime} onChange={(e)=>setEtime(e.target.value)} className='h-[40px]' type="time"></input>
-              </div>
-            </div> */}
             <div className="flex gap-8 mb-4 justify-start">
               <span className="w-20 h-[40px]">켈린더</span>
               <div>
