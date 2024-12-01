@@ -29,6 +29,10 @@ export default function ClickDateModal({confirm,onclose,clickedDate}) {
         },
         retry : false,
         refetchOnWindowFocus: false,
+<<<<<<< HEAD
+=======
+
+>>>>>>> 98f236428002da84caccc043697ce76292703f8f
     })
     
     const {data : tasksData2 , isLoading : isLoadingTasksData2 } 
