@@ -98,6 +98,18 @@
         background-color: rgba($color: green, $alpha: 0.2);
     }
 
+    .bg-red-200 {
+        background-color: rgba($color: red, $alpha: 0.2);
+    }
+
+    .bg-yellow-200 {
+        background-color: rgba($color: yellow, $alpha: 0.2);
+    }
+
+    .bg-orange-200 {
+        background-color: rgba($color: orange, $alpha: 0.2);
+    }
+
 
     .text-blue-200 {
         color: rgba($color: blue, $alpha: 0.5);
@@ -109,5 +121,17 @@
 
     .text-green-200 {
         color: rgba($color: green, $alpha: 0.5);
+    }
+
+    .text-red-200 {
+        color: rgba($color: red, $alpha: 0.5);
+    }
+
+    .text-orange-200 {
+        color: rgba($color: orange, $alpha: 0.5);
+    }
+
+    .text-yellow-200 {
+        color: rgba($color: yellow, $alpha: 0.5);
     }
 }

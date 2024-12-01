@@ -29,10 +29,17 @@ const MainBigCalendar = () => {
 
     useEffect(() => {
         const timeout = setTimeout(() => {
+<<<<<<< HEAD
+            if (Date.now() - lastModified >= 60 * 60 * 1000) {
+                mutation.mutateAsync(); // 자동으로 수정 요청 보내기
+            }
+        }, 60 * 60 * 1000);
+=======
             if (Date.now() - lastModified >= 2 * 60 * 1000) {
                 mutation.mutateAsync(); // 자동으로 수정 요청 보내기
             }
         }, 5 * 60 * 1000);
+>>>>>>> 98f236428002da84caccc043697ce76292703f8f
     
         return () => clearTimeout(timeout);
     }, [lastModified]);
