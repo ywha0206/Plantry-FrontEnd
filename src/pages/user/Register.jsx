@@ -19,7 +19,7 @@ export default function Register() {
         <div className='register-container'>
           <div className='login-form'>
             <div className="flex justify-between items-start">
-              <p className='text-3xl font-extralight'>REGISTER</p>
+              <p className='text-3xl font-light'>REGISTER</p>
               <Link to="/user/login">
                 <img src="/images/Logo_font.png" alt="logo" className="w-[110px] h-[35px]" />
               </Link>
@@ -68,7 +68,7 @@ export default function Register() {
                   className="signup-input-lg mt-10" ></input>
                   <div className='flex justify-between '>
                     <input type='text' placeholder='비밀번호를 입력해 주세요.'
-                    className="xl-inp mr-1 mt-10" ></input>
+                    className="xl-inp border rounded mr-1 mt-10" ></input>
                     <input type='text' placeholder='비밀번호를 한 번 더 입력해 주세요.'
                     className="xl-inp mt-10" ></input>
                   </div>

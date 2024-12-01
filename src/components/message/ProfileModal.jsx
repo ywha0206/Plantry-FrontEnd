@@ -1,6 +1,12 @@
-export default function ProfileModal({ profile, profileHandler }) {
+/* eslint-disable react/prop-types */
+
+import useOnClickOutSide from "./useOnClickOutSide";
+
+export default function ProfileModal({ profileHandler, profileRef }) {
+  useOnClickOutSide(profileRef, profileHandler);
+
   return (
-    <div className="profile-modal">
+    <div className="profile-modal" ref={profileRef}>
       <div className="profile-container">
         <img src="/images/sample_item1.jpg" alt="" className="profileImg" />
         <div className="profileInfo">

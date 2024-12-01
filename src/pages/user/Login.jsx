@@ -128,52 +128,23 @@ export default function Login() {
       <div className='login-container'>
         <div className='login-form'>
         <div className="flex justify-between items-start">
-              <p className='text-3xl font-extralight'>LOGIN</p>
+              <p className='text-3xl font-light ml-[30px]'>LOGIN</p>
               <Link to="/user/login">
-                <img src="/images/Logo_font.png" alt="logo" className="w-[110px] h-[35px]" />
+                <img src="/images/Logo_font.png" alt="logo" className="w-[110px] h-[35px] mr-[35px]" />
               </Link>
           </div>
           <div className='inp-box'>
-            <p className='text-xs inp-font'>id</p>
-            <CustomInput
-              mb="m"
-              type="text"
-              name="uid"
-              handler={changeHandler}
-              placeholder="아이디를 입력해주세요."
-              value={uid}
-              size="xl"
-            />
-            <p className='text-xs inp-font'>password</p>
-            <CustomInput 
-              mb="sm"
-              type="password"
-              name="pwd"
-              handler={changeHandler}
-              placeholder="비밀번호를 입력해주세요."
-              value={pwd}
-              size="xl"
-            />
+            <p className='text-xs inp-font bg-white w-[20px] text-center ml-3 relative top-2'>ID</p>
+            <input type="text" name='uid' value={uid} onChange={changeHandler} placeholder='아이디를 입력해주세요.'
+            className='border rounded h-[50px] indent-4' />
+            <p className='text-xs inp-font bg-white w-[70px] text-center ml-3 relative top-2'>PASSWORD</p>
+            <input type="text" name='pwd' value={pwd} onChange={changeHandler} placeholder='비밀번호를 입력해주세요.'
+            className='border rounded h-[50px] indent-4' />
             <div className='find-pwd'>
-              <p className='text-xs' onClick={() => navigate("/user/find")}>Forget password?</p>
+              <p className='text-sm mt-1' onClick={() => navigate("/user/find")}>Forgot password?</p>
             </div>
-            <CustomButton 
-              type="button"
-              handler={submitData}
-              color="white"
-              bg="green"
-              size="2sxl"
-              text="Sign In"
-              mb="m"
-            />
-            <CustomButton 
-              type="button"
-              handler={signUp}
-              color="white"
-              bg="blue"
-              size="xl"
-              text="Sign Up"
-            />
+            <button onClick={submitData} className='bg-indigo-500 text-white h-[50px] rounded-lg mt-10'>Sign In</button>
+            <button onClick={signUp} className='border border-indigo-500 text-indigo-700 h-[50px] rounded-lg mt-10'>Sign Up</button>
           </div>
           <CustomGubun 
             gubun="basic"
