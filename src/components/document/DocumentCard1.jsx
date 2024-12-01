@@ -6,6 +6,10 @@ export const DocumentCard1 = ({
     cnt,
     fileName,
     folderId,
+    folder,
+    onDragStart, 
+    onDragOver, 
+    onDrop
 }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false); // 토글 상태 관리
 
@@ -31,15 +35,26 @@ export const DocumentCard1 = ({
     };
 
     return (
-        <div className="document-card1 relative">
-            <div className="relative">
+        <div className="document-card1 relative flex flex-row items-center"  draggable
+                    onDragStart={(e) => {
+                        e.stopPropagation(); // Prevent event propagation
+                        onDragStart(folder); // Call the passed onDragStart function
+                    }}                 
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => onDrop(folder)}
+                    style={{
+                        border: '1px solid #ccc',
+                        padding: '10px',
+                        margin: '5px',
+                        cursor: 'grab',
+                    }}
+                >
                 <img
-                    className="absolute top-[10px] right-[10px] cursor-pointer"
+                    className="absolute cursor-pointer right-[20px] rotate-90 "
                     src="/images/button-dot.png"
                     alt="버튼"
                     onClick={toggleMenu} // 메뉴 열기
                 />
-            </div>
             {isMenuOpen && (
                 <div className="absolute top-[40px] right-[10px] bg-white shadow-md rounded-md z-20">
                     <ul className="py-2">
@@ -64,21 +79,19 @@ export const DocumentCard1 = ({
                     </ul>
                 </div>
             )}
-            <div className="flex items-center justify-center">
-                <button>
-                    <img className="mt-2 w-[80px] h-[90px]" src="/images/document-open-folder.png" />
-                </button>
+            <div className=" flex flex-row mr-[20px]">
+            <button>
+                <img className=" w-[50px] h-[60px]" src="/images/document-open-folder.png" />
+            </button>
             </div>
-            <Link to={`/document/list/${folderId}`} state={{ folderName: fileName }}>
 
-                <div className="flex justify-center items-center">
-                        <p className="opacity-40 text-xs">{cnt} files</p>
-                </div>
-                <div className="flex justify-center items-center mt-2">
+            <div className="flex-row mr-[20px] w-[50px]">
+                    <p className="opacity-40 text-xs">{cnt} files</p>
+            </div>
+            <div className="flex-row mt-2 w-[200px]">
 
-                    <p className="w-1/2 text-center text-blue-900 text-sm">{fileName}</p>
-                </div>
-            </Link>
+                <p className="w-1/2 text-center text-blue-900 text-sm">{fileName}</p>
+            </div>
 
         </div>
     );
