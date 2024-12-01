@@ -120,7 +120,7 @@ export default function DocumentAside(){
                         </Link>
                     </div>
                     ))}  
-                    {folders.length === 0 && <p className="opacity-60">Shared 폴더가 없습니다.</p>}
+                    {folders.length === 0 && <p className="opacity-60"> 폴더가 없습니다.</p>}
                 </section>
                 <section className='flex justify-between items-center p-4 mb-2 mt-4'>
                     <div>

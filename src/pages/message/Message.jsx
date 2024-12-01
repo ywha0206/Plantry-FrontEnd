@@ -8,6 +8,18 @@ import ProfileModal from "../../components/message/ProfileModal";
 
 export default function Message() {
   const [isOpen, setIsOpen] = useState(false);
+  const [profile, setProfile] = useState(false);
+  const [option, setOption] = useState(2);
+  const [search, setSearch] = useState(false);
+  const [moreFn, setMoreFn] = useState(false);
+  const [file, setFile] = useState(false);
+  const [fileInfos, setFileInfos] = useState([]);
+  const fileRef = useRef();
+  const profileRef = useRef();
+  const inviteRef = useRef();
+  const showMoreRef = useRef();
+  const attachFileRef = useRef();
+
   const openHandler = () => {
     setIsOpen(true);
   };
@@ -15,11 +27,9 @@ export default function Message() {
     setIsOpen(false);
     setOption(2);
   };
-  const [profile, setProfile] = useState(false);
   const profileHandler = () => {
     setProfile(!profile);
   };
-  const [option, setOption] = useState(2);
   const optionHandler = (e) => {
     e.preventDefault();
     if (e.target.className === "userSearch") {
@@ -36,21 +46,17 @@ export default function Message() {
     closeHandler,
     option,
     optionHandler,
+    inviteRef,
   };
 
-  const [search, setSearch] = useState(false);
   const searchHandler = () => {
     setSearch(!search);
   };
 
-  const [moreFn, setMoreFn] = useState(false);
   const moreFnHandler = () => {
     setMoreFn(!moreFn);
   };
 
-  const [file, setFile] = useState(false);
-  const [fileInfos, setFileInfos] = useState([]);
-  const fileRef = useRef();
   const fileHandler = (e) => {
     e.preventDefault();
     saveFileInfos();
@@ -139,7 +145,10 @@ export default function Message() {
               onClick={profileHandler}
             />
             {profile == true ? (
-              <ProfileModal profile={profile} profileHandler={profileHandler} />
+              <ProfileModal
+                profileHandler={profileHandler}
+                profileRef={profileRef}
+              />
             ) : null}
             <MessageToolTip tooltip={"프로필 보기"} />
           </div>
@@ -373,7 +382,12 @@ export default function Message() {
               />
             )}
 
-            {moreFn == true ? <ShowMoreModal /> : null}
+            {moreFn == true ? (
+              <ShowMoreModal
+                moreFnHandler={moreFnHandler}
+                showMoreRef={showMoreRef}
+              />
+            ) : null}
             <img
               className="searchImg"
               src="../images/More.png "

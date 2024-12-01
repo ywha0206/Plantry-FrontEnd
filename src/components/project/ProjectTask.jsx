@@ -130,6 +130,7 @@ export const ProjectTaskDynamic = ({
                   aria-label="Cancel input"
                 >
                   <CustomSVG id="close" />
+
                 </button>
                 <input
                   type="text"
@@ -151,6 +152,7 @@ export const ProjectTaskDynamic = ({
                 >
                   <CustomSVG id="add" />
                 </button>
+
               </div>
             ) : (
               <button

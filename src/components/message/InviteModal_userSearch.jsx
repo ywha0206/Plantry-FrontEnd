@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../../services/axios";
 import { useQuery } from "@tanstack/react-query";
+import ClickDateModal from "./../calendar/ClickDateModal";
 
 export default function InviteModal_userSearch(props) {
   const {
@@ -55,10 +56,7 @@ export default function InviteModal_userSearch(props) {
     }
   };
 
-  console.log("searchResult : ", JSON.stringify(searchResult));
-  console.log("users : ", JSON.stringify(users));
-  console.log("userIds : ", JSON.stringify(userIds));
-  console.log("userList : ", JSON.stringify(userList));
+  if (isError) return <>Error : {error.message}</>;
 
   return (
     <div className="inviteLeftBox">
@@ -75,6 +73,11 @@ export default function InviteModal_userSearch(props) {
           <img src="/images/search-icon.png" alt="" className="searchImg" />
         </div>
         <div className="orgs-Users-List searched-Users-List">
+          {isLoading ? (
+            <div className="isLoading"> Loading</div>
+          ) : isError ? (
+            <div className="isError">Error</div>
+          ) : null}
           {searchResult
             ? searchResult.map((result) => (
                 <div

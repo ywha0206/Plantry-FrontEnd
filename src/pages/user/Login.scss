@@ -10,9 +10,9 @@
 }
 
 .login-form {
-    width: 400px;
+    width: 500px;
     height: 650px;
-    padding: 30px;
+    padding: 40px 20px;
     background-color: white;
     border-radius: 30px;
 }
@@ -63,21 +63,21 @@
         height: auto;
     }
     .card-inp1{
-        height: 40px;
+        height: 50px;
         width: 50%;
         border-radius: 4px;
         border: 1px solid #DBDBDB;
         text-indent: 10px;
     }
     .card-inp2{
-        height: 40px;
+        height: 50px;
         width: 25%;
         border-radius: 4px;
         border: 1px solid #DBDBDB;
         text-indent: 10px;
     }
     .signup-input-lg{
-        height: 40px;
+        height: 50px;
         width: 100%;
         border-radius: 4px;
         border: 1px solid #DBDBDB;
@@ -85,7 +85,7 @@
         font: Pretendard;
     }
     .signup-input-md{
-        height: 40px;
+        height: 50px;
         width: 70%;
         border-radius: 4px;
         border: 1px solid #DBDBDB;
@@ -156,7 +156,7 @@
     .login-form {
         width: 700px;
         height: 750px;
-        padding: 50px 70px;
+        padding: 40px 70px;
         background-color: white;
         border-radius: 30px;
     }
@@ -169,7 +169,7 @@
         background-color: #EFEFF4;
         height: 140px;
         border-radius: 8px;
-        font-size: 10px;
+        font-size: 12px;
         padding: 2px 10px;
     }
     input[type='checkbox'] {
@@ -239,7 +239,6 @@
         text-indent: 10px;
     }
     .find-inp-md{
-        
         border: 1px solid #ccc;
         width: 72%;
         height: 50px;
@@ -275,13 +274,13 @@
     border: 1px solid #666CFF;
     color: #666CFF;
     width: 100px;
-    height: 35px;
+    height: 40px;
     border-radius: 8px;
 }
 .btn-next{
     background-color: #666CFF;
     color: #fff;
     width: 100px;
-    height: 35px;
+    height: 40px;
     border-radius: 8px;        
 }

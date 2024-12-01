@@ -12,7 +12,7 @@ export default function DateChangerModal({dateChanger,onclose,data,putData,setPu
             {page===0 &&
             <>
             <div className="display-flex  py-5 px-12 border-b rounded-t-2xl z-10">
-                <span className="text-[15px] font-bold">일정 세부내용을 수정하시겠습니까?</span>
+                <span className="text-[15px] font-bold">기간을 수정하시겠습니까?</span>
             </div>
             <div className='flex py-8 justify-around items-center'>
                 <button 
