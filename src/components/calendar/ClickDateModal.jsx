@@ -29,7 +29,6 @@ export default function ClickDateModal({confirm,onclose,clickedDate}) {
         },
         retry : false,
         refetchOnWindowFocus: false,
-
     })
     
     const {data : tasksData2 , isLoading : isLoadingTasksData2 } 
@@ -40,7 +39,7 @@ export default function ClickDateModal({confirm,onclose,clickedDate}) {
             return response.data
         },
         retry : false,
-        refetchOnWindowFocus: false
+        refetchOnWindowFocus: false,
     })
 
     const mutation = useMutation({

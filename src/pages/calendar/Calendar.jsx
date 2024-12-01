@@ -9,6 +9,8 @@ import axiosInstance from '@/services/axios.jsx'
 import { useCalenderNameStore } from '../../store/zustand'
 import MainBigCalendar from '../../components/calendar/MainBigCalendar'
 import CalendarContentNameResponse from '../../components/calendar/loading/CalendarContentNameResponse'
+import PostCalendarModal from '../../components/calendar/PostCalendarModal'
+import DeleteAndModifyCalendarModal from '../../components/calendar/DeleteAndModifyCalendarModal'
 
 export default function Calendar() {
 
@@ -17,12 +19,16 @@ export default function Calendar() {
   const [calendarDeleted, setCalendarDeleted] = useState(false);
   const [changeCalendarAdd,setChangeCalendarAdd] = useState(false);
   const [changeCalendarRemove,setChangeCalendarRemove] = useState(false);
-
+  const [openPostCalendar, setOpenPostCalendar] = useState(false);
+  const [openDeleteAndModifyCalendar, setOpenDeleteAndModifyCalendar] = useState(false);
+  const [selectedCalendarId, setSelectedCalendarId] = useState(0);
+  const [selectedCalendarName, setSelectedCalendarName] = useState("");
+  const [selectedCalendar, setSelectedCalendar] = useState({});
 
   const queryClient = useQueryClient();
 
   const openModal = () => {
-    setIsOpens(true)
+    setOpenPostCalendar(true)
   }
   const calendarNames = useCalenderNameStore((state) => state.setCalendarNames);
 
@@ -75,10 +81,20 @@ export default function Calendar() {
   useEffect(() => {
     if (changeCalendarAdd) {
       queryClient.setQueryData(['calendar-date'], (prevData) => {
+        // calendar가 배열이 아니라면 빈 배열로 처리
         const calendarData = Array.isArray(calendar) ? calendar : [];
-        setChangeCalendarAdd(false)
-        setCalendarAdded(false)
-        return [...(prevData || []), ...calendarData];
+  
+        // 상태 초기화
+        setChangeCalendarAdd(false);
+        setCalendarAdded(false);
+  
+        // prevData가 undefined일 경우 빈 배열로 처리, 그 후 새 데이터를 추가
+        if (!Array.isArray(prevData)) {
+          return [...calendarData];  // prevData가 없거나 배열이 아닐 경우 새로 추가된 데이터만 반환
+        }
+  
+        // prevData가 배열일 때, 기존 데이터와 새 데이터를 합쳐서 반환
+        return [...prevData, ...calendarData];
       });
     }
   }, [changeCalendarAdd, calendar]);
@@ -86,21 +102,32 @@ export default function Calendar() {
   useEffect(() => {
     if (changeCalendarRemove) {
       queryClient.setQueryData(['calendar-date'], (prevData) => {
+        // calendar2가 배열이 아니라면 빈 배열로 처리
         const calendarData = Array.isArray(calendar2) ? calendar2 : [];
-        setChangeCalendarRemove(false)
-        setCalendarDeleted(false)
-        return (prevData || []).filter(item => 
+  
+        // 상태 초기화
+        setChangeCalendarRemove(false);
+        setCalendarDeleted(false);
+  
+        // prevData가 배열이 아니거나 없는 경우 빈 배열을 반환
+        if (!Array.isArray(prevData)) {
+          return [];  // 기존 데이터가 없으면 그냥 빈 배열 반환
+        }
+  
+        // prevData가 배열일 때, 삭제할 데이터를 필터링하여 반환
+        return prevData.filter(item => 
           !calendarData.some(calendarItem => calendarItem.id === item.id)
         );
       });
     }
   }, [changeCalendarRemove, calendar2]);
+  
 
   const {data : calendarName, isLoading : isLoadingCalendarName, isError : isErrorCalendarName} = useQuery({
     queryKey : ['calendar-name'],
     queryFn : async () => {
       try {
-        const response = await axiosInstance.get(`/api/calendar/name?id=9`)
+        const response = await axiosInstance.get('/api/calendar/name?id=9')
         return response.data
       } catch(err){
         return err
@@ -119,15 +146,6 @@ export default function Calendar() {
     }
   },[calendarName])
 
-  if(isErrorCalendarName){
-    return <p>{calendarName}</p>
-  }
-
-  if (!Array.isArray(calendarName) || calendarName.length === 0) {
-    return <ul >일정 없다 개꿀!</ul>
-  }
-
-
   const changeCalendar = (e,id,color) =>{
     if(e.target.classList.contains(`bg-${color}-200`)){
       setCalendarId(id);
@@ -137,7 +155,6 @@ export default function Calendar() {
       setCalendarDeleted(true)
     }
   }
-
 
   return (
     <div id='calendar-container'>
@@ -151,16 +168,28 @@ export default function Calendar() {
             <p className='text-sm font-bold'>일정 목록</p>
           </div>
           {
-        (!Array.isArray(calendarContentName) || calendarContentName.length === 0)
-        ? (
-          <ul className="ml-6 mt-6 text-sm font-bold">
-            일정없음 개꿀!
-          </ul>
-        )
-        : (
-          <CalendarContentNameResponse calendarContentName={calendarContentName} />
-        )
-      }
+            (isLoadingCalendarContentName)
+            ?
+            (
+            <ul>로딩중입니다...</ul>
+            )
+            :
+            (isErrorCalendarContentName)
+            ?
+            (
+              <ul>서버접속에 실패했습니다...</ul>
+            )
+            :
+            (!Array.isArray(calendarContentName) || calendarContentName.length === 0)
+            ? (
+              <ul className="ml-6 mt-6 text-sm font-bold">
+                등록된 일정이 없습니다...
+              </ul>
+            )
+            : (
+              <CalendarContentNameResponse calendarContentName={calendarContentName} />
+            )
+          }
         </section>
         <section className='mb-8'>    
           <div className='flex gap-4'>
@@ -169,21 +198,43 @@ export default function Calendar() {
           </div>
           <ul className='text-gray-500 ml-6 mt-6 text-sm font-bold'>
           {
+            (isLoadingCalendarName)
+            ?
+            (
+              <li>로딩중입니다...</li>
+            )
+            :
+            (isErrorCalendarName)
+            ? 
+            (
+            <li>
+              서버 접속에 실패했습니다...
+            </li>
+            )
+            :
+            ((!Array.isArray(calendarName)) || calendarName.length===0)
+            ?
+            (
+              <li>등록된 캘린더가 없습니다...</li>
+            )
+            :
+            (
             calendarName.map((v) => {
               return (
-                <li 
-                key={v.id} 
-                onClick={(e) => {
-                  e.target.classList.toggle(`bg-${e.target.dataset.color}-200`);
-                  changeCalendar(e, v.id, v.color); 
-                }} 
-                data-status={v.status} 
-                data-color={v.color}
-                className={`mb-2 cursor-pointer w-[140px] pl-[10px] hover:text-purple-700 rounded-lg ${v.status === 1 ? ` bg-${v.color}-200` : ''}`}
-              >• {v.name}
+                <li key={v.id}  className=' flex justify-between mr-[20px]'>
+                <div
+                  onClick={(e) => {
+                    e.target.classList.toggle(`bg-${e.target.dataset.color}-200`);
+                    changeCalendar(e, v.id, v.color); 
+                  }} 
+                  data-status={v.status} 
+                  data-color={v.color}
+                  className={`mb-2 cursor-pointer w-[150px] pl-[10px] hover:text-purple-700 rounded-lg ${v.status === 1 ? ` bg-${v.color}-200` : ''}`}
+                >• {v.name}</div>
+                <img onClick={(e)=>{setOpenDeleteAndModifyCalendar(true);setSelectedCalendar(v);}} className='w-[16px] h-[16px] opacity-60 cursor-pointer hover:opacity-100' src='/images/calendar-setting.png'></img>
               </li>
               )
-            })
+            }))
           }
           <div className="23"></div>
           </ul>
@@ -196,6 +247,15 @@ export default function Calendar() {
         <section className='big-calendar mt-8 overflow-scroll max-h-[700px] w-[1080px] mx-auto scrollbar-none'>
           <MainBigCalendar /> 
         </section>
+        <PostCalendarModal 
+          isOpen={openPostCalendar}
+          onClose={()=>{setOpenPostCalendar(false)}}
+        />
+        <DeleteAndModifyCalendarModal 
+          isOpen={openDeleteAndModifyCalendar}
+          onClose={()=>setOpenDeleteAndModifyCalendar(false)}
+          selectedCalendar={selectedCalendar}
+        />
       </section>
       
     </div>

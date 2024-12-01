@@ -247,7 +247,7 @@ export default function EventClickConfirm({isOpen, onclose,selectedId,clickedDat
               </div>
         
             </div>
-            <div className='flex py-8 px-8 justify-between items-center'>
+            <div className='flex py-8 px-8 justify-end gap-4 items-center'>
                 <button onClick={putCalendarHandler} className='bg-purple w-[110px] hover:opacity-80 py-4 text-sm rounded-md white'>수정하기</button>
                 <button 
                 className="bg-purple w-[110px] py-4 text-sm rounded-md white hover:opacity-60 cursor-pointer"
