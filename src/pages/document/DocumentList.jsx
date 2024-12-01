@@ -285,7 +285,7 @@ export default function DocumentList() {
             </section>
 
             {viewType === 'box' ? (
-                <div className='h-[1000px] mx-[30px] w-full overflow-scroll scrollbar-none'>
+                <div className='h-[600px] mx-[30px] w-full overflow-scroll scrollbar-none'>
                     <div className='sticky pl-[20px] pb-[5px] h-[26px]  text-[15px] top-0 z-10 bg-white'>폴더</div>
                     <section  className="flex items-center flex-wrap"
                          >
@@ -303,9 +303,9 @@ export default function DocumentList() {
                         ))}
                     </section>
                     <div className='text-[15px] my-[20px]'>file</div>
-                    <section className="ml-16 mt-12 inline-block overflow-scroll scrollbar-none overflow-x-auto">
+                    <section className="ml-16 mt-12 inline-block ">
                         {files.map((file) => (
-                            <DocumentCard2 key={file.id} fileName={file.name} />
+                            <DocumentCard2 key={file.id} file={file} fileName={file.originalName} path={file.path}/>
                         ))}
                     </section>
                 </div>
