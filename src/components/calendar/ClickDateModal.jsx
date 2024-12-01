@@ -28,7 +28,8 @@ export default function ClickDateModal({confirm,onclose,clickedDate}) {
             return response.data
         },
         retry : false,
-        refetchOnWindowFocus: false
+        refetchOnWindowFocus: false,
+
     })
     
     const {data : tasksData2 , isLoading : isLoadingTasksData2 } 
@@ -52,17 +53,25 @@ export default function ClickDateModal({confirm,onclose,clickedDate}) {
         onSuccess: (data) => {
             setCustomAlert(true)
             setCustomAlertType("success")
-            setCustomAlertMessage(data)
+            setCustomAlertMessage(data.message)
             queryClient.invalidateQueries(['calendar-content-morning',today])
             queryClient.invalidateQueries(['calendar-content-afternoon',today])
+            queryClient.setQueryData(['calendar-date'], (prevData) => {
+                return prevData.filter((v) => v.id !== data.id); 
+            });
             setTimeout(()=>{
                 setCustomAlert(false);
             },1000)
             setDeleteConfirm(false);
         },
         onError: (error) => {
+            setCustomAlert(false)
+            setCustomAlertType("error")
+            setCustomAlertMessage(error)
+            setTimeout(()=>{
+                setCustomAlert(false);
+            },1000)
             setDeleteConfirm(false);
-            console.error("Error updating user", error);
         },
     });
 
@@ -76,7 +85,6 @@ export default function ClickDateModal({confirm,onclose,clickedDate}) {
 
     useEffect(() => {
         setCalendarNameState(calendarNames)
-        console.log(clickedDate)
     }, []);
 
   return (
