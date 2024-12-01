@@ -10,6 +10,7 @@ import axiosInstance from '@/services/axios.jsx';
 import NewFolder from '../../components/document/NewFolder';
 import useUserStore from '../../store/useUserStore';
 import { Modal } from '../../components/Modal';
+import FileUploads from '../../components/document/FileUploads';
 
 export default function DocumentList() {
     const [viewType, setViewType] = useState('box'); // Default to 'box'
@@ -219,6 +220,12 @@ export default function DocumentList() {
     }));
 
     const maxOrder = Math.max(...subFolders.map(folder => folder.order || 0));
+    const fileMaxOrder =
+        files.length > 0
+            ? Math.max(...files.map(file => file.order || 0))
+            : 0; // 기본값을 0으로 설정
+
+    console.log("fileMaxorder",fileMaxOrder);
 
     return (
         <DocumentLayout>
@@ -344,7 +351,7 @@ export default function DocumentList() {
 
             )}
 
-            <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} text="파일 업로드" />
+            <FileUploads isOpen={isOpen} onClose={() => setIsOpen(false)} folderId={folderId} maxOrder={fileMaxOrder} uid={user.uid} />
             <NewFolder isOpen={folder} onClose={() => setFolder(false)} parentId={folderId}     maxOrder={maxOrder} // 최대 order 값을 계산해서 전달
  />
         </DocumentLayout>
