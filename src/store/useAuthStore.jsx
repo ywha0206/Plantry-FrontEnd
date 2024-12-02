@@ -6,6 +6,7 @@ import axiosInstance from '@/services/axios.jsx';
     이름 : 박연화
     내용 : accessToken 처리 
 */
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export const useAuthStore = create((set) => ({
   accessToken: null, // 초기값: null
@@ -64,7 +65,7 @@ export const useAuthStore = create((set) => ({
   // 리프레시 토큰으로 새 액세스 토큰 요청
   refreshAccessToken: async () => {
     try {
-      const response = await axios.post(`http://localhost:8080/api/auth/refresh`,{},{withCredentials: true});
+      const response = await axios.post(`${baseURL}/api/auth/refresh`,{},{withCredentials: true});
   
       console.log("Response status:", response.status); // 상태 코드 출력
       console.log("Response data:", response.data); // 데이터 출력
