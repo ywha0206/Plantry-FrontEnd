@@ -25,4 +25,41 @@ axiosInstance.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
+// 응답 인터셉터 설정
+axiosInstance.interceptors.response.use(
+  (response) => {
+    // 응답이 정상일 경우 그대로 반환
+    return response;
+  },
+  async (error) => {
+    const originalRequest = error.config;
+
+    // 401 오류이고, 재시도하지 않은 요청인지 확인
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true; // 재시도 플래그 설정
+      console.log("401이 떴다!");
+
+      try {
+        const refreshAccessToken = useAuthStore.getState().refreshAccessToken;
+        // 새 액세스 토큰 갱신 시도
+        const newAccessToken = await refreshAccessToken();
+
+        if (newAccessToken) {
+          // 새 액세스 토큰을 Authorization 헤더에 추가
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          // 실패한 요청을 다시 실행
+          return axiosInstance(originalRequest);
+        }
+      } catch (refreshError) {
+        console.error('토큰 갱신 실패:', refreshError);
+        // 추가 실패 시 로그아웃 처리
+        useAuthStore.getState().logout();
+      }
+    }
+
+    // 갱신 실패 또는 다른 에러일 경우 에러 반환
+    return Promise.reject(error);
+  }
+);
+
 export default axiosInstance;

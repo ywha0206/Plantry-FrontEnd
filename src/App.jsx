@@ -69,6 +69,8 @@ function App() {
     "/faq",
     "/user/login",
     "/user/register",
+    "/user/find",
+    "/user/terms"
   ]);
 
   useEffect(() => {
@@ -78,9 +80,6 @@ function App() {
         console.log("Excluded route, skipping token check.");
         return;
       } // 제외 경로는 검증하지 않음
-
-      const accessToken = getAccessToken();
-      console.log("현재 액세스 토큰 :", accessToken);
 
       const tokenExpired = isTokenExpired();
       if (tokenExpired) {
