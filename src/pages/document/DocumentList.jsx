@@ -11,6 +11,7 @@ import NewFolder from '../../components/document/NewFolder';
 import useUserStore from '../../store/useUserStore';
 import { Modal } from '../../components/Modal';
 import FileUploads from '../../components/document/FileUploads';
+import RenameModal from '../../components/document/ChangeName';
 
 export default function DocumentList() {
     const [viewType, setViewType] = useState('box'); // Default to 'box'
@@ -18,6 +19,8 @@ export default function DocumentList() {
     const [folder, setFolder] = useState(false);
     const [editing, setEditing] = useState(false); // 이름 변경 모드
     const [newFolderName, setNewFolderName] = useState(''); // 새로운 폴더 이름
+    const [isRenameModalOpen, setIsRenameModalOpen] = useState(false); // 모달 열림 상태
+
 
     const location = useLocation();
     const user = useUserStore((state) => state.user);
@@ -25,8 +28,27 @@ export default function DocumentList() {
     const queryClient = useQueryClient();
     const [draggedFolder, setDraggedFolder] = useState(null); // 드래그된 폴더
 
-    
 
+    const [menuState, setMenuState] = useState({
+        isMenuOpen: false,
+        position: { top: 0, left: 0 },
+        activeFolder: null, // 현재 활성화된 폴더
+    });
+
+    const closeMenu = () => {
+        setMenuState((prev) => ({ ...prev, isMenuOpen: false, activeFolder: null }));
+    };
+
+    const toggleMenu = (e, folder) => {
+        e.preventDefault(); // 기본 컨텍스트 메뉴 방지
+        setMenuState({
+            isMenuOpen: true,
+            position: { top: e.clientY, left: e.clientX },
+            activeFolder: folder,
+        });
+    };
+
+    console.log(location);
 
     // 폴더 및 파일 데이터 가져오기
     const { data, isLoading, isError } = useQuery({
@@ -206,6 +228,7 @@ export default function DocumentList() {
     if (isError) return <div>Error loading folder contents.</div>;
 
     const subFolders = (data?.subFolders || [])
+    .filter((folder) => folder.status === 0) // status가 0인 것만 필터링
     .map((folder) => ({
         ...folder,
         type: 'folder',
@@ -214,7 +237,9 @@ export default function DocumentList() {
     .sort((a, b) => (a.order || 0) - (b.order || 0)); // order 기준 정렬
 
     
-    const files = (data?.files || []).map((file) => ({
+    const files = (data?.files || [])
+    .filter((file) => file.status === 0) // status가 0인 것만 필터링
+    .map((file) => ({
         ...file,
         type: 'file', // 파일 타입 추가
     }));
@@ -285,17 +310,20 @@ export default function DocumentList() {
             </section>
 
             {viewType === 'box' ? (
-                <div className='h-[600px] mx-[30px] w-full overflow-scroll scrollbar-none'>
-                    <div className='sticky pl-[20px] pb-[5px] h-[26px]  text-[15px] top-0 z-10 bg-white'>폴더</div>
-                    <section  className="flex items-center flex-wrap"
+                <div className='h-[600px] mx-[30px] w-[97%] overflow-scroll scrollbar-none'>
+                    <div className='sticky pb-[5px] h-[26px] my-[10px] text-[15px] top-0 z-10 bg-white'>폴더</div>
+                    <section  className="flex items-center flex-wrap relative"
                          >
                         {subFolders.map((folder) => (
                             <DocumentCard1
                                 key={folder.id}
                                 folderId={folder.id}
-                                fileName={folder.name}
+                                folderName={folder.name}
                                 folder={folder}
+                                path = {folder.path}
                                 cnt={folder.cnt}
+                                ToggleMenu={toggleMenu}
+                                updatedAt={folder.updatedAt}
                                 onDragStart={handleDragStart}
                                 onDrop={(e) => handleDrop(folder, "before")} // 여기에 위치 정보를 함께 전달
                                 onDragOver={handleDragOver}
@@ -303,9 +331,9 @@ export default function DocumentList() {
                         ))}
                     </section>
                     <div className='text-[15px] my-[20px]'>file</div>
-                    <section className="ml-16 mt-12 inline-block ">
+                    <section className="inline-block ">
                         {files.map((file) => (
-                            <DocumentCard2 key={file.id} file={file} fileName={file.originalName} path={file.path}/>
+                            <DocumentCard2 key={file.id} file={file} fileName={file.originalName} path={file.path} savedName={file.savedName}/>
                         ))}
                     </section>
                 </div>
@@ -353,7 +381,8 @@ export default function DocumentList() {
 
             <FileUploads isOpen={isOpen} onClose={() => setIsOpen(false)} folderId={folderId} maxOrder={fileMaxOrder} uid={user.uid} />
             <NewFolder isOpen={folder} onClose={() => setFolder(false)} parentId={folderId}     maxOrder={maxOrder} // 최대 order 값을 계산해서 전달
- />
+            />
+            
         </DocumentLayout>
     );
 }

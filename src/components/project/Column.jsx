@@ -1,9 +1,8 @@
 /* eslint-disable react/prop-types */
-import { CustomSVG } from "./CustomSVG";
+import { CustomSVG } from "./_CustomSVG";
 import { useState } from "react";
-import NewTask from "./NewTask";
 import { ColumnHeader, ColumnHeaderEdit } from "./ColumnHeader";
-import DynamicTaskEditor from "./NewTask";
+import { DynamicTaskEditor } from "./TaskEdit";
 
 export const ProjectColumn = ({
   title,
@@ -41,7 +40,6 @@ export const ProjectColumn = ({
     }
   };
 
-
   return (
     <section className="flex flex-col w-64 min-w-[240px]">
       {/* Column Header */}
@@ -72,7 +70,11 @@ export const ProjectColumn = ({
 
       {/* Add New Task */}
       {isNewTaskAdded && (
-        <DynamicTaskEditor setIsAdded={setIsNewTaskAdded} onSave={handleAddTask} mode="create"/>
+        <DynamicTaskEditor
+          setIsAdded={setIsNewTaskAdded}
+          onSave={handleAddTask}
+          mode="create"
+        />
       )}
       {mode === "new" || (
         <button
