@@ -34,6 +34,7 @@ const MainBigCalendar = () => {
                 mutation.mutateAsync(); // 자동으로 수정 요청 보내기
             }
         }, 30 * 1000);
+
     
         return () => clearTimeout(timeout);
     }, [lastModified]);

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import '@/pages/home/Home.scss'
 import adminProfile from '@/assets/admin-profile.png'
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../../store/useAuthStore';
 
 export default function Home() {
 
@@ -21,7 +22,20 @@ export default function Home() {
   const [work,setWork] = useState(22)
   const [vacation,setVacation] = useState(3)
   const [outside,setOutside] = useState(5)
+  const getAccessToken = useAuthStore((state) => state.getAccessToken);
+  const decodeAccessToken = useAuthStore((state) => state.decodeAccessToken);
+
+  
   useEffect(() => {
+
+    const token = getAccessToken();
+    console.log(token);
+
+    const decodeToken = decodeAccessToken();
+    console.log(decodeToken);
+
+
+
     const updateTime = () => {
       const currentDate = new Date();
       const currentTimeString = currentDate.getHours().toString().padStart(2, '0') + ':' +
@@ -35,6 +49,9 @@ export default function Home() {
 
     updateTime(); // 컴포넌트 마운트 시 최초 시간 설정
 
+
+
+    
     // 클린업 (컴포넌트 언마운트 시 setTimeout을 정리)
     return () => clearTimeout(updateTime);
   }, []);

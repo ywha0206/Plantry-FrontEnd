@@ -19,7 +19,7 @@ const initState = {
   parentId:"",
 };
 
-export default function NewFolder({ isOpen, onClose ,parentId }) {
+export default function NewFolder({ isOpen, onClose ,parentId,maxOrder }) {
   const [authType, setAuthType] = useState("0"); // 기본값: '나만 사용'
   const [formData, setFormData] = useState(initState);
 
@@ -39,19 +39,13 @@ export default function NewFolder({ isOpen, onClose ,parentId }) {
 
   // 컴포넌트가 로드될 때 owner에 currentUser 값을 설정
   useEffect(() => {
-    console.log("user ,,, ",user);
-    setFormData((prev) => ({
-      ...prev,
-      owner: user.uid,
-    }));
-  }, []);
-  useEffect(() => {
-    console.log("user ,,, ",user);
     setFormData((prev) => ({
       ...prev,
       parentId: parentId,
+      order: maxOrder + 100, // maxOrder + 100으로 새로운 순서값 설정
+      owner: user.uid, // 현재 사용자 ID 설정
     }));
-  }, [parentId]);
+  }, [parentId, maxOrder, user.uid]);
 
    // 드라이브 마스터 설정 또는 업데이트
    const handleSelectMaster = () => {
