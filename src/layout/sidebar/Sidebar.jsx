@@ -10,7 +10,7 @@ import communityMenu from '@/assets/sidebar-task.png';
 import scheduleMenu from '@/assets/sidebar-schedule.png';
 import vacationMenu from '@/assets/sidebar-vacation.png';
 import { useAuthStore } from "../../store/useAuthStore";
-import axiosInstance from '@/services/axios.jsx'
+
 
 
 export default function Sidebar({ isCollapsed, toggleSidebar }) {
@@ -96,20 +96,6 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
   }
 
   const logoutHandler = async () =>{
-    axiosInstance
-        .post("/api/auth/logout",null)
-        .then((resp)=>{
-          console.log("로그인 정보",resp);
-        })
-        .catch((err)=>{
-          console.error("Logout failed", error);
-        })
-    // try{
-    //   const resp = await axios.post("/api/auth/logout", null);
-    //   console.log(resp.data);
-    // } catch (error) { // error 변수를 선언
-    //   console.error("Logout failed", error); // 오류 로그 출력
-    // }
     logout();
     navigate("/user/login");
   }

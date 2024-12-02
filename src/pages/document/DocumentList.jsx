@@ -11,6 +11,7 @@ import NewFolder from '../../components/document/NewFolder';
 import useUserStore from '../../store/useUserStore';
 import { Modal } from '../../components/Modal';
 import FileUploads from '../../components/document/FileUploads';
+import { useAuthStore } from '../../store/useAuthStore';
 
 export default function DocumentList() {
     const [viewType, setViewType] = useState('box'); // Default to 'box'
@@ -25,15 +26,19 @@ export default function DocumentList() {
     const queryClient = useQueryClient();
     const [draggedFolder, setDraggedFolder] = useState(null); // 드래그된 폴더
 
-    
+    const getAccessToken = useAuthStore((state) => state.getAccessToken)
+    const token = getAccessToken();
 
+    console.log(token);
 
     // 폴더 및 파일 데이터 가져오기
     const { data, isLoading, isError } = useQuery({
         queryKey: ['folderContents', folderId, user.uid],
         queryFn: async () => {
             const response = await axiosInstance.get(
-                `/api/drive/folder-contents?folderId=${folderId}&ownerId=${user.uid}`
+                `/api/drive/folder-contents?folderId=${folderId}&ownerId=${user.uid}`, null, {
+                    headers: {'Authorization': `Bearer ${token}`}
+                }
             );
             return response.data;
         },

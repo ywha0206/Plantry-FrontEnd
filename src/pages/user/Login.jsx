@@ -61,10 +61,9 @@ export default function Login() {
             
             setToken(token);
             setRole(role);
-            
-            console.log('로그인 성공, 토큰:', token);            
+                   
             setAccessToken(token); //zustand 상태 업데이트
-            console.log(token)
+            console.log("로그인 성공, 토큰 : "+token)
            
 
             setAlert(true)
