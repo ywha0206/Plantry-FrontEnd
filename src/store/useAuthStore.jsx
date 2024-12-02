@@ -64,9 +64,7 @@ export const useAuthStore = create((set) => ({
   // 리프레시 토큰으로 새 액세스 토큰 요청
   refreshAccessToken: async () => {
     try {
-      const response = await axios.post(`http://localhost:8080/api/auth/refresh`, {
-        withCredentials: true, // 쿠키 포함
-      });
+      const response = await axios.post(`http://localhost:8080/api/auth/refresh`,{},{withCredentials: true});
   
       console.log("Response status:", response.status); // 상태 코드 출력
       console.log("Response data:", response.data); // 데이터 출력
