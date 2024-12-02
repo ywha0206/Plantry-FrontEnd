@@ -6,7 +6,7 @@ export default function DocumentLayout({children}){
         <div id='document-container1'>
             <DocumentAside />
             <section className='document-main1'>
-             {children}
+                {children}
             </section>
         </div>
     </>);

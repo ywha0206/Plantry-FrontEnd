@@ -3,12 +3,15 @@
     display: flex;
     gap: 12px;
     width: 100%;
+    overflow: visible !important;
+
 
     .document-aside1 {
         width: 300px;
         background-color: white;
         border-radius: 20px;
         padding: 20px;
+
     }
     .document-main1 {
         width: calc(100% - 312px);
@@ -16,6 +19,17 @@
         background-color: white;
         border-radius: 20px;
         padding: 20px;
+
+        .menu {
+            position: absolute;
+            z-index: 9999; /* 매우 높은 값 설정 */
+            top: 40px;
+            right: 10px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            overflow: visible; /* 잘림 방지 */
+        }
     }
 
     .file-modal {
