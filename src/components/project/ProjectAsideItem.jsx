@@ -1,6 +1,5 @@
 /* eslint-disable react/prop-types */
-import * as React from "react";
-import { CustomSVG } from "./CustomSVG";
+import { CustomSVG } from "./_CustomSVG";
 
 function ProjectAsideItem({ title, isActive, onClick }) {
   return (

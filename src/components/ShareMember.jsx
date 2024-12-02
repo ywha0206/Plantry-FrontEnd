@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
-import { CustomSVG } from "./project/CustomSVG";
+import { CustomSVG } from "./project/_CustomSVG";
 
 const ShareMember = ({ members = [], maxNum="3", listName="참여자", children , isShareOpen, setIsShareOpen}) => {
   
