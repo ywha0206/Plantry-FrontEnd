@@ -11,6 +11,8 @@ import MainBigCalendar from '../../components/calendar/MainBigCalendar'
 import CalendarContentNameResponse from '../../components/calendar/loading/CalendarContentNameResponse'
 import PostCalendarModal from '../../components/calendar/PostCalendarModal'
 import DeleteAndModifyCalendarModal from '../../components/calendar/DeleteAndModifyCalendarModal'
+import { Client } from '@stomp/stompjs'
+import useWebSocket from '../../util/useWebSocket'
 
 export default function Calendar() {
 
@@ -25,11 +27,19 @@ export default function Calendar() {
     const [selectedCalendarName, setSelectedCalendarName] = useState("");
     const [selectedCalendar, setSelectedCalendar] = useState({});
 
+    const { stompClient, isConnected } = useWebSocket({
+        initialDestination: '/app/subscribe',
+        initialMessage: '9',
+        initialCalendarId: ['2,3,19']
+    });
+
+
     const queryClient = useQueryClient();
 
     const openModal = () => {
         setOpenPostCalendar(true)
     }
+
     const calendarNames = useCalenderNameStore((state) => state.setCalendarNames);
 
     const {data : calendarContentName , isLoading : isLoadingCalendarContentName, isError : isErrorCalendarContentName} = useQuery({
@@ -100,7 +110,7 @@ export default function Calendar() {
     }, [changeCalendarAdd, calendar]);
 
     useEffect(() => {
-        if (changeCalendarRemove) {
+        if (changeCalendarRemove) {0
             queryClient.setQueryData(['calendar-date'], (prevData) => {
                 // calendar2가 배열이 아니라면 빈 배열로 처리
                 const calendarData = Array.isArray(calendar2) ? calendar2 : [];
@@ -151,6 +161,7 @@ export default function Calendar() {
         if(e.target.classList.contains(`bg-${color}-200`)){
             setCalendarId(id);
             setCalendarAdded(true);
+            
         } else {
             setCalendarId(id);
             setCalendarDeleted(true)
