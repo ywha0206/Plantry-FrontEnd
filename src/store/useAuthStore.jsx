@@ -89,7 +89,7 @@ export const useAuthStore = create((set) => ({
     axiosInstance
         .post("/api/auth/logout",null)
         .then((resp)=>{
-          console.log("로그인 정보",resp);
+          console.log("로그아웃! 잘 가세요!");
         })
         .catch((err)=>{
           console.error("Logout failed", error);
