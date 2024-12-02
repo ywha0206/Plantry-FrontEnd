@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import "@/App.scss";
 import Index from "@/pages";
 import Main from "@/layout/layout/Main.jsx";
@@ -16,7 +16,7 @@ import AdminAttendance from "./pages/admin/Attendance";
 import AdminOutSide from "./pages/admin/OutSide";
 import ServicePage from "./pages/rending/ServicePage";
 import RenderDefaultLayout from "./layout/rending/RenderDefaultLayout";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import PricePage from "./pages/rending/PricePage";
 import CommunityIndex from "./pages/community/Index";
 import CommunityWrite from "./pages/community/Write";
@@ -47,10 +47,61 @@ import MyPayment from "./pages/my/Payment";
 import DocumentList from "./pages/document/DocumentList";
 import PageListPage from "./pages/page/PageList";
 import PageViewPages from "./pages/page/PageView";
+import { useAuthStore } from "./store/useAuthStore";
+import FAQWrite from "./pages/rending/WritePage";
+import FAQLayout from "./layout/rending/faqLayout";
 const MainIndexComponent = lazy(() => import("./components/render/main"));
 
 function App() {
-  const pathName = useLocation("");
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const getAccessToken = useAuthStore((state) => state.getAccessToken);
+  const isTokenExpired = useAuthStore((state) => state.isTokenExpired);
+  const refreshAccessToken = useAuthStore((state) => state.refreshAccessToken);
+  const logout = useAuthStore((state) => state.logout);
+
+  // 검증 제외 경로
+  const excludedRoutesSet = new Set([
+    "/",
+    "/service",
+    "/price",
+    "/faq",
+    "/user/login",
+    "/user/register",
+    "/user/find",
+    "/user/terms"
+  ]);
+
+  useEffect(() => {
+    const checkToken = async () => {
+      console.log(`현재 경로 : ${location.pathname}`);
+      if (excludedRoutesSet.has(location.pathname)) {
+        console.log("Excluded route, skipping token check.");
+        return;
+      } // 제외 경로는 검증하지 않음
+
+      const tokenExpired = isTokenExpired();
+      if (tokenExpired) {
+        console.log("액세스 토큰 만료됨. 재발급 받을 거임...");
+        const newToken = await refreshAccessToken();
+        console.log(
+          "리프래시액새스토큰 쭈스탠드에서 꺼내 쓴 거 결과임 " + newToken
+        );
+        if (!newToken) {
+          console.error("액세스 토큰 재발급 실패함. Redirecting to login...");
+          alert("로그인 세션이 만료되었습니다. 다시 로그인해주세요."); // 사용자 알림 추가
+          logout();
+          navigate("/user/login"); // 토큰 갱신 실패 시 로그인 페이지로 이동
+        } else {
+          console.log("액세스 토큰 재발급 갓료.");
+        }
+      }
+    };
+
+    checkToken();
+  }, [location, isTokenExpired, refreshAccessToken, navigate]);
+
   return (
     <div id="app-container m-0 xl2:mx-auto">
       <Routes>
@@ -67,6 +118,10 @@ function App() {
           <Route path="service" element={<ServicePage />} />
           <Route path="price" element={<PricePage />} />
           <Route path="faq" element={<FAQPage />} />
+          <Route path="faq" element={<FAQLayout />}>
+            <Route index element={<FAQPage />} />
+            <Route path="write" element={<FAQWrite />} />
+          </Route>
         </Route>
 
         {/* 홈 */}
@@ -91,7 +146,7 @@ function App() {
           <Route path="modify" element={<MyModify />} />
           <Route path="approval" element={<MyApproval />} />
           <Route path="attendance" element={<MyAttendance />} />
-          <Route path='payment' element={<MyPayment />}/>
+          <Route path="payment" element={<MyPayment />} />
         </Route>
 
         {/* <Route path='/home' element */}
