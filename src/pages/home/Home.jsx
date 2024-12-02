@@ -3,6 +3,7 @@ import '@/pages/home/Home.scss'
 import adminProfile from '@/assets/admin-profile.png'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore';
+import axiosInstance from '@/services/axios.jsx'
 
 export default function Home() {
   const navigate = useNavigate();
@@ -23,7 +24,6 @@ export default function Home() {
 
   useEffect(() => {
     let timeoutId;
-
     const updateTime = () => {
       if (!isActive || !timeRef.current) return; // 활성 상태가 아니거나 DOM이 없으면 중단
 
@@ -49,6 +49,7 @@ export default function Home() {
       setIsActive(false); // 비활성화 상태로 변경
     };
   }, [isActive]);
+
 
     return (
       <div id='home-container'>

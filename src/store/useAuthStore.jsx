@@ -68,7 +68,6 @@ export const useAuthStore = create((set) => ({
       const response = await axios.post(`${baseURL}/api/auth/refresh`,{},{withCredentials: true});
   
       console.log("Response status:", response.status); // 상태 코드 출력
-      console.log("Response data:", response.data); // 데이터 출력
   
       if (response.status === 200 && response.data.accessToken) {
         useAuthStore.getState().setAccessToken(response.data.accessToken); // 새 액세스 토큰 상태 갱신

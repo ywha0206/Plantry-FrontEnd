@@ -2,10 +2,7 @@ import React, { useEffect, useState } from 'react'
 import '@/pages/user/Login.scss'
 import axiosInstance from '@/services/axios.jsx'
 import { Link, useNavigate } from 'react-router-dom'
-import CustomInput from '@/components/Input';
-import { CustomButton } from '@/components/Button';
 import { CustomGubun } from '@/components/Gubun';
-import { Modal } from '@/components/Modal';
 import CustomAlert from '@/components/Alert';
 import { CustomMessage } from '@/components/Message';
 import decodeToken from '../../util/decodeToken';
@@ -30,11 +27,8 @@ export default function Login() {
 
 
     const setUser = useUserStore((state) => state.setUser); // Zustand의 setUser 가져오기
-
-
     const setAccessToken = useAuthStore((state) => state.setAccessToken);
 
-  
     const changeHandler = (e)=>{
       if(e.target.name === 'uid'){
         setUid(e.target.value)
