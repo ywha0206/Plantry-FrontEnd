@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useState } from "react";
-import { CustomSVG } from "./CustomSVG";
+import { CustomSVG } from "./_CustomSVG";
 
 
 export const AddProjectModal = ({ coworker=[], isOpen, onClose , text }) => {
@@ -69,14 +69,14 @@ export const AddProjectModal = ({ coworker=[], isOpen, onClose , text }) => {
     };
 
 return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 modal-custom-fixed">
-      <div className="relative bg-white rounded-lg shadow-lg max-w-3xl w-full modal-custom-width">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div className="relative bg-white rounded-lg shadow-lg max-w-3xl modal-custom-width">
         <div className="absolute top-5 right-5 rounded-t-xl">
             <button onClick={() => onClose(false)} className="text-md float-right display-block font-bold text-gray-600 hover:text-gray-900" >
             <CustomSVG id="close" />
             </button>
         </div>
-        <div className="modal-content mx-12 flex flex-col items-center">
+        <div className="modal-content flex flex-col items-center">
             <div className="text-xl pt-7 px-12">{text}</div>
           {text === '새 프로젝트' &&
             <>
@@ -168,7 +168,7 @@ return (
                         > 
                             <img src={m.img} alt="user-img" className="w-[45px] h-[45px]" /> 
                             <div className="ml-10 flex flex-col">
-                            <p className="font-light">{m.name}</p>
+                            <p className="font-light text-left">{m.name}</p>
                             <span className="font-light text-gray-500 text-sm">
                                 {m.email}
                             </span>
@@ -184,7 +184,7 @@ return (
                         <span className="flex items-center gap-1 text-xs text-[#7E7EDF]"><CustomSVG id="link" color="currentColor"/>공유 링크 복사</span>
                 </div>
                 <button className="h-[40px] bg-[#7E7EDF] px-8 text-white rounded-[8px] mt-10 mb-[30px]" onClick={() => onClose(false)}>
-                {text === '작업자 추가'&&'초대하기'||text === '새 프로젝트'&&'생성하기'}
+                {text === '작업자 추가'&&'초대하기'||'생성하기'}
                 </button>
         </div>
         

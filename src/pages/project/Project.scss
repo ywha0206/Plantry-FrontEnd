@@ -1,10 +1,13 @@
 
-#project-container *{
+#project-container{
 
-  p{font-size: 14px;}
+  p{font-size: 14px; margin-bottom: 0 !important;}
   svg.ico{border: none;outline: none;}
 
-
+  .modal-custom-width{
+    width: 48rem;
+  }
+  
   .project-card {
       transition: all 0.3s ease;
       overflow: hidden;
@@ -32,14 +35,14 @@
     font-size: 14px;
     color: #333; /* 값이 입력된 경우 텍스트 색상 */
     background-color: #fff;
-
     &::-webkit-datetime-edit-text,
     &::-webkit-datetime-edit-month-field,
     &::-webkit-datetime-edit-day-field,
     &::-webkit-datetime-edit-year-field{
-      -webkit-appearance: none;
-      display: none;
+      -webkit-appearance: auto;
+      display: inline;
     }
+   
   }
   
   
@@ -52,6 +55,7 @@
     background-color: #fff;
   }
   
+  
   input[type=date]:focus,
   input[type=date]:in-range{
     &::-webkit-datetime-edit-text,
@@ -63,7 +67,6 @@
     }
     &::before{display: none;}
   }
-  
   input[type=date]::-webkit-calendar-picker-indicator {
     position: absolute;
     left: 0;
@@ -74,27 +77,21 @@
     opacity: 0;
     color: transparent; /* 기존 아이콘 숨기기 */
   }
-  /* 겉부분의 디자인 변경 */
-  input[type=color] {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-color: transparent;
-  border: none;
-}
-/* 안쪽부분의 디자인 변경 */
-input[type=color]::-webkit-color-swatch {
-  border-radius: 6px;
-  border: none;
-}
-.screen-reader { /* 스크린 리더를 고려해서 체크박스를 화면에서 숨김 */
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  border: 0;
-  overflow: hidden;
-  margin: -1px;
-  clip-path: inset(50%);
-}
+
+  input[type=color] { -webkit-appearance: none;-moz-appearance: none; appearance: none; background-color: transparent; border: none;}
+  input[type=color]::-webkit-color-swatch { border-radius: 6px; border: none; }
+
+  .screen-reader { /* 스크린 리더를 고려해서 체크박스를 화면에서 숨김 */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    margin: -1px;
+    clip-path: inset(50%);
+  }
+  .modal-content{
+    width: 100% !important;
+  }
 }

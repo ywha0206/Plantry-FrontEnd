@@ -1,279 +1,388 @@
-import React, { useEffect, useState } from 'react'
-import '@/pages/document/Document.scss'
-import {CustomSearch} from '@/components/Search'
-import {DocumentCard1} from '../../components/document/DocumentCard1';
-import { DocumentCard2 } from '../../components/document/DocumentCard2';
-import { Modal } from '../../components/Modal';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useLocation } from 'react-router-dom';
-import DocumentAside from '../../components/document/DocumentAside';
+import '@/pages/document/Document.scss';
+import { CustomSearch } from '@/components/Search';
+import { DocumentCard1 } from '../../components/document/DocumentCard1';
+import { DocumentCard2 } from '../../components/document/DocumentCard2';
 import DocumentLayout from '../../layout/document/DocumentLayout';
-import axiosInstance from '@/services/axios.jsx'
+import axiosInstance from '@/services/axios.jsx';
 import NewFolder from '../../components/document/NewFolder';
 import useUserStore from '../../store/useUserStore';
+import { Modal } from '../../components/Modal';
+import FileUploads from '../../components/document/FileUploads';
+import RenameModal from '../../components/document/ChangeName';
 
 export default function DocumentList() {
-    const [subFolders, setSubFolders] = useState([]); // 하위 폴더
-    const [files, setFiles] = useState([]); // 파일
-    const [selectOption, setSelectOption] = useState(0);
+    const [viewType, setViewType] = useState('box'); // Default to 'box'
     const [isOpen, setIsOpen] = useState(false);
     const [folder, setFolder] = useState(false);
-    const [drive, setDrive] = useState(false);
-    const [viewType, setViewType] = useState('box'); // Default to 'box'
-    const user = useUserStore((state) => state.user);
-    const [full,setFull] = useState([]);
     const [editing, setEditing] = useState(false); // 이름 변경 모드
     const [newFolderName, setNewFolderName] = useState(''); // 새로운 폴더 이름
+    const [isRenameModalOpen, setIsRenameModalOpen] = useState(false); // 모달 열림 상태
 
 
-
-    const location = useLocation(); // 현재 경로 가져오기
-    const { folderName } = location.state || {}; // 전달된 state 받기
-
-    const pathParts = location.pathname.split('/'); // '/' 기준으로 경로 분리
-    let text = pathParts[pathParts.length - 1]; // 마지막 부분 추출
-
-    text = decodeURIComponent(text);
+    const location = useLocation();
+    const user = useUserStore((state) => state.user);
+    const folderId = decodeURIComponent(location.pathname.split('/').pop());
+    const queryClient = useQueryClient();
+    const [draggedFolder, setDraggedFolder] = useState(null); // 드래그된 폴더
 
 
-   
-    
+    const [menuState, setMenuState] = useState({
+        isMenuOpen: false,
+        position: { top: 0, left: 0 },
+        activeFolder: null, // 현재 활성화된 폴더
+    });
 
-    useEffect(() => {
-        const fetchFolderContents = async () => {
-            try {
-                const response = await axiosInstance.get(`/api/drive/folder-contents?folderId=${text}&ownerId=${user.uid}`);
-                const allFolders = Array.isArray(response.data) ? response.data : response.data.data;
-                console.log("Fetched subFolders Raw Response: ", response);
-                console.log("Fetched subFolders Data: ", response.data);
-
-                const subFolders = response.data.subFolders?.map((folder) => ({
-                    ...folder,
-                    type: 'folder', // 폴더 타입 추가
-                })) || [];
-                const files = response.data.files?.map((file) => ({
-                    ...file,
-                    type: 'file', // 파일 타입 추가
-                })) || [];
-    
-                setSubFolders(subFolders || []);
-                setFiles(files || []);
-                setFull([...subFolders, ...files]);
-
-            } catch (error) {
-                console.error("Failed to fetch folder contents:", error);
-                return null;
-            }
-        };
-        fetchFolderContents();
-    }, [text]); // 폴더 ID가 변경될 때마다 실행
-
-
-    const handleEditClick = () => {
-        setEditing(true);
-        setNewFolderName(folderName); // 기존 폴더 이름을 입력란에 미리 표시
+    const closeMenu = () => {
+        setMenuState((prev) => ({ ...prev, isMenuOpen: false, activeFolder: null }));
     };
 
-    const handleRename = async () => {
-        try {
-            // API 호출로 폴더 이름 변경
-            await axiosInstance.put(`/api/drive/folder/${text}/rename`, {
-                newName: newFolderName,
+    const toggleMenu = (e, folder) => {
+        e.preventDefault(); // 기본 컨텍스트 메뉴 방지
+        setMenuState({
+            isMenuOpen: true,
+            position: { top: e.clientY, left: e.clientX },
+            activeFolder: folder,
+        });
+    };
+
+    console.log(location);
+
+    // 폴더 및 파일 데이터 가져오기
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['folderContents', folderId, user.uid],
+        queryFn: async () => {
+            const response = await axiosInstance.get(
+                `/api/drive/folder-contents?folderId=${folderId}&ownerId=${user.uid}`
+            );
+            return response.data;
+        },
+        staleTime: 300000, // 데이터가 5분 동안 신선하다고 간주
+    });
+
+    // 폴더 이름 변경 Mutation
+    const renameFolderMutation = useMutation({
+        mutationFn: async (newName) => {
+            if (!newName) throw new Error('Folder name cannot be empty');
+            await axiosInstance.put(`/api/drive/folder/${folderId}/rename`, { newName });
+        },
+        onError: (error) => {
+            console.error('Failed to rename folder:', error.message);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['folderContents', folderId, user.uid]);
+            setEditing(false);
+        },
+    });
+    // 파일 업로드 Mutation
+    const uploadFileMutation = useMutation({
+        mutationFn: async (files) => {
+            const formData = new FormData();
+            files.forEach((file) => formData.append('files', file));
+            await axiosInstance.post(`/api/drive/upload?folderId=${folderId}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
             });
-            setEditing(false); // 이름 변경 완료 후 수정 모드 종료
-            location.state.folderName = newFolderName; // 상태 업데이트
-        } catch (error) {
-            console.error("Failed to rename folder:", error);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['folderContents', folderId, user.uid] });
+        },
+    });
+
+    // 이름 변경 핸들러
+    const handleRename = () => {
+        if (newFolderName.trim() && newFolderName !== location.state?.folderName) {
+            renameFolderMutation.mutate(newFolderName);
         }
     };
+    // 드래그 시작 핸들러
+    const handleDragStart = (folder) => {
+        console.log("handelDragStart ",folder)
+        setDraggedFolder(folder); // 드래그된 폴더 저장
+    }
+     
+     // 드래그 오버 핸들러 (드롭 가능 영역 활성화)
+     const handleDragOver = (e) => {
+        e.preventDefault(); // 기본 동작 방지
+    };
+
+    // 폴더 이동 Mutation
+    const moveFolderMutation = useMutation({
+        mutationFn: async ({ folderId, targetFolderId, newOrder }) => {
+            const response = await axiosInstance.put(`/api/drive/folder/${folderId}/move`, {
+                folderId,
+                targetFolderId,
+                order: newOrder,
+            });
+            return response; // Axios response 반환
+        },
+        onSuccess: (response) => {
+             // 서버의 응답 메시지를 확인
+        if (response.status === 200) {
+            console.log(response.data); // "Folder updated successfully"
+            alert("폴더 이동 성공!");
+            queryClient.invalidateQueries(['folderContents']);
+        } else {
+            alert("폴더 이동 실패: " + response.data);
+        }
+        },
+        onError: (error) => {
+            console.error('Failed to move folder:', error.message);
+            alert('폴더 이동 실패!');
+        },
+        isLoading: (loading) => {
+            // Show loading spinner
+        },
+    });
+    const handleDrop = (targetFolder, position) => {
+        console.log("handleDrop called with:", { targetFolder, position });
+    
+        // 유효성 검사
+        if (!targetFolder || !draggedFolder) {
+            console.error("Invalid target or dragged folder:", targetFolder, draggedFolder);
+            return;
+        }
+    
+        // 자기 자신 위로 드롭하는 경우 무시
+        if (draggedFolder.id === targetFolder.id) {
+            console.warn("Cannot drop folder onto itself");
+            return;
+        }
+    
+        // 타겟 폴더의 인덱스 찾기
+        const targetIndex = subFolders.findIndex((folder) => folder.id === targetFolder.id);
+        if (targetIndex === -1) {
+            console.error("Target folder not found in subFolders:", targetFolder);
+            return;
+        }
+    
+        // 정렬 계산
+        let orderBefore = 0;
+        let orderAfter = 0;
+    
+        if (position === "before") {
+            // 타겟 폴더 이전의 폴더와 타겟 폴더 사이의 값 계산
+            if (targetIndex > 0) {
+                orderBefore = subFolders[targetIndex - 1]?.order || 0;
+            }
+            orderAfter = subFolders[targetIndex]?.order || (orderBefore + 1);
+        } else if (position === "after") {
+            // 타겟 폴더와 타겟 폴더 이후의 폴더 사이의 값 계산
+            orderBefore = subFolders[targetIndex]?.order || 0;
+            if (targetIndex < subFolders.length - 1) {
+                orderAfter = subFolders[targetIndex + 1]?.order || (orderBefore + 1);
+            } else {
+                orderAfter = orderBefore + 1; // 마지막 위치로 추가
+            }
+        }
+    
+        // 새로운 order 값 계산
+        const newOrder = (orderBefore + orderAfter) / 2.0;
+    
+        console.log("Calculated order values:", { orderBefore, orderAfter, newOrder });
+    
+        // 폴더 이동 Mutation 호출
+        moveFolderMutation.mutate({
+            folderId: draggedFolder.id,
+            targetFolderId: targetFolder.id,
+            newOrder,
+        });
+    
+        // 드래그 상태 초기화
+        setDraggedFolder(null);
+    };
+    
+    
+    
+    
+    
+    
+    
+
+    // 드래그 앤 드롭 업로드 핸들러
+    const handleFileDrop = useCallback(
+        (event) => {
+            event.preventDefault();
+            const files = Array.from(event.dataTransfer.files);
+            if (files.length === 0) {
+                console.error('No files dropped');
+                return;
+            }
+            uploadFileMutation.mutate(files);
+        },
+        [uploadFileMutation]
+    );
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
-            e.preventDefault(); // 기본 동작 방지
-            handleRename(); // Enter 키로 이름 변경 확정
+            e.preventDefault();
+            handleRename();
         }
     };
 
-    const optionChanger = (e)=>{
-        setSelectOption(Number(e.target.value))
-        console.log(selectOption)
-    }
+  
 
-    const viewHandler = (view) => {
-        setViewType(view); // Correctly set the view type
-    };
 
-    const userHandler = (e) => {
+    if (isLoading) return <div>Loading...</div>;
+    if (isError) return <div>Error loading folder contents.</div>;
 
-    }
+    const subFolders = (data?.subFolders || [])
+    .filter((folder) => folder.status === 0) // status가 0인 것만 필터링
+    .map((folder) => ({
+        ...folder,
+        type: 'folder',
+        order: folder.order || 0, // 기본값 설정
+    }))
+    .sort((a, b) => (a.order || 0) - (b.order || 0)); // order 기준 정렬
 
-    const uploadFile = () => {
-        setIsOpen(true)
-    }
+    
+    const files = (data?.files || [])
+    .filter((file) => file.status === 0) // status가 0인 것만 필터링
+    .map((file) => ({
+        ...file,
+        type: 'file', // 파일 타입 추가
+    }));
 
-    const onClose = () => {
-        setIsOpen(false)
-    }
+    const maxOrder = Math.max(...subFolders.map(folder => folder.order || 0));
+    const fileMaxOrder =
+        files.length > 0
+            ? Math.max(...files.map(file => file.order || 0))
+            : 0; // 기본값을 0으로 설정
 
-    const folderClose = () => {
-        setFolder(false)
-    }
-
-    const driveClose = () => {
-        setDrive(false)
-    }
-
-    const makeFolder = () => {
-        setFolder(true)
-    }
-
-    const makeDrive = () => {
-        setDrive(true)
-    }
-
-    const wheelHandler = (e) =>{
-        const container = e.currentTarget;
-        container.scrollLeft += e.deltaY; // 세로 스크롤 값을 가로로 적용
-        e.preventDefault(); // 기본 휠 동작 방지
-    }
+    console.log("fileMaxorder",fileMaxOrder);
 
     return (
-       <DocumentLayout>
-                <section className='flex gap-4 items-center'>
+        <DocumentLayout>
+            <section className="flex gap-4 items-center">
                 {editing ? (
                     <input
                         className="text-2xl ml-4 mt-4 border-b-2 border-gray-400 outline-none"
                         value={newFolderName}
                         onChange={(e) => setNewFolderName(e.target.value)}
-                        onBlur={handleRename} // 입력란에서 포커스가 벗어나면 변경 확정
+                        onBlur={handleRename}
                         onKeyDown={handleKeyDown}
                         autoFocus
                     />
                 ) : (
                     <>
-                        <p className="text-2xl ml-4 mt-4">{folderName}</p>
+                        <span className="text-[25px] ml-[25px]">{location.state?.folderName}</span>
                         <img
-                            className="w-6 h-6 mt-3 cursor-pointer"
+                            className="w-6  h-6 cursor-pointer"
                             src="/images/document-pen.png"
                             alt="Rename"
-                            onClick={handleEditClick} // 이름 변경 모드 활성화
+                            onClick={() => setEditing(true)}
                         />
                     </>
                 )}
-                </section>
-                <section className='mt-3 text-xs opacity-40 w-full flex justify-end'>
-                    <p className='mr-4'>last edited : 1 hour ago</p>
-                </section>
-                <img className='w-full h-1 mt-1' src='/images/document-line.png'></img>
-                <section className='flex  justify-between mt-8 mb-6'>
-                    <div className='flex gap-4 mx-[20px] w-[98%] items-center'>
-                        <CustomSearch
-                            width1="20"
-                            width2="60"
-                        />
-                        <p className='ml-4'>View :</p>
-                        <button
-                            className={`list ${viewType === 'list' ? 'active' : ''}`} // Add active class for styling
-                            onClick={() => viewHandler('list')}> 
-                            <img src='/images/document-note.png'></img>
+            </section>
+            <section className="flex justify-between mt-[22px] mb-6">
+                <div className="flex gap-4 mx-[15px] w-[98%] items-center">
+                    <CustomSearch width1="20" width2="80" />
+                    <p className="ml-4">View :</p>
+                    <button
+                        className={`list ${viewType === 'list' ? 'active' : ''}`}
+                        onClick={() => setViewType('list')}
+                    >
+                        <img src="/images/document-note.png" alt="List View" />
+                    </button>
+                    <button
+                        className={`box ${viewType === 'box' ? 'active' : ''}`}
+                        onClick={() => setViewType('box')}
+                    >
+                        <img src="/images/document-menu.png" alt="Box View" />
+                    </button>
+                </div>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setFolder(true)}
+                        className="bg-purple white w-20 h-8 rounded-md text-xs"
+                    >
+                        폴더생성
+                    </button>
+                    <button
+                        onClick={() => setIsOpen(true)}
+                        className="bg-purple white w-20 h-8 rounded-md text-xs"
+                    >
+                        파일업로드
+                    </button>
+                </div>
+            </section>
 
-                            </button>
-                        <button
-                            className={`box ${viewType === 'box' ? 'active' : ''}`} // Add active class for styling
-                            onClick={() => viewHandler('box')}>                       
-                            <img src='/images/document-menu.png'></img>
-                            </button>
-                    </div>
-                    <div className='flex gap-2'>
-                        <button onClick={makeFolder} className='bg-purple white w-20 h-8 rounded-md text-xs'>폴더생성</button>
-                        <button onClick={uploadFile} className='bg-purple white w-20 h-8 rounded-md text-xs'>파일업로드</button>
-                    </div>
-                </section>
-                
-                {viewType === 'box' ? ( <>
-                 <section className='flex gap-6 ml-16 mt-12 h-[200px] overflow-scroll scrollbar-none overflow-x-auto ' 
-                    onWheel={wheelHandler}
-                 >
-                 {subFolders?.length > 0 ? (
-                    subFolders.map((folder) => (
-                        <DocumentCard1
-                            key={folder.id}
-                            cnt={folder.order || 0} // 폴더 순서가 null일 경우 0으로 대체
-                            folderId={folder.id}
-                            fileName={folder.name || "Unnamed Folder"} // 이름이 없으면 기본 텍스트로 표시
-                        />
-                    ))
-                ) : (
-                    <p className="opacity-60">No folders available.</p> // 폴더가 없을 때 메시지
-                )}
-                </section>
-                    <section className='ml-16 mt-12 inline-block overflow-scroll scrollbar-none overflow-x-auto ' 
-                    onWheel={wheelHandler}>
-                    {files?.length > 0 ? (
-                            files.map((file) => (
-                                <DocumentCard2
-                                    key={file.id}
-                                    fileName={file.name || "Unnamed File"} // 이름이 없으면 기본 텍스트로 표시
+            {viewType === 'box' ? (
+                <div className='h-[600px] mx-[30px] w-[97%] overflow-scroll scrollbar-none'>
+                    <div className='sticky pb-[5px] h-[26px] my-[10px] text-[15px] top-0 z-10 bg-white'>폴더</div>
+                    <section  className="flex items-center flex-wrap relative"
+                         >
+                        {subFolders.map((folder) => (
+                            <DocumentCard1
+                                key={folder.id}
+                                folderId={folder.id}
+                                folderName={folder.name}
+                                folder={folder}
+                                path = {folder.path}
+                                cnt={folder.cnt}
+                                ToggleMenu={toggleMenu}
+                                updatedAt={folder.updatedAt}
+                                onDragStart={handleDragStart}
+                                onDrop={(e) => handleDrop(folder, "before")} // 여기에 위치 정보를 함께 전달
+                                onDragOver={handleDragOver}
                                 />
-                            ))
-                        ) : (
-                            <p className="opacity-60">No files available.</p> // 파일이 없을 때 메시지
-                        )}
-                    </section> </> ):( 
-                        <section  className="h-[500px] overflow-scroll scrollbar-none">
-                        <table className='docList mx-[20px] w-[98%] '>
-                        <thead className='h-[48px] bg-[#F2F4F8] sticky top-0 z-10'>
-                            <tr>
-                                <th><input type="checkbox" className="checkbox text-center" /></th>
-                                <th>Title</th>
-                                <th>Type</th>
-                                <th>Size</th>
-                                <th>Last Modified</th>
-                                <th>Author</th>
+                        ))}
+                    </section>
+                    <div className='text-[15px] my-[20px]'>file</div>
+                    <section className="inline-block ">
+                        {files.map((file) => (
+                            <DocumentCard2 key={file.id} file={file} fileName={file.originalName} path={file.path} savedName={file.savedName}/>
+                        ))}
+                    </section>
+                </div>
+            ) : (<>
+                <div  className="h-[570px] overflow-scroll scrollbar-none">
+                    <table className="docList mx-[20px] w-[98%]">
+                    <thead className="h-[48px] bg-[#F2F4F8] sticky top-0 z-10">
+                        <tr>
+                            <th><input type="checkbox"  /></th>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Last Modified</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {[...subFolders, ...files].map((item) => (
+                             <tr
+                                key={folder.id}
+                                draggable
+                                onDragStart={() => handleDragStart(folder)} // 드래그 시작 핸들러
+                                onDragOver={(e) => handleDragOver(e)} // 드래그 오버 핸들러
+                                onDrop={(e) => handleDrop(folder, "before")} // 드롭 시 동작 (리스트에서는 기본적으로 "before")
+                                className="draggable-row"
+                            >
+                                <td><input type="checkbox"  /></td>
+                                <td>
+                                    <Link to={`/document/list/${item.id}`} state={{ folderName: item.name }}>
+                                        {item.name}
+                                    </Link>
+                                </td>
+                                <td>{item.type}</td>
+                                <td>{item.size || '-'}</td>
+                                <td>{item.lastModified || 'Unknown'}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                        {full.length > 0 ? (
-                            full.map((item) => (
-                                <tr key={item.id}>
-                                    <td><input type="checkbox" className="checkbox text-center" /></td>
-                                    <td><Link to={`/document/list/${item.id}` } state={{ folderName: item.name }}>
-                                        {item.name || (item.type === 'folder' ? "Unnamed Folder" : "Unnamed File")}
-                                        </Link>
-                                    </td>
-                                    <td>{item.type === 'folder' ? 'Folder' : 'File'}</td>
-                                    <td>{item.size ? `${item.size} MB` : '-'}</td>
-                                    <td>{item.lastModified || "Unknown"}</td>
-                                    <td>{item.ownerId || "Unknown"}</td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="6" className="text-center opacity-60">No folders or files available.</td>
-                            </tr>
-                        )}
+                        ))}
+                    </tbody>
+                </table>
+                
+                </div>
+                <button>선택삭제</button>
+                </>
 
-                        </tbody>
-                        </table>
-                        </section>
-                        )
-        }
-                <div className='file-modal'>
-                    <Modal
-                        isOpen={isOpen}
-                        onClose={onClose}
-                        text="파일 업로드"
-                    />
-                </div>
-                <div className='folder-modal'>
-                    <NewFolder
-                        isOpen={folder}
-                        onClose={folderClose}
-                        parentId={text}
-                        text="폴더 만들기"
-                    />
-                </div>
-               
+            )}
+
+            <FileUploads isOpen={isOpen} onClose={() => setIsOpen(false)} folderId={folderId} maxOrder={fileMaxOrder} uid={user.uid} />
+            <NewFolder isOpen={folder} onClose={() => setFolder(false)} parentId={folderId}     maxOrder={maxOrder} // 최대 order 값을 계산해서 전달
+            />
+            
         </DocumentLayout>
-
-    )
+    );
 }

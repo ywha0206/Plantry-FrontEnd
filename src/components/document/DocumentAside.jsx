@@ -112,7 +112,7 @@ export default function DocumentAside(){
                     }`}>
                     {folders.map((folder) => (
                     <div className="flex gap-4 items-center mb-1" key={folder.id}>
-                        <Link    to={`/document/list/${folder.id}`}
+                        <Link   to={`/document/list/${folder.id}`}
                                 state={{ folderName: folder.name }} // folder.name 전달
                                 className="flex gap-4 items-center mb-1">
                             <img src="/images/document-folder.png" alt="Folder Icon" />
@@ -120,7 +120,7 @@ export default function DocumentAside(){
                         </Link>
                     </div>
                     ))}  
-                    {folders.length === 0 && <p className="opacity-60">Shared 폴더가 없습니다.</p>}
+                    {folders.length === 0 && <p className="opacity-60"> 폴더가 없습니다.</p>}
                 </section>
                 <section className='flex justify-between items-center p-4 mb-2 mt-4'>
                     <div>

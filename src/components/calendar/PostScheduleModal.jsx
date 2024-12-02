@@ -94,7 +94,7 @@ export default function PostScheduleModal({ isOpen, onClose, children , text,old
             X
             </button>
         </div>
-        <div className="modal-content mx-12">
+        <div className="mx-12">
         <div className="flex gap-8 mb-4 justify-start">
               <span className="w-20 h-[40px]">제목</span>
               <div>
