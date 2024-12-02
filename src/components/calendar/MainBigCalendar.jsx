@@ -26,13 +26,15 @@ const MainBigCalendar = () => {
     const [selectedGroupId,setSelectedGroupId] = useState(0)
     const queryClient = useQueryClient();
     const [lastModified , setLastModified] = useState();
+    const [today, setToday] = useState(new Date().toLocaleString('sv-SE'))
 
     useEffect(() => {
         const timeout = setTimeout(() => {
-            if (Date.now() - lastModified >= 60 * 60 * 1000) {
+            if (Date.now() - lastModified >= 30 * 1000) {
                 mutation.mutateAsync(); // 자동으로 수정 요청 보내기
             }
-        }, 60 * 60 * 1000);
+        }, 30 * 1000);
+
     
         return () => clearTimeout(timeout);
     }, [lastModified]);

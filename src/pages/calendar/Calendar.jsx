@@ -123,7 +123,7 @@ export default function Calendar() {
     }, [changeCalendarRemove, calendar2]);
 
 
-    const {data : calendarName, isLoading : isLoadingCalendarName, isError : isErrorCalendarName} = useQuery({
+    const {data : calendarName, isLoading : isLoadingCalendarName, isError : isErrorCalendarName, refetch : refetchCalendarName} = useQuery({
         queryKey : ['calendar-name'],
         queryFn : async () => {
             try {
@@ -134,17 +134,18 @@ export default function Calendar() {
             }
         },
         enabled : true,
-        refetchOnWindowFocus: false,
         staleTime: 300000,
         retry: false,
-        cacheTime : 5 * 60 * 1000
+        refetchOnWindowFocus: false,
+
     })
 
     useEffect(()=>{
         if(calendarName && calendarName.length>0){
             calendarNames(calendarName);
+            refetchCalendarName();
         }
-    },[calendarName])
+    },[calendarName,refetchCalendarName])
 
     const changeCalendar = (e,id,color) =>{
         if(e.target.classList.contains(`bg-${color}-200`)){
