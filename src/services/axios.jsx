@@ -17,7 +17,7 @@ axiosInstance.interceptors.request.use((config) => {
   console.log("엑시오스 인터셉터 엑세스 토큰: ", accessToken);
 
   if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+      config.headers.Authorization = ` Bearer ${accessToken}`;
   }
   return config;
 }, (error) => {
