@@ -1,31 +1,51 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useState } from "react";
-import { CustomSVG } from "./CustomSVG";
+import { useEffect, useRef, useState } from "react";
+import { CustomSVG } from "./_CustomSVG";
 
-function DynamicTaskEditor({ setIsAdded, onSave, taskToEdit, mode }) {
+export function DynamicTaskEditor({
+  mode,
+  taskToEdit,
+  setIsAdded,
+  onSave,
+  onClose,
+}) {
   const [task, setTask] = useState({
     title: "",
     content: "",
-    duedate: "",
-    tags:[],
-    priority: 0
+    duedate: Date.now(),
+    tags: [],
+    subTasks:[],
+    priority: 5,
   });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [newTag, setNewTag] = useState("");
   const [isNewTagAdded, setIsNewTagAdded] = useState(false);
+  const textareaRef = useRef(null); // textarea에 대한 ref
 
   useEffect(() => {
     if (mode === "edit" && taskToEdit) {
       setTask(taskToEdit); // 기존 task로 초기화
     }
   }, [mode, taskToEdit]);
-
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'; // 높이를 초기화
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`; // scrollHeight에 맞춰 조정
+    }
+  }, [task.content]); // content가 변경될 때마다 높이를 조정
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setTask((prevTask) => ({ ...prevTask, [name]: value }));
   };
+  const handleTAChange = (e) => {
+    e.target.style.height = 'auto'; // 초기화
+    e.target.style.height = `${e.target.scrollHeight}px`;
+  };
 
-  const handleClose = () => setIsAdded(false);
+  const handleClose = () => {
+    if (mode === "create") setIsAdded(false);
+    else if (mode === "edit") onClose();
+  };
   const handleSubmit = (e) => {
     e.preventDefault();
     if (task.title.trim() === "") return;
@@ -37,21 +57,31 @@ function DynamicTaskEditor({ setIsAdded, onSave, taskToEdit, mode }) {
     };
 
     onSave(newTask); // 상위 컴포넌트로 태스크 전달
-    setIsAdded(false);  // 태스크 추가 후 창 닫기
+    setIsAdded(false); // 태스크 추가 후 창 닫기
   };
 
   const handleAddTag = () => {
     if (newTag.trim() === "") return;
-    setTask((prevTask) => ({...prevTask, tags: [...prevTask.tags, newTag],}));
+    setTask((prevTask) => ({ ...prevTask, tags: [...prevTask.tags, newTag] }));
     setNewTag("");
     setIsNewTagAdded(false);
   };
   const handleDeleteTag = (index) => {
-    setTask((prevTask) => ({...prevTask,tags: prevTask.tags.filter((_, i) => i !== index),}));
+    setTask((prevTask) => ({
+      ...prevTask,
+      tags: prevTask.tags.filter((_, i) => i !== index),
+    }));
   };
   const handleNewTag = () => {
     if (!isNewTagAdded) setIsNewTagAdded(true);
   };
+  const handleDeleteSubTask = (index) => {
+    setTask((prevTask) => ({
+      ...prevTask,
+      subTasks: prevTask.subTasks.filter((_, i) => i !== index),
+    }));
+  };
+
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
@@ -61,12 +91,12 @@ function DynamicTaskEditor({ setIsAdded, onSave, taskToEdit, mode }) {
   };
 
   const priorities = [
-    { id: "none", label: "None", icon: null },
     { id: "p0", icon: "p0", label: "P0 - 아주 높음" },
     { id: "p1", icon: "p1", label: "P1 - 높음" },
     { id: "p2", icon: "p2", label: "P2 - 보통" },
     { id: "p3", icon: "p3", label: "P3 - 낮음" },
     { id: "p4", icon: "p4", label: "P4 - 아주 낮음" },
+    { id: "none", label: "None", icon: null },
   ];
 
   const colClassName =
@@ -128,7 +158,7 @@ function DynamicTaskEditor({ setIsAdded, onSave, taskToEdit, mode }) {
                 role="listbox"
                 aria-labelledby="priority-dropdown"
               >
-                {priorities.map((priority,index) => (
+                {priorities.map((priority, index) => (
                   <li
                     key={priority.id}
                     className="flex items-center gap-2 px-3 h-6 text-xs hover:bg-gray-100 cursor-pointer"
@@ -151,32 +181,72 @@ function DynamicTaskEditor({ setIsAdded, onSave, taskToEdit, mode }) {
               id="taskDetails"
               name="content"
               value={task.content}
-              onChange={handleInputChange}
+              onChange={(e)=>{handleInputChange(e);handleTAChange(e)}}
               placeholder="세부 내용 입력"
               className="flex flex-col flex-1 shrink basis-0"
+              ref={textareaRef}
               aria-label="Task contents"
             />
           </div>
 
-          {/* Task Date */}
-          <div className={colClassName}>
+          {/* 마감일 */}
+          <div className={colClassName+' relative'}>
             <CustomSVG id="calendar" />
-            <label htmlFor="taskDate" className="sr-only">
-              Task date
-            </label>
+            <h2 id="taskDate" className="sr-only">
+            마감일
+            </h2>
             <input
               id="taskDate"
               type="date"
               name="duedate"
               value={task.duedate}
               onChange={handleInputChange}
-              placeholder="일정 추가"
               min="2020-01-01"
               max="9999-12-31"
-              aria-label="Task date"
+              aria-label="마감일"
             />
           </div>
-
+          {/* SubTasks Section */}
+          <section
+            className="flex flex-col mt-1.5"
+            aria-labelledby="subtasks-title"
+          >
+            <h2 id="subtasks-title" className="sr-only">
+              하위 목표
+            </h2>
+            {task.subTasks.map((subTask, index) => (
+              <div
+                key={subTask.id}
+                className="flex items-center gap-1.5 h-[22px]"
+              >
+                <input
+                  id={`check${index}`}
+                  checked={subTask.isChecked}
+                  type="checkbox"
+                  className="screen-reader"
+                  aria-checked={subTask.isChecked}
+                />
+                <label
+                  aria-label={`하위목표 - ${subTask.name}`}
+                  htmlFor={`check${index}`}
+                  className="flex flex-row items-center gap-1 text-neutral-500 text-sm"
+                >
+                  <CustomSVG
+                    id={subTask.isChecked ? "checkbox-checked" : "checkbox"}
+                    color={subTask.isChecked ? "#A2A2E6" : "#8A8AE2"}
+                  />
+                  {subTask.name}
+                </label>
+                <button
+                    onClick={() => handleDeleteSubTask(index)}
+                    aria-label="Delete SubTask"
+                    className="ml-auto text-sm"
+                  >
+                    <CustomSVG id="cancel" />
+                </button>
+              </div>
+            ))}
+          </section>
           {/* Tags */}
           <div className={`${colClassName} flex-wrap`}>
             <CustomSVG id="tag" />
@@ -248,5 +318,3 @@ function DynamicTaskEditor({ setIsAdded, onSave, taskToEdit, mode }) {
     </form>
   );
 }
-
-export default DynamicTaskEditor;

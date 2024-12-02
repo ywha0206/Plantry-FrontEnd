@@ -1,13 +1,14 @@
-import { CustomSVG } from "../../components/project/CustomSVG";
-import ProjectAside from "../../components/project/ProjectAside";
-import { ProjectColumn } from "../../components/project/ProjectColumn";
 import "@/pages/project/Project.scss";
-import ShareMember from "../../components/ShareMember";
-import { AddProjectModal } from "../../components/project/Modal";
+import ShareMember from "@/components/ShareMember";
+import ProjectAside from "@/components/project/ProjectAside";
+import { CustomSVG } from "@/components/project/_CustomSVG";
+import { AddProjectModal } from "@/components/project/_Modal";
+import { ProjectColumn } from "@/components/project/Column";
+import { DynamicTask } from "@/components/project/Task";
+import { DynamicTaskEditor } from "@/components/project/TaskEdit";
 import { useEffect, useState } from "react";
-import { ProjectTaskDynamic } from "../../components/project/ProjectTask";
+import { v4 as uuidv4 } from "uuid";
 import Sortable from "sortablejs";
-import DynamicTaskEditor from "../../components/project/NewTask";
 
 const initialData = {
   id: 0,
@@ -60,30 +61,34 @@ const initialData = {
     {
       id: 0,
       title: "Get Started",
-      color:
-        "linear-gradient(0deg,rgba(245,35,75,0.40)0%,rgba(245,35,75,0.40)100%),#F5234B",
-      projects: [
+      color: "#F5234B",
+      tasks: [
         {
           id: 0,
           title: "👋 Welcome to your board 👉",
           status: "active",
           content: "Here you'll submit and manage all of your design requests.",
           priority: 4,
+          subTasks: [],
+          tags: [],
+          commentsList: [],
         },
       ],
     },
     {
       id: 1,
       title: "🛠️ In Progress",
-      color:
-        "linear-gradient(0deg,rgba(0,112,245,0.40)0%,rgba(0,112,245,0.40)100%),#0070F5",
-      projects: [
+      color: "#0070F5",
+      tasks: [
         {
           id: 1,
           title: "화면구현 설계",
           content: "figma 디자인 및 구현 상태 확인",
           status: "completed",
           priority: 2,
+          subTasks: [],
+          tags: [],
+          commentsList: [],
         },
         {
           id: 2,
@@ -118,14 +123,16 @@ const initialData = {
     {
       id: 2,
       title: "✅ Approved",
-      color:
-        "linear-gradient(0deg,rgba(30,195,55,0.40)0%,rgba(30,195,55,0.40)100%),#1EC337",
-      projects: [
+      color: "#1EC337",
+      tasks: [
         {
           id: 3,
           title: "Search history for Backlinks and Keywords tool",
           priority: 1,
           status: "completed",
+          subTasks: [],
+          tags: [],
+          commentsList: [],
         },
       ],
     },
@@ -138,15 +145,15 @@ export default function Project() {
     "flex gap-2 items-center px-3 py-2 w-full text-sm rounded-lg bg-zinc-200 bg-opacity-30";
   const [data, setData] = useState(initialData);
   const [isModalOpen, setIsModalOpen] = useState(false); // 모달 열림 상태 관리
-  const [selectedTasks, setSelectedTasks] = useState([]);
-  const [isEditing, setIsEditing] = useState([]);
   const [isNewColumnAdded, setIsNewColumnAdded] = useState(false);
+
   const handleAddColumn = () => {
     if (!isNewColumnAdded) {
       setIsNewColumnAdded(true);
     }
   };
   const [isEditTitle, setIsEditTitle] = useState(false);
+
   const handleEditTitle = () => {
     setIsEditTitle(!isEditTitle);
   };
@@ -157,91 +164,77 @@ export default function Project() {
       [name]: value,
     }));
   };
-  const handleEditToggle = (id) => {
-    setIsEditing((prev) => {
-      if (prev.includes(id)) {
-        return prev.filter((taskId) => taskId !== id); // 이미 열린 태스크라면 제거
-      } else {
-        return [...prev, id]; // 새로운 태스크를 열기 위해 배열에 추가
-      }
-    });
-  };
-  const handleSaveProject = (updatedProject) => {
+  const handleSaveProject = (updatedTask, columnIndex) => {
     setData((prevData) => {
-      const updatedColumns = prevData.columns.map((col) => ({
-        ...col,
-        projects: col.projects.map((project) =>
-          project.id === updatedProject.id ? updatedProject : project
-        ),
-      }));
+      const updatedColumns = prevData.columns.map((col, idx) => {
+        if (idx !== columnIndex) return col;
+
+        return {
+          ...col,
+          tasks: col.tasks.map((task) =>
+            task.id === updatedTask.id ? updatedTask : task
+          ),
+        };
+      });
+
       return { ...prevData, columns: updatedColumns };
     });
   };
-  const handleToggle = (id) => {
-    // 이미 열린 상태라면 선택 해제, 아니면 배열에 추가
-    setSelectedTasks((prev) => {
-      if (prev.includes(id)) {
-        return prev.filter((taskId) => taskId !== id); // 이미 열린 태스크라면 제거
-      } else {
-        return [...prev, id]; // 새로운 태스크를 열기 위해 배열에 추가
-      }
-    });
-  };
   useEffect(() => {
-    data.columns.forEach((column, columnIndex) => {
-      const columnElement = document.getElementById(`column-${columnIndex}`);
-      if (columnElement) {
-        Sortable.create(columnElement, {
-          group: "kanban",
-          animation: 150,
-          onEnd: (event) => handleTaskMove(event, columnIndex),
-        });
-      }
+    const sortableContainers = document.querySelectorAll(".sortable-container");
+  
+    sortableContainers.forEach((container) => {
+      Sortable.create(container, {
+        group: "shared-tasks",
+        animation: 150,
+        onEnd: (event) => {
+          const { oldIndex, newIndex } = event;
+          const sourceIndex = parseInt(container.dataset.columnIndex);
+          const destinationIndex = parseInt(event.to.dataset.columnIndex);
+  
+          handleTaskMove(sourceIndex, destinationIndex, event.item.dataset.taskId);
+        },
+      });
     });
-  }, []);
+  
+    return () => {
+      sortableContainers.forEach((container) => {
+        if (container._sortable) {
+          container._sortable.destroy();
+        }
+      });
+    };
+  }, [data]);
 
-  const handleTaskMove = (event, columnIndex) => {
-    const movedTaskId = parseInt(event.item.dataset.taskId, 10);
-    const fromColumnIndex = columnIndex;
-    const toColumnIndex = parseInt(event.to.id.split("-")[1], 10);
-
-    if (fromColumnIndex !== toColumnIndex) {
-      const fromColumn = data.columns[fromColumnIndex];
-      const toColumn = data.columns[toColumnIndex];
-
-      const movedTask = fromColumn.projects.find(
-        (task) => task.id === movedTaskId
-      );
-
-      if (movedTask) {
-        const updatedColumns = [...data.columns];
-        updatedColumns[fromColumnIndex] = {
-          ...fromColumn,
-          projects: fromColumn.projects.filter(
-            (task) => task.id !== movedTaskId
-          ),
-        };
-        updatedColumns[toColumnIndex] = {
-          ...toColumn,
-          projects: [...toColumn.projects, movedTask],
-        };
-
-        setData((prevState) => ({
-          ...prevState,
-          columns: updatedColumns,
-        }));
-      }
-    }
+  const handleTaskMove = (sourceIndex, destinationIndex, taskId) => {
+    setData((prevData) => {
+      const sourceColumn = { ...prevData.columns[sourceIndex] };
+      const destinationColumn = { ...prevData.columns[destinationIndex] };
+  
+      // 이동 대상 태스크 제거 및 추가
+      const movingTask = sourceColumn.tasks.find((task) => task.id === taskId);
+      sourceColumn.tasks = sourceColumn.tasks.filter((task) => task.id !== taskId);
+      destinationColumn.tasks = [...destinationColumn.tasks, movingTask];
+  
+      // 상태 업데이트
+      const updatedColumns = prevData.columns.map((col, idx) => {
+        if (idx === sourceIndex) return sourceColumn;
+        if (idx === destinationIndex) return destinationColumn;
+        return col;
+      });
+  
+      return { ...prevData, columns: updatedColumns };
+    });
   };
+  
   const clearTasks = (columnId) => {
     setData((prevData) => ({
       ...prevData,
       columns: prevData.columns.map((col) =>
-        col.id === columnId ? { ...col, projects: [] } : col
+        col.id === columnId ? { ...col, tasks: [] } : col
       ),
     }));
   };
-
 
   const handleDeleteCol = (colId) => {
     setData((prevData) => {
@@ -250,44 +243,48 @@ export default function Project() {
     });
   };
 
-
-  const handleDeleteTask = (taskId) => {
+  const handleDeleteTask = (taskId, columnIndex) => {
     setData((prevData) => {
-      const updatedColumns = prevData.columns.map((col) => ({
-        ...col,
-        projects: col.projects.filter((task) => task.id !== taskId),
-      }));
+      const updatedColumns = prevData.columns.map((col, idx) => {
+        if (idx !== columnIndex) return col;
+  
+        return {
+          ...col,
+          tasks: col.tasks.filter((task) => task.id !== taskId),
+        };
+      });
+  
       return { ...prevData, columns: updatedColumns };
     });
   };
 
-
-  const handleAddSubTask = (columnIndex, projectId, newSubTask) => {
-    if (newSubTask.trim() === "") return; // 빈 입력 무시
-
+  const handleAddSubTask = (columnIndex, taskId, newSubTask) => {
+    if (!newSubTask.trim()) return; // 빈 입력 방지
+  
     setData((prevData) => {
-      const updatedColumns = prevData.columns.map((col, colIdx) => {
-        if (colIdx !== columnIndex) return col; // 다른 컬럼은 그대로 유지
-
+      const updatedColumns = prevData.columns.map((col, idx) => {
+        if (idx !== columnIndex) return col;
+  
         return {
           ...col,
-          projects: col.projects.map((project) => {
-            if (project.id !== projectId) return project; // 다른 프로젝트는 그대로 유지
-
+          tasks: col.tasks.map((task) => {
+            if (task.id !== taskId) return task;
+  
             return {
-              ...project,
+              ...task,
               subTasks: [
-                ...project.subTasks, // 기존 하위 작업 유지
-                { id: Date.now(), isChecked: false, name: newSubTask }, // 새로운 하위 작업 추가
+                ...task.subTasks,
+                { id: uuidv4(), isChecked: false, name: newSubTask },
               ],
             };
           }),
         };
       });
-
+  
       return { ...prevData, columns: updatedColumns };
     });
   };
+  
 
   return (
     <div id="project-container" className="flex min-h-full">
@@ -358,30 +355,17 @@ export default function Project() {
               setData={setData}
               onDelete={() => handleDeleteCol(column.id)}
             >
-              {column.projects.map((project) => (
-                isEditing.includes(project.id)?(
-                  <DynamicTaskEditor
-                  key={project.id}
-                  mode="edit"
-                  setIsAdded={()=>handleEditToggle(project.id)}
-                  taskToEdit={project}
-                  onSave={(updatedProject) => handleSaveProject(updatedProject)}
+              {column.tasks.map((task) =>
+                  <DynamicTask
+                    key={task.id}
+                    {...task}
+                    columnIndex={index}
+                    onDelete={() => handleDeleteTask(task.id,index)}
+                    onAddSubTask={(newSubTask) =>handleAddSubTask(index, task.id, newSubTask)}
                   />
-                ):(
-                  <ProjectTaskDynamic
-                  key={project.id}
-                  isSelected={selectedTasks.includes(project.id)}
-                  {...project}
-                  columnIndex={index} // 컬럼 인덱스 전달
-                  handleToggle={() => handleToggle(project.id)}
-                  onDelete={() => handleDeleteTask(project.id)}
-                  onAddSubTask={(newSubTask) =>handleAddSubTask(index, project.id, newSubTask)} // 함수 전달
-                  onEdit={() => handleEditToggle(project.id)}
-                />
-                )
                 
-              ))}
-              </ProjectColumn>
+              )}
+            </ProjectColumn>
           ))}
           {/* 새 보드 추가 */}
           {isNewColumnAdded ? (

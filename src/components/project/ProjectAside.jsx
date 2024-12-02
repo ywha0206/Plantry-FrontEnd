@@ -1,7 +1,7 @@
 import ProjectAsideSection from "./ProjectAsideSection";
-import {CustomSearch} from "../Search";
+import { CustomSearch } from "../Search";
 import { useState } from "react";
-import { AddProjectModal } from "./Modal";
+import { AddProjectModal } from "./_Modal";
 
 const projectData = {
   waiting: {

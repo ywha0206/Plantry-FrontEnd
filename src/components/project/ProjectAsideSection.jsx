@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import ProjectAsideItem from "./ProjectAsideItem";
-import { CustomSVG } from "./CustomSVG";
+import { CustomSVG } from "./_CustomSVG";
 
 function ProjectAsideSection({ data, isCompleted, isOpen, toggleSection, activeItemId, onItemClick }) {
   const { title, items } = data;

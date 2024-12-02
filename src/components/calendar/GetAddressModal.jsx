@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import CustomAlert from '../Alert';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import axiosInstance from '@/services/axios.jsx'
+import { CustomSVG } from '../project/_CustomSVG';
 export default function GetAddressModal({isOpen, onClose, selectedUsers, setSelectedUsers, cancleSelectedUsersHandler}) {
     if(!isOpen) return null;
     const [customAlert, setCustomAlert] = useState(false);
@@ -177,7 +178,7 @@ export default function GetAddressModal({isOpen, onClose, selectedUsers, setSele
                 onClick={onClose}
                 className="text-xl float-right display-block font-bold text-gray-600 hover:text-gray-900"
                 >
-                X
+                <CustomSVG id="close" color='currentColor' />
                 </button>
             </div>
             <div className='mx-12'>
@@ -202,7 +203,8 @@ export default function GetAddressModal({isOpen, onClose, selectedUsers, setSele
                                         
                                     </div>
                                     <div className='flex items-center'>
-                                        <button className='text-[20px] text-gray-400 font-bold'>X</button>
+                                        <button className='text-[20px] text-gray-400'>
+                                        <CustomSVG id="close" color='currentColor'/></button>
                                     </div>
                                 </div>
                             </li>  
