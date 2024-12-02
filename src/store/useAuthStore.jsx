@@ -15,19 +15,35 @@ export const useAuthStore = create((set) => ({
       set(() => ({ accessToken: token, authorized: !!token })),
 
     getAccessToken: () => {
-      return accessToken;
+      return useAuthStore.getState().accessToken;
     },
 
     removeAccessToken: () => {
-      accessToken = null;
+      set(() => ({ accessToken: null, authorized: false }));
+    },
+
+    // 토큰 복호화 함수
+    decodeAccessToken: () => {
+      const token = useAuthStore.getState().accessToken; // 상태 객체에서 직접 가져옴
+      if (!token) return null;
+    
+      try {
+        const payloadBase64 = token.split(".")[1];
+        const payloadJson = atob(payloadBase64);
+        return JSON.parse(payloadJson);
+      } catch (error) {
+        console.error("Invalid token format or decoding error:", error);
+        return null;
+      }
     },
 
     //토큰 만료 검증
     isTokenExpired: () => {
-      if(!accessToken) return true;
+      const token = useAuthStore.getState().accessToken;
+      if(!token) return true;
 
       try{
-        const payload = JSON.parse(atob(accessToken.split(".")[1]));
+        const payload = JSON.parse(atob(token.split(".")[1]));
         const now = Math.floor(Date.now() / 1000);
         return payload.exp < now;
       }catch(e){
