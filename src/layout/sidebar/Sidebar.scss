@@ -11,7 +11,7 @@ $sidebar-bg: #ffffff;
   left: 230px;
   min-height: 850px;
   background-color: $sidebar-bg;
-  z-index: 40;
+  z-index: 20;
   transition: transform 0.5s ease, opacity 0.5s ease; /* 부드러운 전환 */
 
   &.expanded {
@@ -98,7 +98,7 @@ $sidebar-bg: #ffffff;
     background-color: #ffffff;
     transition: all 0.5s ease; /* 부드러운 전환 */
     white-space: nowrap;
-    z-index: 40;
+    z-index: 20;
   
     &.expanded {    
      transform: translateX(0); /* 확장 상태 */
