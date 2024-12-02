@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { DiscussionEmbed } from "disqus-react";
 import CommunitySidebar from "@/components/community/CommunitySidebar";
-
+import "@/pages/community/Community.scss";
 
 function CommunityView() {
   const navigate = useNavigate();
@@ -13,7 +13,9 @@ function CommunityView() {
     id: postId,
     title: "[안내] 공지사항입니다.",
     date: "2022.11.30",
-    department: "첨부부서명",
+    author: "이상훈",
+    isPinned: true, // 필독 여부
+    pinnedPeriod: "2024.11.20 - 2024.11.20", // 필독 노출 기간
     content: `안녕하세요, 공지사항 내용입니다.
 G사와 해외의 구매처를 사칭하는 피싱 문자 거래건과 관련하여
 해외발 주문 및 이와 관련된 주요 공지 사항을 알려드립니다.`,
@@ -23,18 +25,30 @@ G사와 해외의 구매처를 사칭하는 피싱 문자 거래건과 관련하
     ],
   };
 
-  // 파일 다운로드 핸들러
-  const handleDownload = (url) => {
-    window.open(url, "_blank");
-  };
+  useEffect(() => {
+    // Remark42 댓글 설정
+    const remark_config = {
+      host: "http://localhost:9090", // Remark42 서버 URL
+      site_id: "localhost:8010", // Docker Compose에서 설정한 SITE 값
+      url: `${window.location.origin}/community/notice/${postId}`, // 고유 URL
+    };
+    // 스크립트 추가
+    const script = document.createElement("script");
+    script.src = `${remark_config.host}/web/embed.js`;
+    script.defer = true;
+    script.crossOrigin = "anonymous";
 
-  // Disqus 설정
-  const disqusShortname = "Plantry"; // Disqus에서 설정한 Shortname
-  const disqusConfig = {
-    url: `http://localhost:8010/community/${boardType}/view/${postId}`, // 현재 게시물 URL (배포 시 수정 필요)
-    identifier: postId, // 고유 게시물 ID
-    title: dummyData.title, // 게시물 제목
-  };
+    // 설정을 전역으로 전달
+    window.remark_config = remark_config;
+
+    // 스크립트 삽입
+    document.head.appendChild(script);
+
+    // Cleanup: 컴포넌트가 언마운트될 때 스크립트를 제거
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, [postId]);
 
   return (
     <div id="community-container">
@@ -54,14 +68,20 @@ G사와 해외의 구매처를 사칭하는 피싱 문자 거래건과 관련하
 
       {/* 본문 */}
       <div className="community-view">
-        <h2>{dummyData.title}</h2>
-        <div className="view-header">
-          <span className="view-date">{dummyData.date}</span>
-        </div>
+        {dummyData.isPinned && (
+          <div className="pinned-info">
+            필독 노출 기간: {dummyData.pinnedPeriod}
+          </div>
+        )}
+        <h2>
+          {dummyData.title}
+          <span className="view-date">
+            {dummyData.date}
+            <strong className="author">작성자: {dummyData.author}</strong>
+          </span>
+        </h2>
+
         <div className="view-content">
-          <p>
-            <strong>부서명: {dummyData.department}</strong>
-          </p>
           <p>{dummyData.content}</p>
         </div>
         {dummyData.attachments && dummyData.attachments.length > 0 && (
@@ -99,10 +119,10 @@ G사와 해외의 구매처를 사칭하는 피싱 문자 거래건과 관련하
           </button>
         </div>
 
-        {/* Disqus 댓글 섹션 */}
+        {/* Remark42 댓글 섹션 */}
         <div className="comment-section">
           <h3>댓글</h3>
-          <DiscussionEmbed shortname={disqusShortname} config={disqusConfig} />
+          <div id="remark42"></div>
         </div>
       </div>
     </div>
