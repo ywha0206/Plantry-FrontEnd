@@ -178,11 +178,17 @@ export default function Message() {
         await axiosInstance
           .patch("/api/message/frequent", jsonData)
           .then((resp) => console.log(resp.data));
+
+        setRoomData((prevRooms) =>
+          prevRooms.map((r) =>
+            r.id === room.id ? { ...r, chatRoomFavorite: newFavoriteStatus } : r
+          )
+        );
       } catch (error) {
         console.error(error);
       }
     },
-    [roomData]
+    [setRoomData]
   );
 
   useEffect(() => {
