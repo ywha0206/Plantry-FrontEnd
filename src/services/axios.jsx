@@ -1,6 +1,7 @@
-import axios from 'axios'
+import axios from 'axios';
 import { useAuthStore } from '../store/useAuthStore';
 
+// axios 인스턴스 생성
 const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL,
     timeout: 10000,
@@ -13,12 +14,13 @@ const axiosInstance = axios.create({
 // 요청 인터셉터 설정
 axiosInstance.interceptors.request.use((config) => {
   // 최신 상태를 항상 가져오기 위해 함수 호출
-  const accessToken = useAuthStore.getState().getAccessToken();
-  console.log("엑시오스 인터셉터 엑세스 토큰: ", accessToken);
+  const accessToken = useAuthStore.getState().getAccessToken(); // 상태에서 액세스 토큰을 가져옴
+  console.log(accessToken);
 
   if (accessToken) {
-      config.headers.Authorization = ` Bearer ${accessToken}`;
+    config.headers.Authorization = `Bearer ${accessToken}`; // "Bearer " 뒤에 공백과 함께 액세스 토큰 추가
   }
+  console.log(config)
   return config;
 }, (error) => {
   // 요청 에러 처리
@@ -40,15 +42,16 @@ axiosInstance.interceptors.response.use(
       console.log("401이 떴다!");
 
       try {
-        const refreshAccessToken = useAuthStore.getState().refreshAccessToken;
+        const refreshAccessToken = useAuthStore.getState().refreshAccessToken; // 상태에서 토큰 갱신 함수 가져오기
         // 새 액세스 토큰 갱신 시도
         const newAccessToken = await refreshAccessToken();
 
         if (newAccessToken) {
           // 새 액세스 토큰을 Authorization 헤더에 추가
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`; // "Bearer " 뒤에 공백과 함께 액세스 토큰 추가
           // 실패한 요청을 다시 실행
-          return axiosInstance(originalRequest);
+          console.log(newAccessToken);
+          return axiosInstance(originalRequest); // 요청 재시도
         }
       } catch (refreshError) {
         console.error('토큰 갱신 실패:', refreshError);

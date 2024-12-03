@@ -27,6 +27,7 @@ export default function Calendar() {
     const [selectedCalendarName, setSelectedCalendarName] = useState("");
     const [selectedCalendar, setSelectedCalendar] = useState({});
 
+    
     const { stompClient, isConnected } = useWebSocket({
         initialDestination: '/app/subscribe',
         initialMessage: '9',
@@ -137,7 +138,7 @@ export default function Calendar() {
         queryKey : ['calendar-name'],
         queryFn : async () => {
             try {
-                const response = await axiosInstance.get('/api/calendar/name?id=9')
+                const response = await axiosInstance.get('/api/calendar/name')
                 return response.data
             } catch(err){
                 return err
@@ -145,9 +146,8 @@ export default function Calendar() {
         },
         enabled : true,
         staleTime: 300000,
-        retry: false,
+        retry: 1000,
         refetchOnWindowFocus: false,
-
     })
 
     useEffect(()=>{
@@ -167,6 +167,11 @@ export default function Calendar() {
             setCalendarDeleted(true)
         }
     }
+
+    // if (!isTokenLoaded) {
+    //     return <div>로딩 중... 액세스 토큰을 확인 중입니다.</div>; // Token이 없을 경우 로딩 화면을 표시
+    // }
+
 
     return (
         <div id='calendar-container'>
