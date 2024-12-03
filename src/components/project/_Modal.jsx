@@ -4,8 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CustomSVG } from "./_CustomSVG";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import axiosInstance from "@/services/axios.jsx";
-import { useAuthStore } from "../../store/useAuthStore";
-import decodeToken from "../../util/decodeToken";
 
 export const AddProjectModal = ({
   isOpen,
@@ -182,16 +180,15 @@ const handleProjectChange = (e) => {
     setSelectedGroupId((prev) => (prev == id ? 0 : id));
   };
 
-
-
-// useAuthStore 훅을 컴포넌트 내에서 호출
-const { accessToken } = useAuthStore((state) => state);
-
-  // show 함수는 이제 컴포넌트 내에서 호출할 수 있습니다
-  const show = () => {
-    console.log(accessToken);
-    console.log(decodeToken(accessToken))
+  const handleSubmit = async () => {
+    try {
+      const res = await axiosInstance.post('/api/project', project);
+      if(res.data.id) onClose(false)
+    } catch (err) {
+        return err;
+    }
   };
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -442,7 +439,7 @@ const { accessToken } = useAuthStore((state) => state);
           </div>
           <button
             className="h-[40px] bg-[#7E7EDF] px-8 text-white rounded-[8px] mt-10 mb-[30px]"
-            onClick={show}
+            onClick={handleSubmit}
           >
             {(text === "작업자 추가" && "초대하기") || "생성하기"}
           </button>
