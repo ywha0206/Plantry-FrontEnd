@@ -26,7 +26,6 @@ export default function NewDrive({ isOpen, onClose }) {
   const queryClient = useQueryClient();
 
 
-  const user = useUserStore((state) => state.user);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -41,10 +40,8 @@ export default function NewDrive({ isOpen, onClose }) {
 
   // 컴포넌트가 로드될 때 owner에 currentUser 값을 설정
   useEffect(() => {
-    console.log("user ,,, ",user);
     setFormData((prev) => ({
-      ...prev,
-      owner: user.uid,
+      ...prev
     }));
   }, []);
 

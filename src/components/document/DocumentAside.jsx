@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {CustomSearch} from '@/components/Search'
 import { Modal } from "../Modal";
 import NewDrive from "./NewDrive";
@@ -11,18 +11,35 @@ import ContextMenu from "./ContextMenu";
 
 
 
-export default function DocumentAside({folders , sharedFolders ,allFolders }){
-    const [drive, setDrive] = useState(false);
+export default function DocumentAside(){
+   
     // const [folders, setFolders] = useState([]); // 폴더 목록 상태
-    const [pinnedFolders, setPinnedFolders] = useState([]); // Pinned 폴더
-    const queryClient = useQueryClient();
-
+    const [drive, setDrive] = useState(false);
     const makeDrive = () => {
         setDrive(true)
     }
 
     const [isPinnedOpen, setIsPinnedOpen] = useState(true); // State to track "My Page" section visibility    
     const [isSharedOpen, setIsSharedOpen] = useState(true);
+    
+    const [folders, setFolders] = useState([]); // 폴더 목록 상태
+    const [pinnedFolders, setPinnedFolders] = useState([]); // Pinned 폴더
+    const queryClient = useQueryClient();
+    const location = useLocation(); // 현재 경로 가져오기
+
+  // React Query를 사용하여 폴더 데이터 가져오기
+  const { data: allFolders = [], isLoading, isError } = useQuery({
+    queryKey: ["driveList", location.pathname],
+    queryFn: async () => {
+        const response = await axiosInstance.get("/api/drive/folders");
+        return Array.isArray(response.data) ? response.data : response.data.data;
+    },
+    staleTime: 300000, // 5분 동안 데이터 신선 유지
+});
+
+// 폴더 필터링 (공유 및 개인)
+const sharedFolders = allFolders.filter((folder) => folder.isShared === 1);
+const personalFolders = allFolders.filter((folder) => folder.isShared === 0);
 
     const togglePinnedSection = () => {
       setIsPinnedOpen((prev) => !prev); // Toggle the section
@@ -100,8 +117,20 @@ export default function DocumentAside({folders , sharedFolders ,allFolders }){
     const handleActionClick = (actionId, event) => {
         setSelectedAction(actionId === selectedAction ? null : actionId);
         setMenuPosition({ x: event.clientX, y: event.clientY });
-      };
+    };
 
+        // 로딩 상태 처리
+    if (isLoading) {
+        return <div>Loading folders...</div>;
+    }
+
+    if (isError) {
+        return <div>Error loading folders.</div>;
+    }
+
+   
+        
+    
 
    
 
@@ -170,7 +199,7 @@ export default function DocumentAside({folders , sharedFolders ,allFolders }){
                 <section className={`mypageArea flex flex-col px-8  overflow-scroll scrollbar-none transition-all duration-300 ${
                 isPinnedOpen ? "max-h-[180px]" : "max-h-0"
                     }`}>
-                    {folders.map((folder) => (
+                    {personalFolders.map((folder) => (
                     <div className="flex gap-4 items-center mb-1" key={folder.id} onContextMenu={(e) => handleContextMenu(e, folder)}>
                         <Link   to={`/document/list/${folder.id}`}
                                 state={{ folderName: folder.name }} // folder.name 전달
@@ -180,7 +209,7 @@ export default function DocumentAside({folders , sharedFolders ,allFolders }){
                         </Link>
                     </div>
                     ))}  
-                    {folders.length === 0 && <p className="opacity-60"> 폴더가 없습니다.</p>}
+                    {personalFolders.length === 0 && <p className="opacity-60"> 폴더가 없습니다.</p>}
                 </section>
                 <section className='flex justify-between items-center p-4 mb-2 mt-4'>
                     <div>
@@ -232,54 +261,7 @@ export default function DocumentAside({folders , sharedFolders ,allFolders }){
                     actions={actions}
                     folder={contextMenu.folder}
                 />
-              {/*   {contextMenu.visible && (
-                    <div
-                        ref={contextMenuRef} // 메뉴 DOM 참조
-                        className={`
-                            bg-gray-100 rounded-xl shadow-md p-4 max-w-md mx-auto
-                            absolute z-10
-                        `}
-                        style={{
-                            position: "absolute",
-                            top: contextMenu.position.top,
-                            left: contextMenu.position.left,
-                            background: "#fff",
-                            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-                            padding: "10px",
-                            borderRadius: "4px",
-                            zIndex: 1000,
-                        }}
-                        >                  
-                        <div className="space-y-4">
-                    {actions.map((action) => (
-                      <div
-                        key={action.id}
-                        onClick={() => handleActionClick(action.id)}
-                        className={`
-                          flex items-center justify-between rounded-lg p-1 cursor-pointer
-                          transition-all duration-300
-                          ${selectedAction === action.id
-                            ? `bg-white text-${action.color.split('-')[1]}-500 shadow-lg`
-                            : 'bg-white text-gray-700 hover:bg-gray-200 hover:shadow-lg'
-                          }
-                        `}
-                      >
-                        <div className="flex items-center space-x-4">
-                          <div
-                            className={`p-3 rounded-lg ${action.color} bg-opacity-20`}
-                          >
-                            <action.icon className={`w-5 h-5 ${action.color}`} />
-                          </div>
-                          <span className="font-semibold">{action.label}</span>
-                        </div>
-                        {selectedAction === action.id && (
-                          <div className={`w-5 h-5 rounded-full ${action.color}`} />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-            )} */}
+            
             </aside>
     </>)
 }

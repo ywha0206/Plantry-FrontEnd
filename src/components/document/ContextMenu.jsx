@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FaTrash, FaDownload, FaEdit, FaStar, FaShareAlt } from 'react-icons/fa';
+import { FaTrash, FaDownload, FaEdit, FaStar, FaShareAlt, FaInfo } from 'react-icons/fa';
 import RenameModal from "./ChangeName";
 import axiosInstance from "../../services/axios";
 import { useQueryClient } from "@tanstack/react-query";
@@ -13,6 +13,7 @@ export default function ContextMenu({
     folderId,
     folderName,
     path,
+    onDetailToggle,
 }) {
     const contextMenuRef = useRef(null);
     const renameModalRef = useRef(null); // RenameModal의 레퍼런스
@@ -58,6 +59,16 @@ export default function ContextMenu({
             icon: FaShareAlt,
             color: 'text-purple-500',
             onClick: (folder) => console.log(`공유: ${folder.name}`),
+        },
+        {
+            id: 'info',
+            label: '상세정보',
+            icon: FaInfo,
+            color: 'text-purple-500',
+            onClick: () => {
+                console.log(`상세정보: ${folder.name}`);
+                onDetailToggle();
+            },
         },
     ];
 
