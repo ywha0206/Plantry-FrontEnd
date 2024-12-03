@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import CustomAlert from '../Alert';
 import GetAddressModal from './GetAddressModal';
 import axiosInstance from '@/services/axios.jsx'
+import useWebSocket from '../../util/useWebSocket';
 
 export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCalendar}) {
     if(!isOpen) return null;
@@ -19,7 +20,17 @@ export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCa
     const [isFiltering, setIsFiltering] = useState(false);
     const [openAddress,setOpenAddress] = useState(false);
     const [selectedUsers, setSelectedUsers] = useState([]);
-    
+    const { setSendMessage, isConnected, receiveMessage } = useWebSocket({
+        initialDestination: '/app/calendar/update', // WebSocket을 통해 메시지를 보낼 경로
+        initialMessage: 'update', // 초기 메시지
+    });
+
+    useEffect(()=>{
+        if(receiveMessage!=''){
+            console.log(receiveMessage)
+        }
+    },[receiveMessage])
+
     useEffect(() => {
         if (Array.isArray(usedColors) && usedColors.length > 0) {
             const filtered = colors.filter(v => {
@@ -88,7 +99,9 @@ export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCa
                     return item;
                 });
             })
-            window.location.href = '/calendar';
+            if (isConnected) {
+                setSendMessage('update'); // "update" 메시지 전송
+            }
             setTimeout(() => {
                 setCustomAlert(false)
                 onClose();
@@ -124,7 +137,9 @@ export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCa
             })
 
             // queryClient.setQueryData(['calendar-date'])
-
+            if (isConnected) {
+                setSendMessage('update'); // "update" 메시지 전송
+            }
             setTimeout(() => {
                 setCustomAlert(false)
                 onClose();
@@ -168,6 +183,8 @@ export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCa
             }, 1000);
         }
     }
+
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 modal-custom-fixed">
@@ -253,7 +270,7 @@ export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCa
                                 (
                                     selectedUsers.map((v)=>{
                                     return (
-                                    <li className='cursor-pointer hover:bg-purple-200'>
+                                    <li key={v.id} className='cursor-pointer hover:bg-purple-200'>
                                         <div className='flex justify-between px-[10px]'>
                                             <div className='flex'>
                                                 <img src='/images/admin-profile.png' className='w-[50px] h-[50px] mr-[10px]'></img>

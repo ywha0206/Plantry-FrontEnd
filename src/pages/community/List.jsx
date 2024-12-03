@@ -3,7 +3,6 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import "@/pages/community/Community.scss";
 import CommunitySidebar from "@/components/community/CommunitySidebar";
 
-
 function CommunityList() {
   const [searchQuery, setSearchQuery] = useState(""); // 검색어 상태
   const [currentPage, setCurrentPage] = useState(1); // 현재 페이지
@@ -86,8 +85,8 @@ function CommunityList() {
         userRole="user"
         currentUser="user123"
         departmentBoards={[
-          { key: "dept1", label: "부서 1" },
-          { key: "dept2", label: "부서 2" },
+          { key: "dept1", label: "생산팀" },
+          { key: "dept2", label: "영업팀" },
         ]}
         onDeleteBoard={(key) => console.log("삭제:", key)}
         onUpdateBoard={(key) => console.log("수정:", key)}
