@@ -70,7 +70,7 @@ function App() {
     "/user/login",
     "/user/register",
     "/user/find",
-    "/user/terms"
+    "/user/terms",
   ]);
 
   useEffect(() => {
