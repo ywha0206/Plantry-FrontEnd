@@ -29,8 +29,8 @@ G사와 해외의 구매처를 사칭하는 피싱 문자 거래건과 관련하
     // Remark42 댓글 설정
     const remark_config = {
       host: "http://localhost:9090", // Remark42 서버 URL
-      site_id: "localhost:8010", // Docker Compose에서 설정한 SITE 값
-      url: `${window.location.origin}/community/notice/${postId}`, // 고유 URL
+      site_id: "localhost:9090", // Docker Compose에서 설정한 SITE 값
+      url: window.location.href, // 현재 페이지 URL
     };
     // 스크립트 추가
     const script = document.createElement("script");
