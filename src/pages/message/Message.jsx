@@ -1,10 +1,12 @@
 import "@/pages/message/Message.scss";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import MessageToolTip from "../../components/message/MessageToolTip";
 import InviteModal from "../../components/message/InviteModal";
 import ShowMoreModal from "../../components/message/ShowMoreModal";
 import AttachFileModal from "../../components/message/AttachFileModal";
 import ProfileModal from "../../components/message/ProfileModal";
+import axiosInstance from "../../services/axios";
+import { useAuthStore } from "../../store/useAuthStore";
 
 export default function Message() {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,11 +16,13 @@ export default function Message() {
   const [moreFn, setMoreFn] = useState(false);
   const [file, setFile] = useState(false);
   const [fileInfos, setFileInfos] = useState([]);
+  const [selectedRoomId, setSelectedRoomId] = useState("");
+  const [roomData, setRoomData] = useState([]);
+
   const fileRef = useRef();
   const profileRef = useRef();
   const inviteRef = useRef();
   const showMoreRef = useRef();
-  const attachFileRef = useRef();
 
   const openHandler = () => {
     setIsOpen(true);
@@ -81,13 +85,13 @@ export default function Message() {
       alert("파일은 최대 5개까지 첨부 가능합니다.");
       return;
     } else {
-      // 파일 크기 제한 (10MB)
-      const maxSize = 10 * 1024 * 1024; // 5MB
+      // 파일 크기 제한 (16MB)
+      const maxSize = 16 * 1024 * 1024; // 16MB
       const oversizedFiles = selectedFiles.filter(
         (file) => file.size > maxSize
       );
       if (oversizedFiles.length > 0) {
-        alert("파일 크기가 너무 큽니다. 10MB 이하의 파일만 선택해주세요.");
+        alert("파일 크기는 최대 16MB를 초과할 수 없습니다.");
         return;
       }
       const readFilePromises = selectedFiles.map((file) => {
@@ -134,6 +138,69 @@ export default function Message() {
     }
   };
 
+  const selectRoomHandler = (e, roomId) => {
+    e.preventDefault();
+    setSelectedRoomId(roomId);
+  };
+
+  const decodeAccessToken = useAuthStore((state) => state.decodeAccessToken);
+
+  const [uid, setUid] = useState(() => localStorage.getItem("uid")); // 초기값으로 localStorage에서 가져오기
+
+  useEffect(() => {
+    if (!uid) {
+      const payload = decodeAccessToken();
+      if (payload && payload.sub) {
+        setUid(payload.sub);
+        localStorage.setItem("uid", payload.sub); // localStorage에 저장
+      } else {
+        console.error("유효한 UID가 토큰에 없습니다.");
+        // 로그인 페이지로 리다이렉트 등
+      }
+    }
+  }, [decodeAccessToken, uid]);
+
+  const frequentHandler = useCallback(
+    async (e, room) => {
+      e.preventDefault();
+      const newFavoriteStatus = room.chatRoomFavorite === 0 ? 1 : 0;
+      console.log("room", room);
+
+      console.log("roomId:", room.id);
+      console.log("chatRoomFavorite:", room.chatRoomFavorite);
+      console.log("newFavoriteStatus:", newFavoriteStatus);
+
+      const jsonData = {
+        id: room.id,
+        chatRoomFavorite: newFavoriteStatus,
+      };
+      try {
+        await axiosInstance
+          .patch("/api/message/frequent", jsonData)
+          .then((resp) => console.log(resp.data));
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    [roomData]
+  );
+
+  useEffect(() => {
+    if (!uid) return;
+
+    const fetchChatRooms = async () => {
+      try {
+        const response = await axiosInstance.get(`/api/message/room/${uid}`);
+        setRoomData(response.data);
+      } catch (error) {
+        console.error("채팅방 호출 오류:", error);
+      }
+    };
+    fetchChatRooms();
+  }, [uid, frequentHandler]);
+
+  console.log("roomData : ", roomData);
+
   return (
     <div id="message-container">
       <div className="aside">
@@ -155,187 +222,100 @@ export default function Message() {
 
           <div className="search">
             <img className="searchImg" src="../images/image.png" alt="" />
-            <MessageToolTip tooltip={"대화방을 검색해보세요"} />
             <input type="text" placeholder="Search..." />
           </div>
         </div>
         <div className="list frequent">
           <h3>즐겨찾기</h3>
           <div className="rooms">
-            <div className="room selected">
-              <img
-                className="profile"
-                src="../images/sample_item1.jpg"
-                alt=""
-              />
-              <div className="name_preview">
-                <div className="name">
-                  전규찬
-                  <img
-                    className="frequentImg"
-                    src="../images/gold_star.png"
-                    alt=""
-                  />
-                </div>
-                <div className="preview">
-                  <span>반갑습니다</span>
-                </div>
-              </div>
-              <div className="date_unRead">
-                <span>2024.11.20</span>
-                <img
-                  className="unReadImg"
-                  src="../images/unreadNum.png"
-                  alt=""
-                />
-              </div>
-            </div>
-            <div className="room">
-              <img
-                className="profile"
-                src="../images/sample_item1.jpg"
-                alt=""
-              />
-              <div className="name_preview">
-                <div className="name">
-                  전규찬
-                  <img
-                    className="frequentImg"
-                    src="../images/gray_star.png"
-                    alt=""
-                  />
-                </div>
-                <div className="preview">
-                  <span>반갑습니다</span>
-                </div>
-              </div>
-              <div className="date_unRead">
-                <span>2024.11.20</span>
-                <img
-                  className="unReadImg"
-                  src="../images/unreadNum.png"
-                  alt=""
-                />
-              </div>
-            </div>
-            <div className="room">
-              <img
-                className="profile"
-                src="../images/sample_item1.jpg"
-                alt=""
-              />
-              <div className="name_preview">
-                <div className="name">
-                  전규찬
-                  <img
-                    className="frequentImg"
-                    src="../images/gray_star.png"
-                    alt=""
-                  />
-                </div>
-                <div className="preview">
-                  <span>반갑습니다</span>
-                </div>
-              </div>
-              <div className="date_unRead">
-                <span>2024.11.20</span>
-                <img
-                  className="unReadImg"
-                  src="../images/unreadNum.png"
-                  alt=""
-                />
-              </div>
-            </div>
+            {roomData && roomData.length > 0
+              ? roomData
+                  .filter((room) => room.chatRoomFavorite === 1)
+                  .map((room) => (
+                    <div
+                      className={`room ${
+                        selectedRoomId === room.id ? "selected" : null
+                      }`}
+                      key={room.id}
+                      onClick={(e) => selectRoomHandler(e, room.id)}
+                    >
+                      <img
+                        className="profile"
+                        src="../images/sample_item1.jpg"
+                        alt=""
+                      />
+                      <div className="name_preview">
+                        <div className="name">
+                          <span>{room.chatRoomName}</span>
+                          <img
+                            className="frequentImg"
+                            src="../images/gold_star.png"
+                            alt=""
+                            onClick={(e) => frequentHandler(e, room)}
+                          />
+                        </div>
+                        <div className="preview">
+                          <span>반갑습니다</span>
+                        </div>
+                      </div>
+                      <div className="date_unRead">
+                        <span>2024.11.20</span>
+                        <img
+                          className="unReadImg"
+                          src="../images/unreadNum.png"
+                          alt=""
+                        />
+                      </div>
+                    </div>
+                  ))
+              : null}
           </div>
         </div>
 
         <div className="list">
           <h3>대화방</h3>
           <div className="rooms">
-            <div className="room selected">
-              <img
-                className="profile"
-                src="../images/sample_item1.jpg"
-                alt=""
-              />
-              <div className="name_preview">
-                <div className="name">
-                  전규찬
-                  <img
-                    className="frequentImg"
-                    src="../images/gray_star.png"
-                    alt=""
-                  />
-                </div>
-                <div className="preview">
-                  <span>반갑습니다</span>
-                </div>
-              </div>
-              <div className="date_unRead">
-                <span>2024.11.20</span>
-                <img
-                  className="unReadImg"
-                  src="../images/unreadNum.png"
-                  alt=""
-                />
-              </div>
-            </div>
-            <div className="room">
-              <img
-                className="profile"
-                src="../images/sample_item1.jpg"
-                alt=""
-              />
-              <div className="name_preview">
-                <div className="name">
-                  전규찬
-                  <img
-                    className="frequentImg"
-                    src="../images/gray_star.png"
-                    alt=""
-                  />
-                </div>
-                <div className="preview">
-                  <span>반갑습니다</span>
-                </div>
-              </div>
-              <div className="date_unRead">
-                <span>2024.11.20</span>
-                <img
-                  className="unReadImg"
-                  src="../images/unreadNum.png"
-                  alt=""
-                />
-              </div>
-            </div>
-            <div className="room">
-              <img
-                className="profile"
-                src="../images/sample_item1.jpg"
-                alt=""
-              />
-              <div className="name_preview">
-                <div className="name">
-                  전규찬
-                  <img
-                    className="frequentImg"
-                    src="../images/gray_star.png"
-                    alt=""
-                  />
-                </div>
-                <div className="preview">
-                  <span>반갑습니다</span>
-                </div>
-              </div>
-              <div className="date_unRead">
-                <span>2024.11.20</span>
-                <img
-                  className="unReadImg"
-                  src="../images/unreadNum.png"
-                  alt=""
-                />
-              </div>
-            </div>
+            {roomData && roomData.length > 0
+              ? roomData
+                  .filter((room) => room.chatRoomFavorite === 0)
+                  .map((room) => (
+                    <div
+                      className={`room ${
+                        selectedRoomId === room.id ? "selected" : null
+                      }`}
+                      key={room.id}
+                      onClick={(e) => selectRoomHandler(e, room.id)}
+                    >
+                      <img
+                        className="profile"
+                        src="../images/sample_item1.jpg"
+                        alt=""
+                      />
+                      <div className="name_preview">
+                        <div className="name">
+                          <span>{room.chatRoomName}</span>
+                          <img
+                            className="frequentImg"
+                            src="../images/gray_star.png"
+                            alt=""
+                            onClick={(e) => frequentHandler(e, room)}
+                          />
+                        </div>
+                        <div className="preview">
+                          <span>반갑습니다</span>
+                        </div>
+                      </div>
+                      <div className="date_unRead">
+                        <span>2024.11.20</span>
+                        <img
+                          className="unReadImg"
+                          src="../images/unreadNum.png"
+                          alt=""
+                        />
+                      </div>
+                    </div>
+                  ))
+              : null}
           </div>
         </div>
         {isOpen == true ? <InviteModal {...propsObject} /> : null}

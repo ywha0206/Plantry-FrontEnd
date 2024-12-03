@@ -152,7 +152,7 @@
 
 #community-container {
   position: relative;
-  height: auto;
+  height: 100%;
 
   max-width: 1650px;
   display: flex;
@@ -646,10 +646,22 @@
   }
 }
 
-.ck-editor {
-  width: 500px; /* 에디터 전체 크기 */
-
+/* CKEditor 크기 조정 */
+.ck.ck-editor__main {
+  width: 1000px;
 }
+
+.ck-editor__editable {
+  max-height: 300px;
+  /* 에디터 내용의 최대 높이 */
+  overflow: auto;
+  /* 스크롤 가능 */
+  padding: 16px;
+  /* 내부 여백 */
+  box-sizing: border-box;
+  /* 크기 계산 포함 */
+}
+
 .list-container {
   max-width: 1650px;
   padding: 20px;
@@ -812,7 +824,6 @@
   }
 }
 .community-view {
-  width: 100%;
   max-width: 1650px;
   padding: 20px;
   background-color: #ffffff;
@@ -876,7 +887,29 @@
 
   .view-footer {
     display: flex;
-    justify-content: space-between;
+    justify-content: end;
+    align-items: center;
+    position: relative;
+
+    .list-button {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%); /* 가로 중심 정렬 */
+    }
+
+    .modify-button,
+    .delete-button {
+      margin-left: 20px; /* 버튼 간격 */
+    }
+
+    .delete-button {
+      background-color: #ff5c5c;
+      color: white;
+
+      &:hover {
+        background-color: #d94d4d;
+      }
+    }
 
     button {
       background-color: #f0f0f0;
@@ -889,15 +922,6 @@
 
       &:hover {
         background-color: #e0e0e0;
-      }
-
-      &:last-child {
-        background-color: #ff5c5c;
-        color: white;
-
-        &:hover {
-          background-color: #d94d4d;
-        }
       }
     }
   }
@@ -969,30 +993,87 @@
     }
   }
 }
-/* 댓글 컨테이너 */
-.comment-section {
-  width: 100%;
-  padding: 16px;
+
+.view-date {
+  margin-left: 50px;
+  font-size: 16px;
+  margin-top: 20px;
+  font-weight: 400;
+}
+.view-date strong {
+  margin-left: 30px;
+  font-size: 20px;
+}
+/* 댓글 영역 기본 스타일 */
+#remark42 {
+  font-family: Arial, sans-serif;
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid #ddd;
   border-radius: 8px;
-  margin: 20px auto;
-  box-sizing: border-box;
+  background-color: #f9f9f9;
 }
 
-/* 댓글 입력창 */
-.react-comments-section__input-box {
-  height: 40px;
-  font-size: 14px;
-  padding: 8px;
+/* 댓글 입력 창 커스터마이징 */
+.remark42__editor {
+  border: 1px solid #ccc !important;
+  border-radius: 8px;
+  background-color: #fff;
+  padding: 10px;
 }
 
-/* 댓글 텍스트 영역 */
-.react-comments-section__comment-text {
-  font-size: 14px;
-  line-height: 1.5;
+.remark42__input {
+  font-size: 14px !important;
+  color: #333 !important;
+  background-color: #f4f4f4 !important;
+  border-radius: 5px !important;
+  padding: 8px !important;
 }
 
-/* 댓글 사용자 정보 (이름, 시간) */
-.react-comments-section__user-details {
-  font-size: 12px;
-  color: #666666;
+/* 버튼 스타일 */
+.remark42__button {
+  background-color: #007bff !important; /* 버튼 색상 */
+  color: white !important;
+  border-radius: 5px !important;
+  font-size: 13px !important;
+  padding: 8px 16px !important;
+  border: none !important;
+  transition: background-color 0.3s ease;
+}
+
+.remark42__button:hover {
+  background-color: #0056b3 !important; /* 버튼 호버 색상 */
+}
+
+/* 댓글 리스트 스타일 */
+.remark42__list .remark42__comment {
+  border-bottom: 1px solid #eee !important;
+  padding: 10px 0 !important;
+}
+
+.remark42__list .remark42__comment:last-child {
+  border-bottom: none !important;
+}
+
+.remark42__comment-text {
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  color: #555 !important;
+}
+
+/* 날짜와 사용자 정보 */
+.remark42__time {
+  font-size: 12px !important;
+  color: #888 !important;
+}
+
+/* 댓글 정렬 드롭다운 스타일 */
+.remark42__sort {
+  font-size: 13px !important;
+  color: #007bff !important;
+}
+
+/* "Powered by Remark42" 제거 */
+.remark42__powered-by {
+  display: none !important;
 }

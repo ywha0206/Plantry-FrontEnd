@@ -11,6 +11,8 @@ import MainBigCalendar from '../../components/calendar/MainBigCalendar'
 import CalendarContentNameResponse from '../../components/calendar/loading/CalendarContentNameResponse'
 import PostCalendarModal from '../../components/calendar/PostCalendarModal'
 import DeleteAndModifyCalendarModal from '../../components/calendar/DeleteAndModifyCalendarModal'
+import { Client } from '@stomp/stompjs'
+import useWebSocket from '../../util/useWebSocket'
 
 export default function Calendar() {
 
@@ -25,11 +27,20 @@ export default function Calendar() {
     const [selectedCalendarName, setSelectedCalendarName] = useState("");
     const [selectedCalendar, setSelectedCalendar] = useState({});
 
+    
+    const { stompClient, isConnected } = useWebSocket({
+        initialDestination: '/app/subscribe',
+        initialMessage: '9',
+        initialCalendarId: ['2,3,19']
+    });
+
+
     const queryClient = useQueryClient();
 
     const openModal = () => {
         setOpenPostCalendar(true)
     }
+
     const calendarNames = useCalenderNameStore((state) => state.setCalendarNames);
 
     const {data : calendarContentName , isLoading : isLoadingCalendarContentName, isError : isErrorCalendarContentName} = useQuery({
@@ -100,7 +111,7 @@ export default function Calendar() {
     }, [changeCalendarAdd, calendar]);
 
     useEffect(() => {
-        if (changeCalendarRemove) {
+        if (changeCalendarRemove) {0
             queryClient.setQueryData(['calendar-date'], (prevData) => {
                 // calendar2가 배열이 아니라면 빈 배열로 처리
                 const calendarData = Array.isArray(calendar2) ? calendar2 : [];
@@ -123,38 +134,44 @@ export default function Calendar() {
     }, [changeCalendarRemove, calendar2]);
 
 
-    const {data : calendarName, isLoading : isLoadingCalendarName, isError : isErrorCalendarName} = useQuery({
+    const {data : calendarName, isLoading : isLoadingCalendarName, isError : isErrorCalendarName, refetch : refetchCalendarName} = useQuery({
         queryKey : ['calendar-name'],
         queryFn : async () => {
             try {
-                const response = await axiosInstance.get('/api/calendar/name?id=9')
+                const response = await axiosInstance.get('/api/calendar/name')
                 return response.data
             } catch(err){
                 return err
             }
         },
         enabled : true,
-        refetchOnWindowFocus: false,
         staleTime: 300000,
-        retry: false,
-        cacheTime : 5 * 60 * 1000
+        retry: 1000,
+        refetchOnWindowFocus: false,
     })
 
     useEffect(()=>{
         if(calendarName && calendarName.length>0){
             calendarNames(calendarName);
+            refetchCalendarName();
         }
-    },[calendarName])
+    },[calendarName,refetchCalendarName])
 
     const changeCalendar = (e,id,color) =>{
         if(e.target.classList.contains(`bg-${color}-200`)){
             setCalendarId(id);
             setCalendarAdded(true);
+            
         } else {
             setCalendarId(id);
             setCalendarDeleted(true)
         }
     }
+
+    // if (!isTokenLoaded) {
+    //     return <div>로딩 중... 액세스 토큰을 확인 중입니다.</div>; // Token이 없을 경우 로딩 화면을 표시
+    // }
+
 
     return (
         <div id='calendar-container'>

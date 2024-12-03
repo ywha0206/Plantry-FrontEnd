@@ -2,43 +2,64 @@ import React, { useEffect, useRef, useState } from 'react'
 import '@/pages/home/Home.scss'
 import adminProfile from '@/assets/admin-profile.png'
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../../store/useAuthStore';
+import axiosInstance from '@/services/axios.jsx'
 
 export default function Home() {
-
   const navigate = useNavigate();
-  const [progress, setProgress] = useState(80)
+  const [progress, setProgress] = useState(80);
+  const timeRef = useRef(null); // 시간 DOM 참조
+  const [isActive, setIsActive] = useState(true); // 페이지 활성화 상태 관리
 
-  const currentDate = new Date(); 
+  const currentDate = new Date();
   const formattedDate = new Intl.DateTimeFormat('ko-KR', {
-    timeZone: 'Asia/Seoul', 
+    timeZone: 'Asia/Seoul',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
   }).format(currentDate);
-  const timeRef = useRef(null);
-  const dateParts = formattedDate.split('.');
-  const finalDate = `${dateParts[0]} -${dateParts[1]} -${dateParts[2]}`;
-  const [work,setWork] = useState(22)
-  const [vacation,setVacation] = useState(3)
-  const [outside,setOutside] = useState(5)
-  useEffect(() => {
-    const updateTime = () => {
-      const currentDate = new Date();
-      const currentTimeString = currentDate.getHours().toString().padStart(2, '0') + ':' +
-        currentDate.getMinutes().toString().padStart(2, '0') + ':' +
-        currentDate.getSeconds().toString().padStart(2, '0');
-      
-      timeRef.current.innerText = currentTimeString; // ref를 통해 DOM에 직접 접근하여 시간 업데이트
 
-      setTimeout(updateTime, 1000);
+  const dateParts = formattedDate.split('.');
+  const finalDate = `${dateParts[0]}-${dateParts[1]}-${dateParts[2]}`;
+
+  const decodeAccessToken = useAuthStore((state)=>state.decodeAccessToken);
+  const getAccessToken = useAuthStore((state)=>state.getAccessToken);
+
+  
+  useEffect(() => {
+    const access = getAccessToken();
+    const decode = decodeAccessToken(access);
+
+    console.log(decode);
+
+    
+    let timeoutId;
+    const updateTime = () => {
+      if (!isActive || !timeRef.current) return; // 활성 상태가 아니거나 DOM이 없으면 중단
+
+      const currentDate = new Date();
+      const currentTimeString =
+        currentDate.getHours().toString().padStart(2, '0') +
+        ':' +
+        currentDate.getMinutes().toString().padStart(2, '0') +
+        ':' +
+        currentDate.getSeconds().toString().padStart(2, '0');
+
+      timeRef.current.innerText = currentTimeString; // DOM 업데이트
+      timeoutId = setTimeout(updateTime, 1000); // 1초마다 시간 갱신
     };
 
-    updateTime(); // 컴포넌트 마운트 시 최초 시간 설정
+    updateTime(); // 초기 시간 설정
 
-    // 클린업 (컴포넌트 언마운트 시 setTimeout을 정리)
-    return () => clearTimeout(updateTime);
-  }, []);
-  
+    // 페이지 활성화 상태 설정
+    setIsActive(true);
+
+    return () => {
+      clearTimeout(timeoutId); // 타이머 정리
+      setIsActive(false); // 비활성화 상태로 변경
+    };
+  }, [isActive]);
+
     return (
       <div id='home-container'>
         <section className='admin-index-top'>

@@ -29,10 +29,9 @@ export default function MainFooter(){
                 <Link  className="mr-[5px]" to=""><img src="/images/Logo Instagram.png" alt="sns-instagram Logo"/></Link>
                     <Link  className="mr-[5px]" to=""><img src="/images/Logo YouTube.png" alt="sns-yutube Logo"/></Link>
                     <Link to=""><img src="/images/LinkedIn.png" alt="sns-LinkedIn Logo"/></Link>
-                </section>
-
+                </section>  
             </div>
-            
+            <p className="flex justify-center mt-20 text-gray-400 font-light"> Copyright © 2024, Made with ️ by <span>&nbsp; Prantry Technologies &nbsp;</span> Version 0.0.3-SNAPSHOT</p>
 
         </footer>
 

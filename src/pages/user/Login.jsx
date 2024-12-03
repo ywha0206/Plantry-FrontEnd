@@ -2,10 +2,7 @@ import React, { useEffect, useState } from 'react'
 import '@/pages/user/Login.scss'
 import axiosInstance from '@/services/axios.jsx'
 import { Link, useNavigate } from 'react-router-dom'
-import CustomInput from '@/components/Input';
-import { CustomButton } from '@/components/Button';
 import { CustomGubun } from '@/components/Gubun';
-import { Modal } from '@/components/Modal';
 import CustomAlert from '@/components/Alert';
 import { CustomMessage } from '@/components/Message';
 import decodeToken from '../../util/decodeToken';
@@ -30,11 +27,8 @@ export default function Login() {
 
 
     const setUser = useUserStore((state) => state.setUser); // Zustand의 setUser 가져오기
-
-
     const setAccessToken = useAuthStore((state) => state.setAccessToken);
 
-  
     const changeHandler = (e)=>{
       if(e.target.name === 'uid'){
         setUid(e.target.value)
@@ -61,10 +55,10 @@ export default function Login() {
             
             setToken(token);
             setRole(role);
-            
-            console.log('로그인 성공, 토큰:', token);            
+
             setAccessToken(token); //zustand 상태 업데이트
-           
+            console.log("로그인 성공, 토큰 : "+token)
+
 
             setAlert(true)
             setMessage("로그인 성공하였습니다.")
@@ -138,7 +132,7 @@ export default function Login() {
             <input type="text" name='uid' value={uid} onChange={changeHandler} placeholder='아이디를 입력해주세요.'
             className='border rounded h-[50px] indent-4' />
             <p className='text-xs inp-font bg-white w-[70px] text-center ml-3 relative top-2'>PASSWORD</p>
-            <input type="text" name='pwd' value={pwd} onChange={changeHandler} placeholder='비밀번호를 입력해주세요.'
+            <input type="password" name='pwd' value={pwd} onChange={changeHandler} placeholder='비밀번호를 입력해주세요.'
             className='border rounded h-[50px] indent-4' />
             <div className='find-pwd'>
               <p className='text-sm mt-1' onClick={() => navigate("/user/find")}>Forgot password?</p>

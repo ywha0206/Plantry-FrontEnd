@@ -1,7 +1,9 @@
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react'
 import CustomAlert from '../Alert';
 import GetAddressModal from './GetAddressModal';
+import axiosInstance from '@/services/axios.jsx'
+import useWebSocket from '../../util/useWebSocket';
 
 export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCalendar}) {
     if(!isOpen) return null;
@@ -16,8 +18,19 @@ export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCa
     const usedColors = queryClient.getQueryData(['calendar-name']);
     const [filteredColors, setFilteredColors] = useState([]);
     const [isFiltering, setIsFiltering] = useState(false);
-    const [openAddress,setOpenAddress] = useState(false)
-    
+    const [openAddress,setOpenAddress] = useState(false);
+    const [selectedUsers, setSelectedUsers] = useState([]);
+    const { setSendMessage, isConnected, receiveMessage } = useWebSocket({
+        initialDestination: '/app/calendar/update', // WebSocket을 통해 메시지를 보낼 경로
+        initialMessage: 'update', // 초기 메시지
+    });
+
+    useEffect(()=>{
+        if(receiveMessage!=''){
+            console.log(receiveMessage)
+        }
+    },[receiveMessage])
+
     useEffect(() => {
         if (Array.isArray(usedColors) && usedColors.length > 0) {
             const filtered = colors.filter(v => {
@@ -28,6 +41,151 @@ export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCa
         }
     }, [usedColors, colors]);
     
+    const {data : selectedUsersData, isLoading : isLoadingSelectedUsers, isError : isErrorSelectedUsers } = useQuery({
+        queryKey : ['group-users-calendar'],
+        queryFn : async () => {
+            try {
+                const resp = await axiosInstance.get("/api/calendar/users?id="+selectedCalendar.id)
+                return resp.data
+            } catch (err) {
+                return err
+            }
+        },
+        retry : 1,
+    })
+
+    useEffect(()=>{
+        if((Array.isArray(selectedUsersData)&&selectedUsersData.length>0)){
+            setSelectedUsers(selectedUsersData)
+        }
+    },[selectedUsersData])
+
+    const cancleSelectedUsersHandler = (e,user) => {
+        setSelectedUsers((prev)=>{
+            return prev.filter((selectedUser) => selectedUser.id !== user.id);
+        })
+    }
+
+    const putCalendarMutation = useMutation({
+        mutationFn : async () => {
+            try {
+                const resp = await axiosInstance.put("/api/calendar",{
+                    users : selectedUsers,
+                    name,
+                    status,
+                    color,
+                    id : selectedCalendar.id
+                })
+                return resp.data
+            } catch (err) {
+                return err;
+            }
+        },
+        onSuccess : (data) => {
+            setCustomAlert(true)
+            setCustomAlertMessage(data)
+            setCustomAlertType("success")
+
+            queryClient.setQueryData(['calendar-name'],(prevData)=> {
+                return prevData.map((item) => {
+                    if (item.id == selectedCalendar.id) {
+                      return {
+                        ...item,
+                        name,
+                        status,
+                        color
+                      };
+                    }
+                    return item;
+                });
+            })
+            if (isConnected) {
+                setSendMessage('update'); // "update" 메시지 전송
+            }
+            setTimeout(() => {
+                setCustomAlert(false)
+                onClose();
+            }, 1000);
+        },
+        onError : (err) => {
+            setCustomAlert(true)
+            setCustomAlertMessage(err)
+            setCustomAlertType("error")
+            
+            setTimeout(() => {
+                setCustomAlert(false)
+            }, 1000);
+        }
+    })
+
+    const deleteCalendarMutation = useMutation({
+        mutationFn : async () => {
+            try {
+                const resp = await axiosInstance.delete("/api/calendar?id="+selectedCalendar.id)
+                return resp.data
+            } catch (err) {
+                return err;
+            }
+        },
+        onSuccess : (data) => {
+            setCustomAlert(true)
+            setCustomAlertMessage(data)
+            setCustomAlertType("success")
+
+            queryClient.setQueryData(['calendar-name'],(prevData)=>{
+                return prevData.filter((item) => item.id !== selectedCalendar.id);
+            })
+
+            // queryClient.setQueryData(['calendar-date'])
+            if (isConnected) {
+                setSendMessage('update'); // "update" 메시지 전송
+            }
+            setTimeout(() => {
+                setCustomAlert(false)
+                onClose();
+            }, 1000);
+        },
+        onError : (err) => {
+            setCustomAlert(true)
+            setCustomAlertMessage(err)
+            setCustomAlertType("error")
+
+            setTimeout(() => {
+                setCustomAlert(false)
+            }, 1000);
+        }
+    })
+
+    const putCalendarHandler = async () => {
+        try {
+            await putCalendarMutation.mutateAsync();
+        } catch (err) {
+            setCustomAlert(true)
+            setCustomAlertMessage(err)
+            setCustomAlertType("error")
+
+            setTimeout(() => {
+                setCustomAlert(false)
+            }, 1000);
+        }
+    }
+
+    const deleteCalendarHandler = async () => {
+        try {
+            await deleteCalendarMutation.mutateAsync();
+        } catch (err) {
+            setCustomAlert(true)
+            setCustomAlertMessage(err)
+            setCustomAlertType("error")
+
+            setTimeout(() => {
+                setCustomAlert(false)
+            }, 1000);
+        }
+    }
+
+
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 modal-custom-fixed">
         <CustomAlert 
@@ -90,34 +248,59 @@ export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCa
                     <span className="w-[100px] h-[40px] sticky top-0">참여자목록</span>
                     <div>
                         <ul>
-                            <li className='cursor-pointer hover:bg-purple-200'>
-                                <div className='flex justify-between px-[10px]'>
-                                    <div className='flex'>
-                                        <img src='/images/admin-profile.png' className='w-[50px] h-[50px] mr-[10px]'></img>
-                                        <div className='flex flex-col'>
-                                            <div className='flex w-[200px]'>
-                                                <div className='mr-[10px]'>이상훈</div>
-                                                <div className='text-gray-400'>부장</div>
+                            {
+                                (isLoadingSelectedUsers)
+                                ?
+                                (
+                                    <li>로딩중...</li>
+                                )
+                                :
+                                (isErrorSelectedUsers)
+                                ?
+                                (
+                                    <li>로딩에 실패했습니다...</li>
+                                )
+                                :
+                                (!(Array.isArray(selectedUsers))&&selectedUsers.length==0)
+                                ?
+                                (
+                                    <li>참여인원이 없습니다...</li>
+                                )
+                                :
+                                (
+                                    selectedUsers.map((v)=>{
+                                    return (
+                                    <li key={v.id} className='cursor-pointer hover:bg-purple-200'>
+                                        <div className='flex justify-between px-[10px]'>
+                                            <div className='flex'>
+                                                <img src='/images/admin-profile.png' className='w-[50px] h-[50px] mr-[10px]'></img>
+                                                <div className='flex flex-col'>
+                                                    <div className='flex w-[200px]'>
+                                                        <div className='mr-[10px]'>{v.name}</div>
+                                                        <div className='text-gray-400'>{v.level}</div>
+                                                    </div>
+                                                    <div className='w-[150px] mr-[30px] text-gray-400 text-[12px]'>{v.email}</div>
+                                                </div>
+                                                <div className='flex items-center w-[200px]'>
+                                                    {v.group}
+                                                </div>
                                             </div>
-                                            <div className='w-[150px] mr-[30px] text-gray-400 text-[12px]'>sanghun11010@gmail.com</div>
+                                            <div className='flex items-center'>
+                                                <button onClick={(e)=>{cancleSelectedUsersHandler(e,v)}} className='text-[20px] text-gray-400 font-bold'>X</button>
+                                            </div>
                                         </div>
-                                        <div className='flex items-center w-[200px]'>
-                                            마케팅부서
-                                        </div>
-                                    </div>
-                                    <div className='flex items-center'>
-                                        <button className='text-[20px] text-gray-400 font-bold'>X</button>
-                                    </div>
-                                </div>
-                            </li>
+                                    </li>
+                                    )})
+                                )
+                            }
                         </ul>
                     </div>
                 </div>
                 <div className='flex py-8 justify-end gap-4 items-center'>
-                    <button onClick={null} className='bg-purple w-[110px] hover:opacity-80 py-4 text-sm rounded-md white'>수정하기</button>
+                    <button onClick={putCalendarHandler} className='bg-purple w-[110px] hover:opacity-80 py-4 text-sm rounded-md white'>수정하기</button>
                     <button 
                     className="bg-purple w-[110px] py-4 text-sm rounded-md white hover:opacity-60 cursor-pointer"
-                    onClick={null}
+                    onClick={deleteCalendarHandler}
                     >
                     삭제
                     </button>
@@ -126,6 +309,9 @@ export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCa
             <GetAddressModal 
                 isOpen={openAddress}
                 onClose={()=>setOpenAddress(false)}
+                selectedUsers={selectedUsers}
+                setSelectedUsers={setSelectedUsers}
+                cancleSelectedUsersHandler={cancleSelectedUsersHandler}
             />
         </div>
         

@@ -112,7 +112,7 @@ export default function DocumentAside(){
                     }`}>
                     {folders.map((folder) => (
                     <div className="flex gap-4 items-center mb-1" key={folder.id}>
-                        <Link    to={`/document/list/${folder.id}`}
+                        <Link   to={`/document/list/${folder.id}`}
                                 state={{ folderName: folder.name }} // folder.name 전달
                                 className="flex gap-4 items-center mb-1">
                             <img src="/images/document-folder.png" alt="Folder Icon" />
