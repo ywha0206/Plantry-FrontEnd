@@ -24,7 +24,6 @@ export default function NewFolder({ isOpen, onClose ,parentId,maxOrder }) {
   const [formData, setFormData] = useState(initState);
 
 
-  const user = useUserStore((state) => state.user);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -43,17 +42,13 @@ export default function NewFolder({ isOpen, onClose ,parentId,maxOrder }) {
       ...prev,
       parentId: parentId,
       order: maxOrder + 100, // maxOrder + 100으로 새로운 순서값 설정
-      owner: user.uid, // 현재 사용자 ID 설정
     }));
-  }, [parentId, maxOrder, user.uid]);
+  }, [parentId, maxOrder]);
 
    // 드라이브 마스터 설정 또는 업데이트
    const handleSelectMaster = () => {
-    if (!user.uid.trim()) return; // 값이 없으면 설정하지 않음
     setFormData({
       ...formData,
-      driveMaster: user.uid, // 선택된 이름
-      masterEmail: user.email, // 예시 이메일 생성
     });
   };
 

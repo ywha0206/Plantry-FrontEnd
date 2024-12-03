@@ -7,12 +7,6 @@ const useUserStore = create(
             user: null,
             setUser: (userData) => set({ user: userData }),
             clearUser: () => set({ user: null }),
-        }),
-        {
-            name: 'user-store', // 저장소 이름
-            getStorage: () => localStorage, // localStorage 사용
-        }
-    )
-);
+        })));
 
 export default useUserStore;
