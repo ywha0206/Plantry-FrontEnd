@@ -49,14 +49,14 @@ export default function DocumentAside(){
 
     
     let maxSize;
-    if (user.grade === 1) {
+    if (user.grade === 1 || user.grade ===null) {
         maxSize = 524288000; // 500 MB
     } else if (user.grade === 2) {
         maxSize = 1048576000; // 1 GB
     } else {
         maxSize = 10485760000; // 10 GB
     }
-    const usedSize = 1048576000;
+    const usedSize = size;
     const remainingSize = maxSize - usedSize;
     const usedPercentage = (usedSize / maxSize) * 100;
 
