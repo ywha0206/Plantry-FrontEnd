@@ -344,7 +344,7 @@ const handleProjectChange = (e) => {
                                 key={m.id}
                                 onClick={() => handleMemberClick(m)}
                                 className={`flex rounded-3xl p-3 mt-2 cursor-pointer border border-transparent  ${
-                                    project.coworkers.includes(m)
+                                    project.coworkers.some(coworker => coworker.id === m.id)
                                     ? "bg-indigo-100 hover:border-indigo-300" // 선택된 멤버의 배경색
                                     : "bg-gray-100 hover:border-gray-300"
                                 }`}
@@ -394,7 +394,7 @@ const handleProjectChange = (e) => {
                       key={m.id}
                       onClick={() => handleMemberClick(m)}
                       className={`rounded-3xl px-3 py-3 flex mt-2 cursor-pointer border border-transparent  ${
-                        project.coworkers.includes(m)
+                        project.coworkers.some(coworker => coworker.id === m.id)
                           ? "bg-indigo-100 hover:border-indigo-300" // 선택된 멤버의 배경색
                           : "bg-gray-100 hover:border-gray-300"
                       }`}
