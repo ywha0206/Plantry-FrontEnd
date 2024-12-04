@@ -29,6 +29,14 @@ export default function DocumentList() {
     const queryClient = useQueryClient();
     const [draggedFolder, setDraggedFolder] = useState(null); // 드래그된 폴더
 
+    const [isDetailVisible, setIsDetailVisible] = useState(false); // 상세 정보 표시 상태 추가
+    const [selectedFolder, setSelectedFolder] = useState(null); // 선택된 폴더 정보 상태 추가
+
+    const handleDetailToggle = (folder) => {
+        console.log("handleDetailToggle",folder)
+        setSelectedFolder(folder); // 선택된 폴더 정보 설정
+        setIsDetailVisible(!isDetailVisible);
+    };
 
 
     const [menuState, setMenuState] = useState({
@@ -98,6 +106,7 @@ export default function DocumentList() {
             renameFolderMutation.mutate(newFolderName);
         }
     };
+
     // 드래그 시작 핸들러
     const handleDragStart = (folder) => {
         console.log("handelDragStart ",folder)
@@ -137,6 +146,7 @@ export default function DocumentList() {
             // Show loading spinner
         },
     });
+
     const handleDrop = (targetFolder, position) => {
         console.log("handleDrop called with:", { targetFolder, position });
     
@@ -274,7 +284,7 @@ export default function DocumentList() {
     console.log("fileMaxorder",fileMaxOrder);
 
     return (
-        <DocumentLayout>
+        <DocumentLayout isDetailVisible={isDetailVisible} selectedFolder={selectedFolder}>
             <section className="flex gap-4 items-center">
                 {editing ? (
                     <input
@@ -302,17 +312,28 @@ export default function DocumentList() {
                     <CustomSearch width1="20" width2="80" />
                     <p className="ml-4">View :</p>
                     <button
-                        className={`list ${viewType === 'list' ? 'active' : ''}`}
-                        onClick={() => setViewType('list')}
-                    >
-                        <img src="/images/document-note.png" alt="List View" />
-                    </button>
-                    <button
-                        className={`box ${viewType === 'box' ? 'active' : ''}`}
-                        onClick={() => setViewType('box')}
-                    >
-                        <img src="/images/document-menu.png" alt="Box View" />
-                    </button>
+                            className={`list ${viewType === 'list' ? 'active' : ''}`} // Add active class for styling
+                            onClick={() => setViewType('list')}> 
+                            <img className={`list ${viewType === 'list' ? 'active' : ''}`} src='/images/document-note.png'
+                                  style={{
+                                    filter: viewType === 'list' 
+                                        ? 'invert(29%) sepia(96%) saturate(748%) hue-rotate(180deg) brightness(89%) contrast(101%)' 
+                                        : 'invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(0%)', // 블랙 필터
+                                }}
+                            ></img>
+
+                            </button>
+                        <button
+                            className={`box ${viewType === 'box' ? 'active' : ''}`} // Add active class for styling
+                            onClick={() => setViewType('box')}>                       
+                            <img className={`list ${viewType === 'list' ? 'active' : ''}`} 
+                                 style={{
+                                    filter: viewType === 'box'
+                                        ? 'invert(29%) sepia(96%) saturate(748%) hue-rotate(180deg) brightness(89%) contrast(101%)'
+                                        : 'invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(0%)', // 블랙 필터
+                                }}
+                                src='/images/document-menu.png' />
+                            </button>
                 </div>
                 <div className="flex gap-2">
                     <button
@@ -418,6 +439,8 @@ export default function DocumentList() {
                     folderName={contextMenu.folderName}
                     folderId={contextMenu.folderId}
                     path={contextMenu.path}
+                    onDetailToggle={() => handleDetailToggle(contextMenu.folder)} // 상세 정보 토글 함수 전달
+
                 />
             
         </DocumentLayout>
