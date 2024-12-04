@@ -290,7 +290,7 @@ export default function Project() {
     <div id="project-container" className="flex min-h-full">
       {/* 사이드바 */}
       <div className="w-[270px]">
-        <ProjectAside />
+        <ProjectAside setData={setData} />
       </div>
 
       {/* 메인 섹션 */}
