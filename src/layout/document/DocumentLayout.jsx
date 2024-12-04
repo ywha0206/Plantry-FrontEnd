@@ -3,12 +3,13 @@ import DocumentAside from "../../components/document/DocumentAside";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../../services/axios";
-import { useLinkClickHandler, useLocation } from "react-router-dom";
+import { useLinkClickHandler, useLocation, useNavigate } from "react-router-dom";
 import { CustomSVG } from "@/components/project/_CustomSVG";
 
 export default function DocumentLayout({children, isDetailVisible , selectedFolder, uid ,closeDetailView}){
     console.log("유아이디!!!",uid);
     console.log("selectedFolder:", selectedFolder);
+    const navigate = useNavigate();
 
 
     // 액세스 권한 메시지 결정 함수
@@ -30,9 +31,31 @@ export default function DocumentLayout({children, isDetailVisible , selectedFold
     return null;
   };
 
-  const linkHandler = (selectedFolder)=>{
+  const linkHandler = (selectedFolder) => {
+    if (!selectedFolder || !selectedFolder.path) {
+        console.error("selectedFolder 또는 path가 유효하지 않습니다.");
+        return;
+    }
 
-  }
+    const pathParts = selectedFolder.path.split('/');
+    console.log("여기", pathParts);
+
+    // 조건에 따라 'mydrive' 또는 다른 경로로 설정
+    if (pathParts[2] === uid && pathParts.length === 4) {
+        // 'mydrive' 조건에 해당하면 /document로 이동
+        console.log("mydrive 조건 만족");
+        navigate('/document');
+    } else {
+        // 그 외의 경우 parentId를 기준으로 이동
+        const lastFolderName = pathParts[pathParts.length - 2]; 
+        console.log("parentId 경로로 이동");
+        navigate(`/document/list/${selectedFolder.parentId}`,{
+            state:{
+                folderName: lastFolderName
+            }
+        });
+    }
+};
 
     return (<>
         <div id='document-container1'>
@@ -88,8 +111,10 @@ export default function DocumentLayout({children, isDetailVisible , selectedFold
                                     width: "fit-content",
                                     alignItems: "center",   // 이미지와 텍스트 정렬
                                     whiteSpace: "nowrap",   // 줄 바꿈 방지
+                                    cursor: "pointer",
                                 }} 
-                                onClick={(selectedFolder)=>linkHandler(selectedFolder)}>
+                                onClick={() => linkHandler(selectedFolder)} // 수정된 linkHandler 호출
+                                >                                
                                 <img 
                                     className="mr-[10px] w-[20px] h-[20px]"
                                     src={
@@ -105,16 +130,16 @@ export default function DocumentLayout({children, isDetailVisible , selectedFold
                                     {selectedFolder.path
                                     ? (() => {
                                         const pathParts = selectedFolder.path.split('/');
+                                        console.log("여기",pathParts);
                                         const basePath = pathParts.slice(0, -1).join('/'); // 경로에서 마지막 폴더를 제외한 부분
                                         const lastFolderName = pathParts[pathParts.length - 2]; // 마지막 폴더 이름
-                                        return pathParts[2] === uid ? 'mydrive' : lastFolderName;
+                                        return pathParts[2] === uid && pathParts.length ===4? 'mydrive' : lastFolderName;
                                     })()
                                     : '경로 없음'}
                                 </span>
 
                             </div>
 
-                            <span className="BowpK">{selectedFolder.path}</span>
                             </div>
                             <div className="my-[10px] flex flex-col">
                             <span className="BowpK">소유자</span>

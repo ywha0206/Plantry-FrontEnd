@@ -38,6 +38,11 @@ export default function DocumentList() {
         setIsDetailVisible(!isDetailVisible);
     };
 
+    const closeDetailView = () => {
+        setIsDetailVisible(false);
+        setSelectedFolder(null);
+      };
+
 
     const [menuState, setMenuState] = useState({
         isMenuOpen: false,
@@ -62,10 +67,10 @@ export default function DocumentList() {
 
     // 폴더 및 파일 데이터 가져오기
     const { data, isLoading, isError } = useQuery({
-        queryKey: ['folderContents', folderId, user.uid],
+        queryKey: ['folderContents', folderId],
         queryFn: async () => {
             const response = await axiosInstance.get(
-                `/api/drive/folder-contents?folderId=${folderId}&ownerId=${user.uid}`
+                `/api/drive/folder-contents?folderId=${folderId}`
             );
             return response.data;
         },
@@ -284,7 +289,7 @@ export default function DocumentList() {
     console.log("fileMaxorder",fileMaxOrder);
 
     return (
-        <DocumentLayout isDetailVisible={isDetailVisible} selectedFolder={selectedFolder}>
+        <DocumentLayout isDetailVisible={isDetailVisible} selectedFolder={selectedFolder} uid={data.uid} closeDetailView={closeDetailView}>
             <section className="flex gap-4 items-center">
                 {editing ? (
                     <input

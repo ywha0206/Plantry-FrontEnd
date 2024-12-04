@@ -76,6 +76,27 @@ export default function DocumentAside(){
         setContextMenu({ visible: false, position: { top: 0, left: 0 }, folder: null });
     };
 
+    const handleDelete = async (item) => {
+        try {
+            const response = await axiosInstance.delete(
+                `/api/drive/folder/delete/${item.id}`, // 폴더 또는 파일의 타입과 ID 사용
+                { params: { path: item.path } } // 경로 전달
+            );
+    
+            if (response.status === 200) {
+                console.log(`${item.type} 삭제 성공:`, item.id);
+                queryClient.invalidateQueries(['folderContents', folderId]);
+                alert(`${item.type === 'folder' ? '폴더' : '파일'}가 삭제되었습니다.`);
+            } else {
+                console.error('삭제 실패:', response.data);
+                alert('삭제에 실패했습니다. 다시 시도해주세요.');
+            }
+        } catch (error) {
+            console.error('삭제 중 오류 발생:', error);
+            alert('삭제 중 오류가 발생했습니다.');
+        }
+    };
+
    
 
 
