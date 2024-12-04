@@ -39,8 +39,6 @@ axiosInstance.interceptors.request.use(
 
                 if (refreshToken) {
                     try {
-                        console.log("리프레시 토큰을 사용해 액세스 토큰 갱신 중...");
-
                         const newAccessToken = await useAuthStore.getState().refreshAccessToken();
                         accessToken = newAccessToken;
                         useAuthStore.getState().setAccessToken(accessToken);  // 새 액세스 토큰을 상태에 저장
@@ -49,19 +47,15 @@ axiosInstance.interceptors.request.use(
                         notifySubscribers(accessToken);
 
                         config.headers['Authorization'] = `Bearer ${accessToken}`;  // 갱신된 토큰을 설정
-                        console.log("액세스 토큰 갱신 완료 후 요청 헤더 추가");
-
                         refreshing = false;
 
                         return config; // 갱신 후 최초의 요청을 진행
 
                     } catch (error) {
-                        console.error("액세스 토큰 갱신 실패", error);
                         refreshing = false;
                         return Promise.reject(error);  // 갱신 실패 시 요청 거부
                     }
                 } else {
-                    console.log("리프레시 토큰이 없습니다.");
                     return Promise.reject('No refresh token available');
                 }
             }
@@ -78,7 +72,6 @@ axiosInstance.interceptors.request.use(
             config.headers['Authorization'] = `Bearer ${accessToken}`;
         }
 
-        console.log("액세스 토큰이 존재하여 요청 진행");
         return config;
     },
     (error) => {
