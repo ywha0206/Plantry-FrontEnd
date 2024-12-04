@@ -27,6 +27,7 @@ export default function DocumentAside(){
     const queryClient = useQueryClient();
     const location = useLocation(); // 현재 경로 가져오기
 
+
   // React Query를 사용하여 폴더 데이터 가져오기
     const { data: folderResponse = { folderDtoList: [], uid: "",size: 0 }, isLoading, isError } = useQuery({
         queryKey: ["driveList", location.pathname],
@@ -37,12 +38,27 @@ export default function DocumentAside(){
         staleTime: 300000, // 데이터 신선 유지 시간 (5분)
     });
 
+    const user = useUserStore((state) => state.user);
+    console.log("Current user:", user.grade);
     // 폴더 필터링 (공유 및 개인)
     const sharedFolders = folderResponse?.folderDtoList?.filter((folder) => folder.isShared === 1) || [];
     const personalFolders = folderResponse?.folderDtoList?.filter((folder) => folder.isShared === 0) || [];
    
     const size = folderResponse.size;
     console.log("사이즈!!!",size);
+
+    
+    let maxSize;
+    if (user.grade === 1) {
+        maxSize = 524288000; // 500 MB
+    } else if (user.grade === 2) {
+        maxSize = 1048576000; // 1 GB
+    } else {
+        maxSize = 10485760000; // 10 GB
+    }
+    const usedSize = 1048576000;
+    const remainingSize = maxSize - usedSize;
+    const usedPercentage = (usedSize / maxSize) * 100;
 
     const togglePinnedSection = () => {
       setIsPinnedOpen((prev) => !prev); // Toggle the section
@@ -266,9 +282,23 @@ export default function DocumentAside(){
                         ))}  
                         {sharedFolders.length === 0 && <p className="opacity-60">Shared 폴더가 없습니다.</p>}
                 </section>
+
+                
                 <section className='mt-auto flex flex-col gap-5'>
+                    <div className="bg-gray-100 rounded-md p-4 text-gray-600 text-sm">
+                        <p>사용량: {(usedSize / 1024 / 1024).toFixed(2)} MB / {(maxSize / 1024 / 1024).toFixed(2)} MB</p>
+                        <div className="w-full bg-gray-300 rounded-full h-2.5 my-2">
+                            <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: `${usedPercentage}%` }}></div>
+                        </div>
+                        <p>남은 용량: {(remainingSize / 1024 / 1024).toFixed(2)} MB</p>
+                    </div>
                     <button onClick={makeDrive} className='bg-purple white h-8 rounded-md'>드라이브 생성</button>
+
                 </section>
+
+               {/*  <section className='mt-auto flex flex-col gap-5'>
+                    <button onClick={makeDrive} className='bg-purple white h-8 rounded-md'>드라이브 생성</button>
+                </section> */}
                 <div className='drive-modal'>
                     <NewDrive 
                        isOpen={drive}
