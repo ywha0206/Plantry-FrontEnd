@@ -28,7 +28,7 @@ export default function DocumentAside(){
     const location = useLocation(); // 현재 경로 가져오기
 
   // React Query를 사용하여 폴더 데이터 가져오기
-    const { data: folderResponse = { folderDtoList: [], uid: "" }, isLoading, isError } = useQuery({
+    const { data: folderResponse = { folderDtoList: [], uid: "",size: 0 }, isLoading, isError } = useQuery({
         queryKey: ["driveList", location.pathname],
         queryFn: async () => {
             const response = await axiosInstance.get("/api/drive/folders");
@@ -38,9 +38,11 @@ export default function DocumentAside(){
     });
 
     // 폴더 필터링 (공유 및 개인)
-    const sharedFolders = folderResponse.folderDtoList.filter((folder) => folder.isShared === 1);
-    const personalFolders = folderResponse.folderDtoList.filter((folder) => folder.isShared === 0);
-
+    const sharedFolders = folderResponse?.folderDtoList?.filter((folder) => folder.isShared === 1) || [];
+    const personalFolders = folderResponse?.folderDtoList?.filter((folder) => folder.isShared === 0) || [];
+   
+    const size = folderResponse.size;
+    console.log("사이즈!!!",size);
 
     const togglePinnedSection = () => {
       setIsPinnedOpen((prev) => !prev); // Toggle the section

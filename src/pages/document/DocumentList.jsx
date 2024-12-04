@@ -72,6 +72,7 @@ export default function DocumentList() {
             const response = await axiosInstance.get(
                 `/api/drive/folder-contents?folderId=${folderId}`
             );
+        
             return response.data;
         },
         staleTime: 300000, // 데이터가 5분 동안 신선하다고 간주
@@ -262,8 +263,6 @@ export default function DocumentList() {
   
 
 
-    if (isLoading) return <div>Loading...</div>;
-    if (isError) return <div>Error loading folder contents.</div>;
 
     const subFolders = (data?.subFolders || [])
     .map((folder) => ({
@@ -287,6 +286,10 @@ export default function DocumentList() {
             : 0; // 기본값을 0으로 설정
 
     console.log("fileMaxorder",fileMaxOrder);
+
+    
+    if (isLoading) return <div>Loading...</div>;
+    if (isError) return <div>Error loading folder contents.</div>;
 
     return (
         <DocumentLayout isDetailVisible={isDetailVisible} selectedFolder={selectedFolder} uid={data.uid} closeDetailView={closeDetailView}>

@@ -332,18 +332,22 @@ export default function Document() {
                 
                 {viewType === 'box' ? ( <>
                  <section className='flex gap-6 ml-16 mt-12'>
-                    {drives.folderDtoList.map((drive) => (
-                        <DocumentCard3
-                            key={drive.id}
-                            cnt={drive.fileCount || 0}
-                            fileName={drive.name}
-                            onContextMenu={handleContextMenu}
-                            onClick={() => setActiveCard(drive.name)}
-                            folderId={drive.id}
-                            folder={drive}
-                            path={drive.path}
-                        />
-                    ))}
+                 {drives?.folderDtoList?.length > 0 ? (
+                        drives.folderDtoList.map((drive) => (
+                            <DocumentCard3
+                                key={drive.id}
+                                cnt={drive.fileCount || 0}
+                                fileName={drive.name}
+                                onContextMenu={handleContextMenu}
+                                onClick={() => setActiveCard(drive.name)}
+                                folderId={drive.id}
+                                folder={drive}
+                                path={drive.path}
+                            />
+                        ))
+                    ) : (
+                        <p className="text-gray-500 ml-4">드라이브가 없습니다.</p>
+                    )}
                 </section>
                     </> ):( 
                         <section  className="h-[500px] overflow-scroll scrollbar-none">
