@@ -87,7 +87,8 @@ function App() {
       const tokenExpired = isTokenExpired();
       
       if (tokenExpired) {
-       
+        const refreshToken = await useAuthStore.getState().getRefreshToken();
+        if(!refreshToken){
           setCustomAlert(true)
           setCustomAlertMessage("로그인 세션이 만료되었습니다. 다시 로그인해주세요.")
           setCustomAlertType("error")
@@ -96,7 +97,7 @@ function App() {
             logout();
             navigate("/user/login"); 
           }, 2000);
-        
+        }
       }
     };
 

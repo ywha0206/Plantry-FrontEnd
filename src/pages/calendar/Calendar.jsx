@@ -180,9 +180,7 @@ export default function Calendar() {
         queryKey : ['calendar-name'],
         queryFn : async () => {
             try {
-                console.log('here1-1');
                 const response = await axiosInstance.get('/api/calendar/name')
-                console.log('here1-2');
                 return response.data
             } catch(err){
                 return err
@@ -198,9 +196,7 @@ export default function Calendar() {
         queryKey : ['calendar-content-name'],
         queryFn : async () => {
             try {
-                console.log('here2-1');
                 const response = await axiosInstance.get(`/api/calendar/content/name/today`)
-                console.log('here2-2');
                 return response.data;
             } catch (err) {
                 return err;
