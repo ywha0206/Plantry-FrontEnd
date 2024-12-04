@@ -50,6 +50,7 @@ import PageViewPages from "./pages/page/PageView";
 import { useAuthStore } from "./store/useAuthStore";
 import FAQWrite from "./pages/rending/WritePage";
 import FAQLayout from "./layout/rending/faqLayout";
+import TestIndex from "./pages/test";
 const MainIndexComponent = lazy(() => import("./components/render/main"));
 
 function App() {
@@ -64,6 +65,7 @@ function App() {
   // 검증 제외 경로
   const excludedRoutesSet = new Set([
     "/",
+    "/test",
     "/service",
     "/price",
     "/faq",
@@ -115,6 +117,7 @@ function App() {
               </Suspense>
             }
           />
+          <Route path="/test" element={<TestIndex />} />
           <Route path="service" element={<ServicePage />} />
           <Route path="price" element={<PricePage />} />
           <Route path="faq" element={<FAQPage />} />
