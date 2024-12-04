@@ -16,7 +16,7 @@ import AdminAttendance from "./pages/admin/Attendance";
 import AdminOutSide from "./pages/admin/OutSide";
 import ServicePage from "./pages/rending/ServicePage";
 import RenderDefaultLayout from "./layout/rending/RenderDefaultLayout";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import PricePage from "./pages/rending/PricePage";
 import CommunityIndex from "./pages/community/Index";
 import CommunityWrite from "./pages/community/Write";
@@ -50,7 +50,7 @@ import PageViewPages from "./pages/page/PageView";
 import { useAuthStore } from "./store/useAuthStore";
 import FAQWrite from "./pages/rending/WritePage";
 import FAQLayout from "./layout/rending/faqLayout";
-import TestIndex from "./pages/test";
+import CustomAlert from "./components/Alert";
 const MainIndexComponent = lazy(() => import("./components/render/main"));
 
 function App() {
@@ -61,6 +61,10 @@ function App() {
   const isTokenExpired = useAuthStore((state) => state.isTokenExpired);
   const refreshAccessToken = useAuthStore((state) => state.refreshAccessToken);
   const logout = useAuthStore((state) => state.logout);
+  const [customAlert, setCustomAlert] = useState(false)
+  const [customAlertType, setCustomAlertType] = useState("")
+  const [customAlertMessage, setCustomAlertMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(false);
 
   // 검증 제외 경로
   const excludedRoutesSet = new Set([
@@ -77,35 +81,40 @@ function App() {
 
   useEffect(() => {
     const checkToken = async () => {
-      console.log(`현재 경로 : ${location.pathname}`);
       if (excludedRoutesSet.has(location.pathname)) {
-        console.log("Excluded route, skipping token check.");
         return;
       } // 제외 경로는 검증하지 않음
 
       const tokenExpired = isTokenExpired();
+
       if (tokenExpired) {
-        console.log("액세스 토큰 만료됨. 재발급 받을 거임...");
-        const newToken = await refreshAccessToken();
-        console.log(
-          "리프래시액새스토큰 쭈스탠드에서 꺼내 쓴 거 결과임 " + newToken
-        );
-        if (!newToken) {
-          console.error("액세스 토큰 재발급 실패함. Redirecting to login...");
-          alert("로그인 세션이 만료되었습니다. 다시 로그인해주세요."); // 사용자 알림 추가
-          logout();
-          navigate("/user/login"); // 토큰 갱신 실패 시 로그인 페이지로 이동
-        } else {
-          console.log("액세스 토큰 재발급 갓료.");
+        const refreshToken = await useAuthStore.getState().getRefreshToken();
+        if(!refreshToken){
+          setCustomAlert(true)
+          setCustomAlertMessage("로그인 세션이 만료되었습니다. 다시 로그인해주세요.")
+          setCustomAlertType("error")
+          setTimeout(() => {
+            setCustomAlert(false)
+            logout();
+            navigate("/user/login");
+          }, 2000);
         }
       }
     };
 
+
+
     checkToken();
+
   }, [location, isTokenExpired, refreshAccessToken, navigate]);
 
   return (
     <div id="app-container m-0 xl2:mx-auto">
+      <CustomAlert
+        type={customAlertType}
+        message={customAlertMessage}
+        isOpen={customAlert}
+      />
       <Routes>
         {/*사이드바 안쓰는 레이아웃 */}
         <Route path="/" element={<RenderDefaultLayout />}>

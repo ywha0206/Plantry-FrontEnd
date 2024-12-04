@@ -3,9 +3,10 @@ import CustomAlert from '../Alert';
 import GetAddressModal from './GetAddressModal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '@/services/axios.jsx'
+import useWebSocket from '../../util/useWebSocket';
 
 export default function PostCalendarModal({isOpen,onClose}) {
-  if(!isOpen) return null;
+
   const queryClient = useQueryClient();
   const [customAlert, setCustomAlert] = useState(false);
   const [customAlertType, setCustomAlertType] = useState("");
@@ -19,11 +20,13 @@ export default function PostCalendarModal({isOpen,onClose}) {
   const [filteredColors, setFilteredColors] = useState([]);
   const [isFiltering, setIsFiltering] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const { sendWebSocketMessage } = useWebSocket({});
+
   
   useEffect(() => {
     if (Array.isArray(usedColors) && usedColors.length > 0) {
       const filtered = colors.filter(v => {
-        return !usedColors.some(used => used.color === v);
+        return !usedColors.some(used => used.color == v);
       });
       setFilteredColors(filtered);
       setIsFiltering(true);
@@ -54,23 +57,16 @@ export default function PostCalendarModal({isOpen,onClose}) {
       setCustomAlert(true)
       setCustomAlertMessage(data.message)
       setCustomAlertType("success")
-      queryClient.setQueryData(['calendar-name'], (prev) => {
-        let updatedData = [...prev]; 
-    
-        if (data.status == 1) {
-            updatedData = updatedData.map((item) => {
-                if (item.status === 1) {
-                    return {
-                        ...item, 
-                        status: 2 
-                    };
-                }
-                return item; 
-            });
-        }
-    
-        return [...updatedData,data.calendarName];
-      });
+      const messageData = {
+        "name" : name,
+        "color" : color,
+        "userIds" : selectedUsers.map(v=>v.id),
+        "status" : status,
+        "id" : data.calendarName.id,
+        "myid" : usedColors.id
+      }
+      sendWebSocketMessage(messageData,'/app/calendar/post'); 
+      
       setTimeout(() => {
         setCustomAlert(false)
         onClose();
@@ -100,7 +96,7 @@ export default function PostCalendarModal({isOpen,onClose}) {
       }, 1000);
     }
   }
-
+  if(!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 modal-custom-fixed">
       <CustomAlert 

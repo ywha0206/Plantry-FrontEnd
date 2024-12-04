@@ -4,32 +4,25 @@ import CustomAlert from '../Alert';
 import GetAddressModal from './GetAddressModal';
 import axiosInstance from '@/services/axios.jsx'
 import useWebSocket from '../../util/useWebSocket';
+import { Client } from '@stomp/stompjs';
+import { useCalenderNameStore } from '../../store/zustand';
 
 export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCalendar}) {
-    if(!isOpen) return null;
+
     const queryClient = useQueryClient();
     const [customAlert, setCustomAlert] = useState(false);
     const [customAlertType, setCustomAlertType] = useState("");
     const [customAlertMessage, setCustomAlertMessage] = useState("");
-    const [name, setName] = useState(selectedCalendar.name);
-    const [status, setStatus] = useState(selectedCalendar.status);
-    const [color,setColor] = useState(selectedCalendar.color);
+    const [name, setName] = useState('');
+    const [status, setStatus] = useState('');
+    const [color,setColor] = useState('');
     const [colors,setColors] = useState(["red","blue","green","purple","yellow","orange"])
-    const usedColors = queryClient.getQueryData(['calendar-name']);
+    const usedColors = queryClient.getQueryData(['calendar-name']) || [];
     const [filteredColors, setFilteredColors] = useState([]);
     const [isFiltering, setIsFiltering] = useState(false);
     const [openAddress,setOpenAddress] = useState(false);
     const [selectedUsers, setSelectedUsers] = useState([]);
-    const { setSendMessage, isConnected, receiveMessage } = useWebSocket({
-        initialDestination: '/app/calendar/update', // WebSocket을 통해 메시지를 보낼 경로
-        initialMessage: 'update', // 초기 메시지
-    });
-
-    useEffect(()=>{
-        if(receiveMessage!=''){
-            console.log(receiveMessage)
-        }
-    },[receiveMessage])
+    const { sendWebSocketMessage } = useWebSocket({});
 
     useEffect(() => {
         if (Array.isArray(usedColors) && usedColors.length > 0) {
@@ -40,9 +33,17 @@ export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCa
         setIsFiltering(true);
         }
     }, [usedColors, colors]);
+
+    useEffect(()=>{
+        if(selectedCalendar && typeof selectedCalendar === 'object'){
+            setName(selectedCalendar.name)
+            setStatus(selectedCalendar.status)
+            setColor(selectedCalendar.color)
+        }
+    },[selectedCalendar])
     
     const {data : selectedUsersData, isLoading : isLoadingSelectedUsers, isError : isErrorSelectedUsers } = useQuery({
-        queryKey : ['group-users-calendar'],
+        queryKey : ['group-users-calendar',selectedCalendar],
         queryFn : async () => {
             try {
                 const resp = await axiosInstance.get("/api/calendar/users?id="+selectedCalendar.id)
@@ -51,14 +52,16 @@ export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCa
                 return err
             }
         },
+        enabled: selectedCalendar.id != 0,
         retry : 1,
     })
 
-    useEffect(()=>{
-        if((Array.isArray(selectedUsersData)&&selectedUsersData.length>0)){
-            setSelectedUsers(selectedUsersData)
+    useEffect(() => {
+        if (Array.isArray(selectedUsersData) && selectedUsersData.length > 0) {
+            setSelectedUsers(selectedUsersData);
         }
-    },[selectedUsersData])
+    }, [selectedUsersData]);
+    
 
     const cancleSelectedUsersHandler = (e,user) => {
         setSelectedUsers((prev)=>{
@@ -86,22 +89,8 @@ export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCa
             setCustomAlertMessage(data)
             setCustomAlertType("success")
 
-            queryClient.setQueryData(['calendar-name'],(prevData)=> {
-                return prevData.map((item) => {
-                    if (item.id == selectedCalendar.id) {
-                      return {
-                        ...item,
-                        name,
-                        status,
-                        color
-                      };
-                    }
-                    return item;
-                });
-            })
-            if (isConnected) {
-                setSendMessage('update'); // "update" 메시지 전송
-            }
+            const id = selectedCalendar.id
+            sendWebSocketMessage(id,'/app/calendar/update'); // "update" 메시지 전송
             setTimeout(() => {
                 setCustomAlert(false)
                 onClose();
@@ -132,14 +121,9 @@ export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCa
             setCustomAlertMessage(data)
             setCustomAlertType("success")
 
-            queryClient.setQueryData(['calendar-name'],(prevData)=>{
-                return prevData.filter((item) => item.id !== selectedCalendar.id);
-            })
-
             // queryClient.setQueryData(['calendar-date'])
-            if (isConnected) {
-                setSendMessage('update'); // "update" 메시지 전송
-            }
+            const id = selectedCalendar.id
+            sendWebSocketMessage(id,'/app/calendar/delete'); 
             setTimeout(() => {
                 setCustomAlert(false)
                 onClose();
@@ -185,7 +169,7 @@ export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCa
     }
 
 
-
+    if(!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 modal-custom-fixed">
         <CustomAlert 
@@ -219,25 +203,22 @@ export default function DeleteAndModifyCalendarModal({isOpen, onClose,selectedCa
                 </div>
                 <div className='flex gap-8 mb-4 justify-start'>
                     <span className='w-[100px] h-[40px]'>캘린더색상</span>
-                    <select value={color} onChange={(e)=>setColor(e.target.value)} className='h-[40px] w-[250px] border rounded-md px-2 outline-none'>
-                    {
-                        (!(Array.isArray(usedColors)) || usedColors.length==0)
-                        ?
-                        colors.map(v => {
-                        return <option key={v} value={v}>{v}</option>
-                        })
-                        :
-                        (!isFiltering)
-                        ?
-                        (
-                        <option>로딩중...</option>
-                        )
-                        :
-                        (
-                        filteredColors.map(c => {
-                        return <option key={c} value={c}>{c}</option>
-                        }))
-                    }
+                    <select value={color} onChange={(e) => setColor(e.target.value)} className='h-[40px] w-[250px] border rounded-md px-2 outline-none'>
+                        {(!Array.isArray(usedColors) || usedColors.length === 0) ? (
+                            colors.map(v => {
+                                return <option key={v} value={v}>{v}</option>;
+                            })
+                        ) : isFiltering ? (
+                            filteredColors.length === 0 ? (
+                                <option>색상 없음</option>
+                            ) : (
+                                filteredColors.map(c => {
+                                    return <option key={c} value={c}>{c}</option>;
+                                })
+                            )
+                        ) : (
+                            <option>로딩중...</option>
+                        )}
                     </select>
                 </div>
                 <div className='flex gap-8 mb-4 justify-start'>

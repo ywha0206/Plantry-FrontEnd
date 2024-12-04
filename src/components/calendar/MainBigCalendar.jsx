@@ -9,8 +9,9 @@ import DateChangerModal from './DateChangerModal';
 import CustomAlert from '../Alert';
 import ClickDateModal from './ClickDateModal';
 import EventClickConfirm from './EventClickConfirm';
+import useWebSocket from '../../util/useWebSocket';
 
-const MainBigCalendar = () => {
+const MainBigCalendar = ({calendarDate,isLoadingCalendarDate,isErrorCalendarDate}) => {
     const [dateChanger, setDateChanger] = useState(false);
     const [oldData, setOldData] = useState({})
     const [putData, setPutData] = useState([]);
@@ -21,38 +22,37 @@ const MainBigCalendar = () => {
     const [clickDateModal, setClickDateModal] = useState(false);
     const [clickedDate, setClickedDate] = useState("");
     const [eventClickConfirm, setEventClickConfirm] = useState(false);
-    const [isFirstLoad, setIsFirstLoad] = useState(true);
     const [selectedId, setSelectedId] = useState(0);
     const [selectedGroupId,setSelectedGroupId] = useState(0)
     const queryClient = useQueryClient();
     const [lastModified , setLastModified] = useState();
     const [today, setToday] = useState(new Date().toLocaleString('sv-SE'))
+    const { sendWebSocketMessage } = useWebSocket({});
 
     useEffect(() => {
         const timeout = setTimeout(() => {
-            if (Date.now() - lastModified >= 30 * 1000) {
+            if (Date.now() - lastModified >= 3600 * 1000) {
                 mutation.mutateAsync(); // 자동으로 수정 요청 보내기
             }
-        }, 30 * 1000);
+        }, 3600 * 1000);
 
     
         return () => clearTimeout(timeout);
     }, [lastModified]);
 
-    useEffect(() => {
-        const handleBeforeUnload = (event) => {
-            mutation.mutateAsync();
-            
-            event.preventDefault();
-            event.returnValue = '';
-        };
+    // useEffect(() => {
+    //     const handleBeforeUnload = (event) => {
+    //         mutation.mutateAsync();
+    //         event.preventDefault();
+    //         event.returnValue = '';
+    //     };
     
-        window.addEventListener('beforeunload', handleBeforeUnload);
+    //     window.addEventListener('beforeunload', handleBeforeUnload);
     
-        return () => {
-            window.removeEventListener('beforeunload', handleBeforeUnload);
-        };
-    }, []);
+    //     return () => {
+    //         window.removeEventListener('beforeunload', handleBeforeUnload);
+    //     };
+    // }, []);
 
     const dropEvent = (e) => {
         setDateChanger(true);
@@ -97,28 +97,32 @@ const MainBigCalendar = () => {
         }
     },[alert])
 
-    const {data : calendarDate, isLoading : isLoadingCalendarDate, isError : isErrorCalendarDate} = useQuery({
-        queryKey : ['calendar-date'],
-        queryFn : async () => {
-        try {
-            const response = await axiosInstance.get(`/api/calendar`)
-            return response.data
-        } catch(err){
-            return err
-        }
-        },
-        enabled : isFirstLoad,
-        refetchOnWindowFocus: false,  
-        staleTime: 300000,  
-        retry: false,
-        cacheTime : 5 * 60 * 1000
-    })
-
     useEffect(()=>{
-        if(calendarDate){
-            setIsFirstLoad(false)
+        if(Array.isArray(putData)&&putData.length>0){
+            console.log(putData)
+            sendWebSocketMessage(putData[0],'/app/calendar/contents/put');
         }
-    },[calendarDate])
+    },putData)
+
+    // const {data : calendarDate, isLoading : isLoadingCalendarDate, isError : isErrorCalendarDate} = useQuery({
+    //     queryKey : ['calendar-date'],
+    //     queryFn : async () => {
+    //     try {
+    //         const response = await axiosInstance.get(`/api/calendar`)
+    //         console.log(response)
+    //         return response.data
+    //     } catch(err){
+    //         return err
+    //     }
+    //     },
+    //     enabled : true,
+    //     refetchOnWindowFocus: false,  
+    //     staleTime: 0,  
+    //     retry: 1,
+    //     cacheTime : 5 * 60 * 1000
+    // })
+
+    
 
     const mutation = useMutation({
         mutationFn: async () => {
@@ -128,33 +132,33 @@ const MainBigCalendar = () => {
             return response.data;
         },
         onSuccess: (data) => {
-        setCustomAlert(true)
-        setCustomAlertType("success")
-        setCustomAlertMessage(data)
-        queryClient.setQueryData(['calendar-date'],(prevData)=>{
-            const updatedData = prevData
-                ? prevData.map((item) => {
-                    const updatedItem = putData.find(data => String(data.contentId) === String(item.id));
-                    
-                    if (updatedItem) {
-                        return {
-                            ...item,
-                            title: updatedItem.title, 
-                            start: updatedItem.startDate,  
-                            end: updatedItem.endDate, 
-                            color: item.color, 
-                        };
-                    }
-                    return item;
-                })
-                : [];
-        
-            return updatedData;
-        })
-        queryClient.invalidateQueries(['calendar-content-name'])
-        setTimeout(() => {
-            setCustomAlert(false);
-        }, 1000);
+            setCustomAlert(true)
+            setCustomAlertType("success")
+            setCustomAlertMessage(data)
+            queryClient.setQueryData(['calendar-date'],(prevData)=>{
+                const updatedData = prevData
+                    ? prevData.map((item) => {
+                        const updatedItem = putData.find(data => String(data.contentId) === String(item.id));
+                        
+                        if (updatedItem) {
+                            return {
+                                ...item,
+                                title: updatedItem.title, 
+                                start: updatedItem.startDate,  
+                                end: updatedItem.endDate, 
+                                color: item.color, 
+                            };
+                        }
+                        return item;
+                    })
+                    : [];
+            
+                return updatedData;
+            })
+            queryClient.invalidateQueries(['calendar-content-name'])
+            setTimeout(() => {
+                setCustomAlert(false);
+            }, 1000);
         },
         onError: (error) => {
             console.error("Error updating user", error);
@@ -169,13 +173,7 @@ const MainBigCalendar = () => {
         }
     };
     
-    if(isLoadingCalendarDate){
-        return <p>로딩중입니다...</p>
-    }
-
-    if(isErrorCalendarDate){
-        return <p>{calendarDate}</p>
-    }
+    
     const closeDateChanger = () => {setDateChanger(false)}
     // 날짜 클릭 이벤트 처리
     const handleDateClick = (info) => {
@@ -189,7 +187,13 @@ const MainBigCalendar = () => {
         setSelectedGroupId(info.event.gId)
         console.log(info.event)
     };
-        
+        if(isLoadingCalendarDate){
+        return <p>로딩중입니다...</p>
+    }
+
+    if(isErrorCalendarDate){
+        return <p>{calendarDate}</p>
+    }
   return (
     <>
       <FullCalendar
