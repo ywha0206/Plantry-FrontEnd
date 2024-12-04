@@ -51,6 +51,7 @@ import { useAuthStore } from "./store/useAuthStore";
 import FAQWrite from "./pages/rending/WritePage";
 import FAQLayout from "./layout/rending/faqLayout";
 import CustomAlert from "./components/Alert";
+import TestIndex from "./pages/test"
 const MainIndexComponent = lazy(() => import("./components/render/main"));
 
 function App() {
@@ -126,7 +127,7 @@ function App() {
               </Suspense>
             }
           />
-          <Route path="/test" element={<TestIndex />} />
+          <Route path="test" element={<TestIndex />} />
           <Route path="service" element={<ServicePage />} />
           <Route path="price" element={<PricePage />} />
           <Route path="faq" element={<FAQPage />} />
