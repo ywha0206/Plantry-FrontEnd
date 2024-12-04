@@ -6,63 +6,112 @@ const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL,
     timeout: 10000,
     headers: {
-      'Content-Type': 'application/json',
+        'Content-Type': 'application/json',
     },
     withCredentials: true,
 });
 
-// 요청 인터셉터 설정
-axiosInstance.interceptors.request.use((config) => {
-  // 최신 상태를 항상 가져오기 위해 함수 호출
-  const accessToken = useAuthStore.getState().getAccessToken(); // 상태에서 액세스 토큰을 가져옴
-  console.log(accessToken);
 
-  if (accessToken) {
-    config.headers.Authorization = `Bearer ${accessToken}`; // "Bearer " 뒤에 공백과 함께 액세스 토큰 추가
-  }
-  console.log(config)
-  return config;
-}, (error) => {
-  // 요청 에러 처리
-  return Promise.reject(error);
-});
+// 요청 인터셉터
+let refreshing = false;
+let subscribers = [];
 
-// 응답 인터셉터 설정
-axiosInstance.interceptors.response.use(
-  (response) => {
-    // 응답이 정상일 경우 그대로 반환
-    return response;
-  },
-  async (error) => {
-    const originalRequest = error.config;
+// 대기 중인 요청을 저장하는 함수
+const addSubscriber = (callback) => {
+    subscribers.push(callback);
+};
 
-    // 401 오류이고, 재시도하지 않은 요청인지 확인
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true; // 재시도 플래그 설정
-      console.log("401이 떴다!");
+// 토큰이 갱신되면 대기 중인 모든 요청을 재개하는 함수
+const notifySubscribers = (token) => {
+    subscribers.forEach(callback => callback(token));
+    subscribers = [];
+};
 
-      try {
-        const refreshAccessToken = useAuthStore.getState().refreshAccessToken; // 상태에서 토큰 갱신 함수 가져오기
-        // 새 액세스 토큰 갱신 시도
-        const newAccessToken = await refreshAccessToken();
+axiosInstance.interceptors.request.use(
+    async (config) => {
+        let accessToken = useAuthStore.getState().getAccessToken();
 
-        if (newAccessToken) {
-          // 새 액세스 토큰을 Authorization 헤더에 추가
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`; // "Bearer " 뒤에 공백과 함께 액세스 토큰 추가
-          // 실패한 요청을 다시 실행
-          console.log(newAccessToken);
-          return axiosInstance(originalRequest); // 요청 재시도
+        if (!accessToken) {
+            if (!refreshing) {
+                refreshing = true;
+
+                const refreshToken = useAuthStore.getState().getRefreshToken();
+
+                if (refreshToken) {
+                    try {
+                        console.log("리프레시 토큰을 사용해 액세스 토큰 갱신 중...");
+
+                        const newAccessToken = await useAuthStore.getState().refreshAccessToken();
+                        accessToken = newAccessToken;
+                        useAuthStore.getState().setAccessToken(accessToken);  // 새 액세스 토큰을 상태에 저장
+
+                        // 대기 중인 모든 요청에 새 액세스 토큰 전달
+                        notifySubscribers(accessToken);
+
+                        config.headers['Authorization'] = `Bearer ${accessToken}`;  // 갱신된 토큰을 설정
+                        console.log("액세스 토큰 갱신 완료 후 요청 헤더 추가");
+
+                        refreshing = false;
+
+                        return config; // 갱신 후 최초의 요청을 진행
+
+                    } catch (error) {
+                        console.error("액세스 토큰 갱신 실패", error);
+                        refreshing = false;
+                        return Promise.reject(error);  // 갱신 실패 시 요청 거부
+                    }
+                } else {
+                    console.log("리프레시 토큰이 없습니다.");
+                    return Promise.reject('No refresh token available');
+                }
+            }
+
+            // 리프레시 중일 경우 요청을 대기열에 추가
+            return new Promise((resolve) => {
+                addSubscriber((newAccessToken) => {
+                    config.headers['Authorization'] = `Bearer ${newAccessToken}`;
+                    resolve(config);  // 대기 중인 요청에 새 액세스 토큰을 추가하고 config 반환
+                });
+            });
+        } else {
+            // 액세스 토큰이 있을 경우 바로 헤더에 추가
+            config.headers['Authorization'] = `Bearer ${accessToken}`;
         }
-      } catch (refreshError) {
-        console.error('토큰 갱신 실패:', refreshError);
-        // 추가 실패 시 로그아웃 처리
-        useAuthStore.getState().logout();
-      }
-    }
 
-    // 갱신 실패 또는 다른 에러일 경우 에러 반환
-    return Promise.reject(error);
-  }
+        console.log("액세스 토큰이 존재하여 요청 진행");
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+
+// 응답 인터셉터
+axiosInstance.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config;
+
+        // 401 오류이고, 재시도하지 않은 요청인지 확인
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true; // 재시도 플래그 설정
+
+            try {
+                // 리프레시 토큰을 통해 새로운 액세스 토큰을 갱신
+                const newAccessToken = await useAuthStore.getState().refreshAccessToken();
+                if (newAccessToken) {
+                    originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`; // 새 액세스 토큰을 헤더에 추가
+                    return axiosInstance(originalRequest); // 실패한 요청 재시도
+                }
+            } catch (refreshError) {
+                // 갱신 실패 시 로그아웃 처리
+                useAuthStore.getState().logout();
+            }
+        }
+
+        return Promise.reject(error); // 갱신 실패 또는 다른 에러일 경우 에러 반환
+    }
 );
 
 export default axiosInstance;

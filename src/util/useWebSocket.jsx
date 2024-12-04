@@ -1,68 +1,134 @@
-// useWebSocket.js
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Client } from '@stomp/stompjs';
+import axiosInstance from '@/services/axios.jsx';
 
-const useWebSocket = ({ initialDestination, initialMessage ,initialCalendarId }) => {
+const useWebSocket = ({ initialDestination, initialMessage, initialCalendarId, initialUserId }) => {
     const [destination, setDestination] = useState(initialDestination);
     const [sendMessage, setSendMessage] = useState(initialMessage);
-    const [calendarIds,setCalendarIds] = useState([],initialCalendarId)
-    const [isConnected, setIsConnected] = useState(false); // 연결 상태 추적
-    const [receiveMessage, setReceiveMessage] = useState("");
-    const [sendCalendarId, setSendCalendarId] = useState(0)
+    const [calendarIds, setCalendarIds] = useState(initialCalendarId || []);
+    const [isConnected, setIsConnected] = useState(false);
+    const [receiveMessage, setReceiveMessage] = useState([]);
+    const [userId, setUserId] = useState(initialUserId);
 
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
     const wsUrl = "ws://" + apiBaseUrl.replace("http://", "") + "/ws-calendar";
 
-    const stompClient = new Client({
-        brokerURL: wsUrl, // 서버 WebSocket URL
-        connectHeaders: {
-            // 필요시 인증 헤더 추가
-        },
-        debug: function (str) {
-            console.log(str);
-        },
-        onConnect: () => {
-            console.log('WebSocket connected');
-            setIsConnected(true);  
-            // 연결된 후 구독 설정
-            if (initialCalendarId) {
-                const calendarIds = initialCalendarId[0].split(','); // 문자열을 쉼표로 분리하여 배열로 변환
-                // 각 calendarId에 대해 구독 설정
-                calendarIds.forEach((calendarId) => {
-                    stompClient.subscribe(`/topic/calendar/${calendarId}`, (message) => {
-                        try {
-                            const response = JSON.parse(message.body); 
-                            console.log(`Received calendar update for calendar ${calendarId}:`, response);
-                            setReceiveMessage(response); 
-                        } catch (error) {
-                            console.error("Failed to parse message as JSON:", error);
-                            console.log("Received message:", message.body);
-                        }
-                    });
-                });
-            }
-            
+    const [stompClient, setStompClient] = useState(null);
 
-            // 연결된 후 메시지 전송
-            if (destination && sendMessage) {
-                stompClient.publish({
-                    destination: destination, // 메시지를 보낼 경로
-                    body: JSON.stringify({ message: sendMessage }), // 보내고자 하는 메시지
+    const getWebSocketHeaders = async () => {
+        const accessToken = await axiosInstance.defaults.headers.Authorization;
+        return {
+            Authorization: accessToken || '',
+        };
+    };
+
+    const initializeStompClient = useCallback(async () => {
+        // const headers = await getWebSocketHeaders();
+        const client = new Client({
+            brokerURL: wsUrl,
+            // connectHeaders: headers,
+            debug: function (str) {
+                console.log(str);
+            },
+            reconnectDelay: 5000,
+            onConnect: () => {
+                console.log('WebSocket connected');
+                setIsConnected(true);
+                updateSubscriptions(client);
+            },
+            onStompError: (frame) => {
+                console.log("STOMP Error:", frame);
+            },
+        });
+        setStompClient(client);
+    }, [wsUrl]);
+
+    const updateSubscriptions = (client) => {
+        if (calendarIds && calendarIds.length > 0) {
+            calendarIds.forEach((calendarId) => {
+                client.subscribe(`/topic/calendar/${calendarId}`, (message) => {
+                    try {
+                        const response = JSON.parse(message.body);
+                        setReceiveMessage(response);
+                    } catch (error) {
+                        console.error("Failed to parse message:", error);
+                    }
                 });
-            }
-        },
-        onStompError: (frame) => {
-            console.log("STOMP Error:", frame);
-        },
-    });
+            });
+        }
+
+        if (userId) {
+            client.subscribe(`/topic/calendar/user/${userId}`, (message) => {
+                try {
+                    const response = JSON.parse(message.body);
+                    setReceiveMessage(response);
+                } catch (error) {
+                    console.error("Failed to parse user message:", error);
+                }
+            });
+        }
+
+        if (destination && sendMessage) {
+            client.publish({
+                destination,
+                body: sendMessage,
+            });
+        }
+    };
 
     useEffect(() => {
-        stompClient.activate(); // WebSocket 연결 활성화
+        if (!stompClient) {
+            initializeStompClient();
+        } else {
+            stompClient.activate();
+        }
 
-    }, []); // 빈 배열로 컴포넌트 마운트/언마운트 시에만 실행
+        return () => {
+            if (stompClient) {
+                stompClient.deactivate();
+            }
+        };
+    }, [stompClient, initializeStompClient]);
 
-    // destination과 sendMessage 값을 업데이트할 수 있는 함수를 반환
-    return { stompClient, setDestination, setSendMessage, isConnected , receiveMessage };
+    useEffect(() => {
+        if (stompClient && isConnected) {
+            updateSubscriptions(stompClient);
+        }
+    }, [calendarIds, userId, isConnected, stompClient]);
+
+    const sendWebSocketMessage = useCallback((message, path) => {
+        if (isConnected && stompClient) {
+            stompClient.publish({
+                destination: path,
+                body: JSON.stringify(message),
+            });
+        } else {
+            console.error('WebSocket is not connected');
+        }
+    }, [stompClient, isConnected]);
+    
+
+    const updateCalendarIds = (newIds) => {
+        setCalendarIds(newIds);
+    };
+
+    const updateUserId = (newId) => {
+        setUserId(newId);
+    };
+
+    return {
+        stompClient,
+        setDestination,
+        setSendMessage,
+        setCalendarIds,
+        calendarIds,
+        isConnected,
+        receiveMessage,
+        sendWebSocketMessage,
+        updateCalendarIds,
+        updateUserId,
+        initializeStompClient
+    };
 };
 
 export default useWebSocket;

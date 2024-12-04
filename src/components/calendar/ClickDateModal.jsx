@@ -7,39 +7,44 @@ import DeleteScheduleConfirm from './DeleteScheduleConfirm';
 import CustomAlert from '../Alert';
 
 export default function ClickDateModal({confirm,onclose,clickedDate}) {
-    if(!confirm) return null;
-    const timeRef = useRef(new Date().toLocaleString('sv-SE'));
-    const calendarNames = useCalenderNameStore((state) => state.calendarNames);
-    const [today, setToday] = useState(clickedDate);
+    const queryClient = useQueryClient();
+    const calendarNames = queryClient.getQueryData(['calendar-name'])
+    const [today, setToday] = useState();
     const [calendarNameState, setCalendarNameState] = useState([])
     const [modal,setModal] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(false);
     const [deleteId, setDeleteId] = useState(0);
-    const queryClient = useQueryClient();
     const [customAlert, setCustomAlert] = useState(false);
     const [customAlertType, setCustomAlertType] = useState("");
     const [customAlertMessage, setCustomAlertMessage] = useState("");
+    useEffect(() => {
+        if (clickedDate) {
+            setToday(clickedDate);
+        }
+    }, [clickedDate]);
 
     const {data : tasksData , isLoading : isLoadingTasksData }
         = useQuery({
-        queryKey : ['calendar-content-morning',today],
+        queryKey : ['calendar-content-morning',clickedDate],
         queryFn : async () => {
-            const response = await axiosInstance.get(`/api/calendar/content/name/morning?today=${today}`)
+            const response = await axiosInstance.get(`/api/calendar/content/name/morning?today=${clickedDate}`)
             return response.data
         },
         retry : false,
         refetchOnWindowFocus: false,
+        enabled : !!clickedDate
     })
 
     const {data : tasksData2 , isLoading : isLoadingTasksData2 }
         = useQuery({
-        queryKey : ['calendar-content-afternoon',today],
+        queryKey : ['calendar-content-afternoon',clickedDate],
         queryFn : async () => {
-            const response = await axiosInstance.get(`/api/calendar/content/name/afternoon?today=${today}`)
+            const response = await axiosInstance.get(`/api/calendar/content/name/afternoon?today=${clickedDate}`)
             return response.data
         },
         retry : false,
         refetchOnWindowFocus: false,
+        enabled : !!clickedDate
     })
 
     const mutation = useMutation({
@@ -86,6 +91,7 @@ export default function ClickDateModal({confirm,onclose,clickedDate}) {
         setCalendarNameState(calendarNames)
     }, []);
 
+    if(!confirm) return null;
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 modal-custom-fixed">
             <div className="bg-white z-40 rounded-2xl shadow-lg w-[1000px] modal-custom-width max-h-[900px] overflow-scroll scrollbar-none px-[30px]">

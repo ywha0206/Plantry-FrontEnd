@@ -1,14 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react'
 import axiosInstance from '@/services/axios.jsx'
-import { useCalenderNameStore } from '../../store/zustand';
 import CustomAlert from '../Alert';
 
 export default function PostScheduleModal({ isOpen, onClose, children , text,oldData ,today ,setToday }) {
-    if(!isOpen) return null;
+
     const [title,setTitle] = useState("");
-    const [sdate,setSdate] = useState(new Date(today).toLocaleString('sv-SE'));
-    const [edate,setEdate] = useState(new Date(today).toLocaleString('sv-SE'));
+    const [sdate,setSdate] = useState('');
+    const [edate, setEdate] = useState('');
     const [calendarId,setCalendarId] = useState(0);
     const [location, setLocation] = useState("");
     const [importance, setImportance] = useState(1);
@@ -17,9 +16,21 @@ export default function PostScheduleModal({ isOpen, onClose, children , text,old
     const [customAlert, setCustomAlert] = useState(false);
     const [customAlertType, setCustomAlertType] = useState("");
     const [customAlertMessage, setCustomAlertMessage] = useState("");
-    const calendarNames = useCalenderNameStore((state) => state.calendarNames);
     const queryClient = useQueryClient();
+    const calendarName = queryClient.getQueryData(['calendar-name']);
     
+    useEffect(() => {
+      if (today) {
+        // sdate는 today를 기준으로 설정
+        setSdate(new Date(today).toLocaleString('sv-SE'));
+  
+        // edate는 today에 1시간을 더한 시간으로 설정
+        const dateWithAddedHour = new Date(today);
+        dateWithAddedHour.setHours(dateWithAddedHour.getHours() + 1);
+        setEdate(dateWithAddedHour.toLocaleString('sv-SE'));
+      }
+    }, [today]);
+
     useEffect(()=>{
       if(oldData){
         setTitle(oldData.title)
@@ -78,7 +89,7 @@ export default function PostScheduleModal({ isOpen, onClose, children , text,old
             console.error("Error in mutation", error);
         }
     };
-   
+    if(!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 modal-custom-fixed">
       <CustomAlert 
@@ -112,7 +123,7 @@ export default function PostScheduleModal({ isOpen, onClose, children , text,old
               <div>
                 <select value={calendarId} onChange={(e)=>setCalendarId(e.target.value)} className="h-[40px] w-[120px] outline-none border rounded-md text-center">
                   <option>달력선택</option>
-                  {calendarNames && calendarNames.map(v => {
+                  {calendarName && calendarName.map(v => {
                     return (
                       <option key={v.id} value={v.id}>{v.name}</option>
 

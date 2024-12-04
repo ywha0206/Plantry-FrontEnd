@@ -2,9 +2,9 @@ import React from 'react';
 import { alertStyles } from '../util/sizeClasses';
     
 export const CustomAlert = ({ type, message, onClose ,isOpen}) => {
-      if(!isOpen) return null;
+     
       const alertClass = alertStyles[type] || alertStyles.info;
-      
+      if(!isOpen) return null;
       return (
         <div className={`fixed inset-0 flex justify-center mt-14 items-start z-50`}>
           <div
