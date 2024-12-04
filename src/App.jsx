@@ -69,6 +69,7 @@ function App() {
   // 검증 제외 경로
   const excludedRoutesSet = new Set([
     "/",
+    "/test",
     "/service",
     "/price",
     "/faq",
@@ -85,7 +86,7 @@ function App() {
       } // 제외 경로는 검증하지 않음
 
       const tokenExpired = isTokenExpired();
-      
+
       if (tokenExpired) {
         const refreshToken = await useAuthStore.getState().getRefreshToken();
         if(!refreshToken){
@@ -95,21 +96,21 @@ function App() {
           setTimeout(() => {
             setCustomAlert(false)
             logout();
-            navigate("/user/login"); 
+            navigate("/user/login");
           }, 2000);
         }
       }
     };
 
-    
+
 
     checkToken();
-    
+
   }, [location, isTokenExpired, refreshAccessToken, navigate]);
 
   return (
     <div id="app-container m-0 xl2:mx-auto">
-      <CustomAlert 
+      <CustomAlert
         type={customAlertType}
         message={customAlertMessage}
         isOpen={customAlert}
@@ -125,6 +126,7 @@ function App() {
               </Suspense>
             }
           />
+          <Route path="/test" element={<TestIndex />} />
           <Route path="service" element={<ServicePage />} />
           <Route path="price" element={<PricePage />} />
           <Route path="faq" element={<FAQPage />} />
