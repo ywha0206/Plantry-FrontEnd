@@ -24,6 +24,8 @@ export const useAuthStore = create((set) => ({
     set(() => ({ accessToken: null, authorized: false }));
   },
 
+  getRefreshToken: () => useAuthStore.getState().refreshAccessToken,
+
   // 토큰 복호화 함수
   decodeAccessToken: () => {
     const token = useAuthStore.getState().accessToken; // 상태 객체에서 직접 가져옴

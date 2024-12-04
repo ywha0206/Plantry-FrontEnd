@@ -3,9 +3,9 @@ import PostScheduleModal from './PostScheduleModal';
 import PutScheduleModal from './PutScheduleModal';
 
 export default function DateChangerModal({dateChanger,onclose,data,putData,setPutData}) {
-    if(!dateChanger) return null;
-    const [page,setPage] = useState(0);
 
+    const [page,setPage] = useState(0);
+    if(!dateChanger) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 modal-custom-fixed">
       <div className="bg-white z-40 rounded-2xl shadow-lg w-[400px] modal-custom-width max-h-[600px] overflow-scroll scrollbar-none">

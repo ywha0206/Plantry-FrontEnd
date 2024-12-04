@@ -2,24 +2,17 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react'
 import axiosInstance from '@/services/axios.jsx'
 import CustomAlert from '../Alert';
-import { useCalenderNameStore } from '../../store/zustand';
 
 export default function EventClickConfirm({isOpen, onclose,selectedId,clickedDate,selectedGroupId}) {
-    if(!isOpen) return null;
+   
     const queryClient = useQueryClient();
     const prevData = queryClient.getQueryData(['calendar-date']);
-    const calendarNames = useCalenderNameStore((state) => state.calendarNames);
-    const [selectedData, setSelectedData] = useState(() => {
-        const filteredData = prevData.filter(v => v.id == selectedId);
-        return filteredData.length > 0 ? filteredData[0] : {}; // 객체로 반환
-    });
-    const [calendarId, setCalendarId] = useState(() => {
-        const selectedName = prevData.filter(v => v.id == selectedId);
-        return selectedName ? selectedName[0].sheave : 0;
-    })
-    const [title,setTitle] = useState();
-    const [sdate,setSdate] = useState();
-    const [edate,setEdate] = useState();
+    const calendarNames = queryClient.getQueryData(['calendar-name'])
+    const [selectedData, setSelectedData] = useState();
+    const [calendarId, setCalendarId] = useState();
+    const [title,setTitle] = useState('');
+    const [sdate,setSdate] = useState('');
+    const [edate,setEdate] = useState('');
     const [location, setLocation] = useState("");
     const [importance, setImportance] = useState(1);
     const [alert,setAlert] = useState(1);
@@ -28,10 +21,8 @@ export default function EventClickConfirm({isOpen, onclose,selectedId,clickedDat
     const [customAlertType, setCustomAlertType] = useState("");
     const [customAlertMessage, setCustomAlertMessage] = useState("");
 
-
-
-    useEffect(()=>{
-        if(selectedData){
+    useEffect(() => {
+        if (selectedData && typeof selectedData === 'object') {
             setTitle(selectedData.title)
             setSdate(selectedData.start)
             setEdate(selectedData.end)
@@ -40,8 +31,18 @@ export default function EventClickConfirm({isOpen, onclose,selectedId,clickedDat
             setAlert(selectedData.alert)
             setMemo(selectedData.memo)
         }
-        console.log(prevData)
-    },[selectedData])
+    }, [selectedData]);
+    
+    useEffect(() => {
+        if (selectedId && Array.isArray(prevData)) {
+            const selectedItem = prevData.find(v => v.id == selectedId);  // 배열에서 첫 번째로 일치하는 아이템을 찾음
+            if (selectedItem) {
+                setSelectedData(selectedItem); // 객체 형태로 설정
+            } else {
+                setSelectedData(null); // 해당 ID가 없으면 null로 설정
+            }
+        }
+    }, [selectedId, prevData]);
 
     const deleteMutation = useMutation({
 
@@ -161,7 +162,7 @@ export default function EventClickConfirm({isOpen, onclose,selectedId,clickedDat
         }
     }
 
-
+    if(!isOpen) return null;
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 modal-custom-fixed">
             <div className="bg-white z-40 rounded-2xl shadow-lg w-[800px] modal-custom-width max-h-[800px] overflow-scroll scrollbar-none">

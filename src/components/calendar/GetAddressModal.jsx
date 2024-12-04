@@ -4,7 +4,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import axiosInstance from '@/services/axios.jsx'
 import { CustomSVG } from '../project/_CustomSVG';
 export default function GetAddressModal({isOpen, onClose, selectedUsers, setSelectedUsers, cancleSelectedUsersHandler}) {
-    if(!isOpen) return null;
+
     const [customAlert, setCustomAlert] = useState(false);
     const [customAlertType, setCustomAlertType] = useState("");
     const [customAlertMessage, setCustomAlertMessage] = useState("");
@@ -164,7 +164,7 @@ export default function GetAddressModal({isOpen, onClose, selectedUsers, setSele
             onClose();
         }, 1000);
     }
-
+    if(!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 modal-custom-fixed">
       <CustomAlert 

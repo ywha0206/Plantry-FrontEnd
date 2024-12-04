@@ -10,13 +10,16 @@ export default function PutScheduleModal({ isOpen, onClose, children , text, put
     const [updatePrevData,setUpdatePrevData] = useState(false);
     const [alert,setAlert] = useState(false);
     const queryClient = useQueryClient();
+    
     useEffect(()=>{
         if(oldData){
           setTitle(oldData.title)
           setSdate(oldData.startDate)
           setEdate(oldData.endDate)
           setCalendarId(oldData.contentId)
+          console.log(oldData)
         }
+        
       },[oldData])
 
     const temporaryPut = () =>{
@@ -81,7 +84,7 @@ export default function PutScheduleModal({ isOpen, onClose, children , text, put
         }
     },[updatePrevData])
 
-
+    if(!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 modal-custom-fixed">
       {/* <CustomAlert 
