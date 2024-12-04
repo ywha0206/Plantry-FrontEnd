@@ -40,11 +40,11 @@ export default function Calendar() {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-          setIsQueryEnabled(true);  // 일정 시간 뒤에 쿼리 활성화
+            setIsQueryEnabled(true);  // 일정 시간 뒤에 쿼리 활성화
         }, 1000);  // 2초 지연
-      
+
         return () => clearTimeout(timer);  // 컴포넌트 언마운트 시 타이머 클리어
-      }, []);
+    }, []);
 
     useEffect(()=>{
         if(accessToken){
@@ -52,23 +52,23 @@ export default function Calendar() {
         }
     },[accessToken])
     const { stompClient, isConnected, receiveMessage , updateCalendarIds , updateUserId } = useWebSocket({
-        
+
     });
 
     useEffect(()=>{
-       
+
         if(Array.isArray(receiveMessage.update)&&receiveMessage.update.length>0){
             queryClient.setQueryData(['calendar-name'],(prevData)=> {
                 console.log(prevData)
                 if(Array.isArray(prevData)&& prevData.length>0){
                     return prevData.map((item) => {
                         if (item.id == receiveMessage.name.id) {
-                          return {
-                            ...item,
-                            name : receiveMessage.name.name,
-                            status : receiveMessage.name.status,
-                            color : receiveMessage.name.color
-                          };
+                            return {
+                                ...item,
+                                name : receiveMessage.name.name,
+                                status : receiveMessage.name.status,
+                                color : receiveMessage.name.color
+                            };
                         }
                         return item;
                     });
@@ -78,27 +78,27 @@ export default function Calendar() {
                 console.log(prevData)
                 if(Array.isArray(prevData)&& prevData.length>0){
                     const updatedData = prevData
-                    ? prevData.map((item) => {
-                        const updatedItem = receiveMessage.update.find(data => String(data.id) === String(item.id));
-                        if (updatedItem) {
-                            return {
-                                ...item,
-                                title: updatedItem.title,  // putData에서 받은 새로운 title 값
-                                start: updatedItem.start,  // putData에서 받은 새로운 startDate 값
-                                end: updatedItem.end,  // putData에서 받은 새로운 endDate 값
-                                color: updatedItem.color,  // 기존 color는 그대로 유지
-                                sheve: updatedItem.sheve,
-                                location: updatedItem.location,
-                                importance: updatedItem.importance,
-                                alert: updatedItem.alert,
-                                memo: updatedItem.memo
-                            };
-                        }
-                        return item;
-                    })
-                    : [];
-            
-                return updatedData;
+                        ? prevData.map((item) => {
+                            const updatedItem = receiveMessage.update.find(data => String(data.id) === String(item.id));
+                            if (updatedItem) {
+                                return {
+                                    ...item,
+                                    title: updatedItem.title,  // putData에서 받은 새로운 title 값
+                                    start: updatedItem.start,  // putData에서 받은 새로운 startDate 값
+                                    end: updatedItem.end,  // putData에서 받은 새로운 endDate 값
+                                    color: updatedItem.color,  // 기존 color는 그대로 유지
+                                    sheve: updatedItem.sheve,
+                                    location: updatedItem.location,
+                                    importance: updatedItem.importance,
+                                    alert: updatedItem.alert,
+                                    memo: updatedItem.memo
+                                };
+                            }
+                            return item;
+                        })
+                        : [];
+
+                    return updatedData;
                 }
             });
 
@@ -150,7 +150,7 @@ export default function Calendar() {
         //             const updatedData = prevData.map((item) => {
         //                 if (item.id == receiveMessage.contentsPut.contentId) {
         //                     return {
-        //                         ...item, 
+        //                         ...item,
         //                         title: receiveMessage.contentsPut.title,
         //                         start: receiveMessage.contentsPut.startDate,
         //                         end: receiveMessage.contentsPut.endDate,
@@ -164,7 +164,7 @@ export default function Calendar() {
         //         }
         //     })
         // }
-        
+
 
     },[receiveMessage])
 
@@ -210,7 +210,7 @@ export default function Calendar() {
         enabled : isQueryEnabled
     })
 
-    
+
 
     useEffect(()=>{
         if(calendarName && calendarName.length>0){
@@ -232,55 +232,55 @@ export default function Calendar() {
     const {data : calendarDate, isLoading : isLoadingCalendarDate, isError : isErrorCalendarDate} = useQuery({
         queryKey : ['calendar-date'],
         queryFn : async () => {
-        try {
-            const response = await axiosInstance.get(`/api/calendar`)
-            return response.data
-        } catch(err){
-            return err
-        }
+            try {
+                const response = await axiosInstance.get(`/api/calendar`)
+                return response.data
+            } catch(err){
+                return err
+            }
         },
         enabled : isQueryEnabled,
-        refetchOnWindowFocus: false,  
-        staleTime: 0,  
+        refetchOnWindowFocus: false,
+        staleTime: 0,
         retry: 1,
         cacheTime : 5 * 60 * 1000,
         select: (data) => {
             if (selectedCalendarIds && selectedCalendarIds.length > 0 ) {
-              return data.filter((item) => selectedCalendarIds.includes(item.sheave));
-            } 
-            return []; 
-          },
-        });
-    
-        const {data : initialIds , isLoading : isLoadingInitialIds, isError : isErrorInitialIds , refetch : refetchInitialIds} = 
-        useQuery({
-         queryKey: ['initial-ids'],
-         queryFn : async () => {
-             try {
-                 const resp = await axiosInstance.get("/api/calendar/groups")
-                 return resp.data
-             } catch (err) {
-                 return err
-             }
-         },
-         enabled : isQueryEnabled,
-        
-        })
-    
-        useEffect(()=>{
-            refetchInitialIds();
-        },[])
-    
-        useEffect(()=>{
-            if(!isLoadingInitialIds && !isErrorInitialIds && initialIds){
-                updateCalendarIds(initialIds.calendarIds)
-                updateUserId(initialIds.userId)
+                return data.filter((item) => selectedCalendarIds.includes(item.sheave));
             }
-        },[initialIds])
+            return [];
+        },
+    });
 
-        if(isErrorInitialIds&&isLoadingInitialIds){
-            return null;
+    const {data : initialIds , isLoading : isLoadingInitialIds, isError : isErrorInitialIds , refetch : refetchInitialIds} =
+        useQuery({
+            queryKey: ['initial-ids'],
+            queryFn : async () => {
+                try {
+                    const resp = await axiosInstance.get("/api/calendar/groups")
+                    return resp.data
+                } catch (err) {
+                    return err
+                }
+            },
+            enabled : isQueryEnabled,
+
+        })
+
+    useEffect(()=>{
+        refetchInitialIds();
+    },[])
+
+    useEffect(()=>{
+        if(!isLoadingInitialIds && !isErrorInitialIds && initialIds){
+            updateCalendarIds(initialIds.calendarIds)
+            updateUserId(initialIds.userId)
         }
+    },[initialIds])
+
+    if(isErrorInitialIds&&isLoadingInitialIds){
+        return null;
+    }
 
     return (
         <div id='calendar-container'>
@@ -372,10 +372,10 @@ export default function Calendar() {
             </aside>
             <section className='calendar-main'>
                 <section className='big-calendar mt-8 overflow-scroll max-h-[700px] w-[1080px] mx-auto scrollbar-none'>
-                    <MainBigCalendar 
-                    calendarDate={calendarDate}
-                    isLoadingCalendarDate={isLoadingCalendarDate}
-                    isErrorCalendarDate={isErrorCalendarDate}
+                    <MainBigCalendar
+                        calendarDate={calendarDate}
+                        isLoadingCalendarDate={isLoadingCalendarDate}
+                        isErrorCalendarDate={isErrorCalendarDate}
                     />
                 </section>
                 <PostCalendarModal

@@ -2,6 +2,7 @@ import axios from "axios";
 import axiosInstance from '@/services/axios.jsx'
 import React, { useEffect, useState } from "react";
 import useUserStore from "../../store/useUserStore";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 // 날짜 : 2024.11.27
 // 이름 : 하진희
@@ -15,15 +16,16 @@ const initState = {
   order: 1,
   shareUsers : [],
   isShared : 0,
+  status: 1,
   linkSharing: "0", // 허용안함
 };
 
 export default function NewDrive({ isOpen, onClose }) {
   const [authType, setAuthType] = useState("0"); // 기본값: '나만 사용'
   const [formData, setFormData] = useState(initState);
+  const queryClient = useQueryClient();
 
 
-  const user = useUserStore((state) => state.user);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -38,10 +40,8 @@ export default function NewDrive({ isOpen, onClose }) {
 
   // 컴포넌트가 로드될 때 owner에 currentUser 값을 설정
   useEffect(() => {
-    console.log("user ,,, ",user);
     setFormData((prev) => ({
-      ...prev,
-      owner: user.uid,
+      ...prev
     }));
   }, []);
 
@@ -78,18 +78,24 @@ export default function NewDrive({ isOpen, onClose }) {
     });
   };
 
-  const handleSubmit = async () => {
-    try {
-      console.log("formData" ,formData);
-      // Axios로 백엔드 API 호출
-      const response = await axiosInstance.post("/api/drive/newDrive", formData);
-      console.log("Response:", response.data);
+    // Mutation 정의
+    const { mutate, isLoading, isError } = useMutation({
+      mutationFn: async (newDriveData) => {
+        const response = await axiosInstance.post("/api/drive/newDrive", newDriveData);
+        return response.data;
+      },
+      onSuccess: (data) => {
+        console.log("Drive created successfully:", data);
+        queryClient.invalidateQueries({ queryKey: ['driveList',user.uid] })
+        onClose();
+      },
+      onError: (error) => {
+        console.error("Error creating drive:", error);
+      },
+    });
 
-      // 성공 시 모달 닫기
-      onClose();
-    } catch (error) {
-      console.error("Error submitting data:", error);
-    }
+  const handleSubmit = async () => {
+      mutate(formData);
   };
 
   if (!isOpen) return null;

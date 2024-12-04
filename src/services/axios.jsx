@@ -3,12 +3,12 @@ import { useAuthStore } from '../store/useAuthStore';
 
 // axios 인스턴스 생성
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  withCredentials: true,
+    baseURL: import.meta.env.VITE_API_BASE_URL,
+    timeout: 10000,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    withCredentials: true,
 });
 
 
@@ -18,100 +18,100 @@ let subscribers = [];
 
 // 대기 중인 요청을 저장하는 함수
 const addSubscriber = (callback) => {
-  subscribers.push(callback);
+    subscribers.push(callback);
 };
 
 // 토큰이 갱신되면 대기 중인 모든 요청을 재개하는 함수
 const notifySubscribers = (token) => {
-  subscribers.forEach(callback => callback(token));
-  subscribers = [];
+    subscribers.forEach(callback => callback(token));
+    subscribers = [];
 };
 
 axiosInstance.interceptors.request.use(
-  async (config) => {
-    let accessToken = useAuthStore.getState().getAccessToken();
+    async (config) => {
+        let accessToken = useAuthStore.getState().getAccessToken();
 
-    if (!accessToken) {
-      if (!refreshing) {
-        refreshing = true;
+        if (!accessToken) {
+            if (!refreshing) {
+                refreshing = true;
 
-        const refreshToken = useAuthStore.getState().getRefreshToken();
+                const refreshToken = useAuthStore.getState().getRefreshToken();
 
-        if (refreshToken) {
-          try {
-            console.log("리프레시 토큰을 사용해 액세스 토큰 갱신 중...");
+                if (refreshToken) {
+                    try {
+                        console.log("리프레시 토큰을 사용해 액세스 토큰 갱신 중...");
 
-            const newAccessToken = await useAuthStore.getState().refreshAccessToken();
-            accessToken = newAccessToken;
-            useAuthStore.getState().setAccessToken(accessToken);  // 새 액세스 토큰을 상태에 저장
+                        const newAccessToken = await useAuthStore.getState().refreshAccessToken();
+                        accessToken = newAccessToken;
+                        useAuthStore.getState().setAccessToken(accessToken);  // 새 액세스 토큰을 상태에 저장
 
-            // 대기 중인 모든 요청에 새 액세스 토큰 전달
-            notifySubscribers(accessToken);
+                        // 대기 중인 모든 요청에 새 액세스 토큰 전달
+                        notifySubscribers(accessToken);
 
-            config.headers['Authorization'] = `Bearer ${accessToken}`;  // 갱신된 토큰을 설정
-            console.log("액세스 토큰 갱신 완료 후 요청 헤더 추가");
+                        config.headers['Authorization'] = `Bearer ${accessToken}`;  // 갱신된 토큰을 설정
+                        console.log("액세스 토큰 갱신 완료 후 요청 헤더 추가");
 
-            refreshing = false;
+                        refreshing = false;
 
-            return config; // 갱신 후 최초의 요청을 진행
+                        return config; // 갱신 후 최초의 요청을 진행
 
-          } catch (error) {
-            console.error("액세스 토큰 갱신 실패", error);
-            refreshing = false;
-            return Promise.reject(error);  // 갱신 실패 시 요청 거부
-          }
+                    } catch (error) {
+                        console.error("액세스 토큰 갱신 실패", error);
+                        refreshing = false;
+                        return Promise.reject(error);  // 갱신 실패 시 요청 거부
+                    }
+                } else {
+                    console.log("리프레시 토큰이 없습니다.");
+                    return Promise.reject('No refresh token available');
+                }
+            }
+
+            // 리프레시 중일 경우 요청을 대기열에 추가
+            return new Promise((resolve) => {
+                addSubscriber((newAccessToken) => {
+                    config.headers['Authorization'] = `Bearer ${newAccessToken}`;
+                    resolve(config);  // 대기 중인 요청에 새 액세스 토큰을 추가하고 config 반환
+                });
+            });
         } else {
-          console.log("리프레시 토큰이 없습니다.");
-          return Promise.reject('No refresh token available');
+            // 액세스 토큰이 있을 경우 바로 헤더에 추가
+            config.headers['Authorization'] = `Bearer ${accessToken}`;
         }
-      }
 
-      // 리프레시 중일 경우 요청을 대기열에 추가
-      return new Promise((resolve) => {
-        addSubscriber((newAccessToken) => {
-          config.headers['Authorization'] = `Bearer ${newAccessToken}`;
-          resolve(config);  // 대기 중인 요청에 새 액세스 토큰을 추가하고 config 반환
-        });
-      });
-    } else {
-      // 액세스 토큰이 있을 경우 바로 헤더에 추가
-      config.headers['Authorization'] = `Bearer ${accessToken}`;
+        console.log("액세스 토큰이 존재하여 요청 진행");
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
     }
-
-    console.log("액세스 토큰이 존재하여 요청 진행");
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
 );
 
 
 // 응답 인터셉터
 axiosInstance.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config;
 
-    // 401 오류이고, 재시도하지 않은 요청인지 확인
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true; // 재시도 플래그 설정
+        // 401 오류이고, 재시도하지 않은 요청인지 확인
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true; // 재시도 플래그 설정
 
-      try {
-        // 리프레시 토큰을 통해 새로운 액세스 토큰을 갱신
-        const newAccessToken = await useAuthStore.getState().refreshAccessToken();
-        if (newAccessToken) {
-          originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`; // 새 액세스 토큰을 헤더에 추가
-          return axiosInstance(originalRequest); // 실패한 요청 재시도
+            try {
+                // 리프레시 토큰을 통해 새로운 액세스 토큰을 갱신
+                const newAccessToken = await useAuthStore.getState().refreshAccessToken();
+                if (newAccessToken) {
+                    originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`; // 새 액세스 토큰을 헤더에 추가
+                    return axiosInstance(originalRequest); // 실패한 요청 재시도
+                }
+            } catch (refreshError) {
+                // 갱신 실패 시 로그아웃 처리
+                useAuthStore.getState().logout();
+            }
         }
-      } catch (refreshError) {
-        // 갱신 실패 시 로그아웃 처리
-        useAuthStore.getState().logout();
-      }
-    }
 
-    return Promise.reject(error); // 갱신 실패 또는 다른 에러일 경우 에러 반환
-  }
+        return Promise.reject(error); // 갱신 실패 또는 다른 에러일 경우 에러 반환
+    }
 );
 
 export default axiosInstance;

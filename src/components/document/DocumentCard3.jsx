@@ -8,7 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { MenuToggle } from './MenuToggle';
 import ContextMenu from './ContextMenu';
 
-export const DocumentCard1 = ({
+export const DocumentCard3 = ({
     cnt,
     folderName,
     folderId,
@@ -19,7 +19,8 @@ export const DocumentCard1 = ({
     onDrop,
     updatedAt,
     onContextMenu,
-
+    onClick,
+    isActive,
 }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false); // 토글 상태 관리
     const [isAlertOpen, setIsAlertOpen] = useState(false);
@@ -130,44 +131,48 @@ export const DocumentCard1 = ({
     };
 
     return (
-        <div className="document-card1 flex flex-row items-center z-1"  draggable
-                    onContextMenu={(e) => onContextMenu(e, folder)} // Trigger the context menu
-
-                    onDragStart={(e) => {
-                        e.stopPropagation(); // Prevent event propagation
-                        onDragStart(folder); // Call the passed onDragStart function
-                    }}                 
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={() => onDrop(folder)}
-                    style={{
-                        border: '1px solid #ccc',
-                        padding: '10px',
-                        margin: '5px',
-                        cursor: 'grab',
-                        position: 'relative', // Ensure this is relative for child absolute positioning
-                    }}
+        <div
+            className={`document-card3 w-[180px] h-[150px] flex-col flex-wrap items-center z-1 hover:bg-[#f1f1f8] ${isActive ? 'active' : ''}`}
+            draggable
+            onContextMenu={(e) => {
+                e.preventDefault();
+                onContextMenu(e, folder);
+            }}
+            onClick={onClick}
+            onDragStart={(e) => {
+                e.stopPropagation();
+                onDragStart(folder);
+            }}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={() => onDrop(folder)}
+            style={{
+                border: '1px solid #ccc',
+                padding: '10px',
+                margin: '5px',
+                cursor: 'grab',
+                position: 'relative',
+            }}
         >
-               
-            <div className=" flex flex-row mr-[20px]">
-            <button>
-                <img className=" w-[50px] h-[60px]" src="/images/document-open-folder.png" />
-            </button>
+            <div className=" flex flex-col w-full items-center mr-[20px]">
+                <div className='flex text-center h-[25px] justify-between w-full mx-[5px]'>
+                    <input type="checkbox" className='w-[25px] h-[25px]' name="" id="" />
+                    <div></div>
+                </div>
+            
+                <button>
+                    <img className=" w-[50px] h-[60px]" src="/images/document-open-folder.png" />
+                </button>
             </div>
 
-            <div className="flex-row mr-[20px] w-[50px]">
-                    <p className="text-xs" onClick={(e)=> { e.preventDefault; navigateHandler()}}>{cnt} files</p>
+            <div className="flex-col text-center  mr-[20px] w-full">
+                <p className="text-xs  text-center " onClick={(e)=> { e.preventDefault; navigateHandler()}}>{cnt} files</p>
             </div>
-            <div className="flex-row mt-2 w-[200px]">
-
-                <p className="w-1/2 text-center text-blue-900 text-sm" onClick={(e)=> { e.preventDefault; navigateHandler()}}>{folderName}</p>
+            <div className="flex mt-2 justify-between ">
+                <div></div>
+                <p className=" text-center ml-[25px]  text-blue-900 text-sm 	" onClick={(e)=> { e.preventDefault; navigateHandler()}}>폴더이름{folderName}</p>
+                <img className='w-[25px] h-[25px] opacity-80	 hover:opacity-100' src="/images/star_off.png" alt="" />
             </div>
-            <img
-                    className="absolute cursor-pointer right-[20px] rotate-90 "
-                    src="/images/button-dot.png"
-                    alt="버튼"
-                    onClick={toggleMenu} // 메뉴 열기
-
-                />
+         
             {isMenuOpen && (
                  <ContextMenu
                     visible={true}
