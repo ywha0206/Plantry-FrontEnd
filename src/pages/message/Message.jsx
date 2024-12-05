@@ -6,8 +6,9 @@ import ShowMoreModal from "../../components/message/ShowMoreModal";
 import AttachFileModal from "../../components/message/AttachFileModal";
 import ProfileModal from "../../components/message/ProfileModal";
 import axiosInstance from "../../services/axios";
-import { useQuery } from "@tanstack/react-query";
 import useUserStore from "./../../store/useUserStore";
+import useChatWebSocket from "../../util/useChatWebSocket";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function Message() {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,7 +21,6 @@ export default function Message() {
   const [selectedRoomId, setSelectedRoomId] = useState("");
   const [roomData, setRoomData] = useState([]);
   const [roomInfo, setRoomInfo] = useState({});
-  const [roomId, setRoomId] = useState();
 
   const fileRef = useRef();
   const profileRef = useRef();
@@ -182,21 +182,130 @@ export default function Message() {
     fetchChatRooms();
   }, [uid, isOpen]);
 
+  const [messageList, setMessageList] = useState([]);
+
   const selectRoomHandler = (e, roomId) => {
     e.preventDefault();
     if (selectedRoomId === roomId) {
       return;
     }
     setSelectedRoomId(roomId);
+    localStorage.removeItem("roomId");
+    localStorage.setItem("roomId", roomId);
     try {
       axiosInstance.get(`/api/message/roomInfo/${roomId}`).then((resp) => {
-        console.log(resp.data);
         setRoomInfo(resp.data);
+        setMembers(resp.data.members);
+        setMembers((prevMembers) => [...prevMembers, resp.data.leader]);
+      });
+      axiosInstance.get(`/api/message/getMessage/${roomId}`).then((resp) => {
+        console.log("채팅목록:", resp.data);
+        setMessageList(...messageList, resp.data);
       });
     } catch (error) {
       console.error(error);
     }
   };
+
+  useEffect(() => {
+    const roomId = localStorage.getItem("roomId");
+    if (!roomId) return;
+    setSelectedRoomId(roomId);
+    try {
+      axiosInstance.get(`/api/message/roomInfo/${roomId}`).then((resp) => {
+        setRoomInfo(resp.data);
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
+
+  //==========================================▼웹소켓 연결과 채팅 전송===================================================
+
+  const [input, setInput] = useState("");
+
+  const { mutate } = useMutation({
+    mutationFn: async (inputText) => {
+      if (input.trim() === "") return null;
+
+      const newMessage = {
+        roomId: selectedRoomId,
+        status: 1,
+        type: "MESSAGE",
+        content: inputText,
+        sender: uid,
+        timeStamp: new Date(),
+      };
+
+      console.log("Sending message to DB:", newMessage);
+      try {
+        await axiosInstance.post("/api/message/saveMessage", newMessage);
+        return newMessage;
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    },
+    onSuccess: (newMessage) => {
+      if (newMessage) {
+        sendWebSocketMessage(newMessage, "/app/chat.sendMessage");
+        setInput(""); // 입력 필드 초기화
+      }
+    },
+    onError: (error) => {
+      console.error("Mutation error:", error);
+    },
+  });
+
+  console.log(new Date());
+  const handleSendMessage = () => {
+    mutate(input);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      mutate(input);
+    }
+  };
+
+  const {
+    stompClient,
+    isConnected,
+    receiveMessage,
+    updateMembers,
+    updateUserId,
+    sendWebSocketMessage,
+  } = useChatWebSocket({ selectedRoomId });
+
+  const [members, setMembers] = useState();
+
+  useEffect(() => {
+    if (members && uid) {
+      updateMembers(members);
+      updateUserId(uid);
+    }
+  }, [members, uid, updateMembers, updateUserId]);
+  console.log("input:", input);
+
+  const processMessages = (messages, currentUserId) => {
+    return messages.map((message, index) => {
+      const previousMessage = messages[index - 1];
+      const nextMessage = messages[index + 1];
+
+      const isFirst =
+        !previousMessage || previousMessage.sender !== message.sender;
+      const isLast = !nextMessage || nextMessage.sender !== message.sender;
+
+      return {
+        ...message,
+        isFirst,
+        isLast,
+        isOwnMessage: message.sender === currentUserId,
+      };
+    });
+  };
+
+  //================================================================================================
 
   return (
     <div id="message-container">
@@ -314,135 +423,180 @@ export default function Message() {
         {isOpen == true ? <InviteModal {...propsObject} /> : null}
         <div className="create">
           <button className="create-btn" onClick={openHandler}>
+            <img src="/images/message-createRoom.png" alt="" />
             대화방 생성
           </button>
         </div>
       </div>
-      <div className="view">
-        <div className="others">
-          <div className="profile_name_preview">
-            <img className="profile" src="../images/sample_item1.jpg" alt="" />
-            <div className="chatRoomName">
-              <span>{roomInfo.chatRoomName}</span>
+      {selectedRoomId ? (
+        <div className="view">
+          <div className="others">
+            <div className="profile_name_preview">
+              <img
+                className="profile"
+                src="../images/sample_item1.jpg"
+                alt=""
+              />
+              <div className="chatRoomName">
+                <span>{roomInfo.chatRoomName}</span>
+              </div>
             </div>
-          </div>
-          <div className="search_more">
-            {search == true ? (
-              <div className="searchBox">
-                <input type="text" placeholder="대화 검색..." />
+            <div className="search_more">
+              {search == true ? (
+                <div className="searchBox">
+                  <input type="text" placeholder="대화 검색..." />
+                  <img
+                    className="searchImg"
+                    src="../images/image.png"
+                    alt=""
+                    onClick={null}
+                  />
+                  <img
+                    className="closeSearch"
+                    src="../images/closeBtn.png"
+                    alt=""
+                    onClick={searchHandler}
+                  />
+                </div>
+              ) : (
                 <img
                   className="searchImg"
                   src="../images/image.png"
                   alt=""
-                  onClick={null}
-                />
-                <img
-                  className="closeSearch"
-                  src="../images/closeBtn.png"
-                  alt=""
                   onClick={searchHandler}
                 />
-              </div>
-            ) : (
+              )}
+
+              {moreFn == true ? (
+                <ShowMoreModal
+                  moreFnHandler={moreFnHandler}
+                  showMoreRef={showMoreRef}
+                />
+              ) : null}
               <img
                 className="searchImg"
-                src="../images/image.png"
+                src="../images/More.png "
                 alt=""
-                onClick={searchHandler}
+                onClick={moreFnHandler}
               />
-            )}
+            </div>
+          </div>
+          <div className="messages">
+            {messageList && messageList.length > 0
+              ? messageList.map((message) => (
+                  <div
+                    className={
+                      message.sender === uid
+                        ? "my-message_profile"
+                        : "others-messages"
+                    }
+                    key={message.id}
+                  >
+                    <div
+                      className={
+                        message.sender === uid
+                          ? "my-messages_readTime"
+                          : "others-messages_readTime"
+                      }
+                    >
+                      <div
+                        className={
+                          message.sender === uid
+                            ? "my-message"
+                            : "others-message"
+                        }
+                      >
+                        {message.content}
+                      </div>
+                      <div className="readTime">{message.timeStamp}</div>
+                    </div>
+                    <img
+                      className="message-profile"
+                      src="../images/sample_item1.jpg"
+                      alt=""
+                    />
+                  </div>
+                ))
+              : null}
 
-            {moreFn == true ? (
-              <ShowMoreModal
-                moreFnHandler={moreFnHandler}
-                showMoreRef={showMoreRef}
+            <div className="others-messages">
+              <img
+                className="message-profile"
+                src="../images/sample_item1.jpg"
+                alt=""
               />
-            ) : null}
-            <img
-              className="searchImg"
-              src="../images/More.png "
-              alt=""
-              onClick={moreFnHandler}
-            />
-          </div>
-        </div>
-        <div className="messages">
-          <div className="my-message_profile">
-            <div className="my-messages_readTime">
-              <div className="my-message">
-                안녕하세요 저는 전규찬이라고 합니다.
+              <div className="others-messages_readTime">
+                <div className="others-message">
+                  어? 이름이 규찬이세요? 이런 우연이!!! 저 살면서 규찬이라는
+                  이름 쓰는 사람 조규찬 말고는 처음봤어요. 저는 김규찬입니다!
+                </div>
+                <div className="others-message">
+                  죄송해요 말이 좀 많았죠? 너무 신기해서 제가 조금
+                  흥분했나봐요.. 어쨌든 만나뵙게 되어 정말 반갑습니다!
+                </div>
+                <div className="readTime">1:16 PM</div>
               </div>
-              <div className="readTime">1:15 PM</div>
             </div>
-            <img
-              className="message-profile"
-              src="../images/sample_item1.jpg"
-              alt=""
-            />
-          </div>
-          <div className="others-messages">
-            <img
-              className="message-profile"
-              src="../images/sample_item1.jpg"
-              alt=""
-            />
-            <div className="others-messages_readTime">
-              <div className="others-message">
-                어? 이름이 규찬이세요? 이런 우연이!!! 저 살면서 규찬이라는 이름
-                쓰는 사람 조규찬 말고는 처음봤어요. 저는 김규찬입니다!
+            <div className="my-message_profile">
+              <div className="my-messages_readTime">
+                <div className="my-message">아 넵.</div>
+                <div className="readTime">1:17 PM</div>
               </div>
-              <div className="others-message">
-                죄송해요 말이 좀 많았죠? 너무 신기해서 제가 조금 흥분했나봐요..
-                어쨌든 만나뵙게 되어 정말 반갑습니다!
-              </div>
-              <div className="readTime">1:16 PM</div>
-            </div>
-          </div>
-          <div className="my-message_profile">
-            <div className="my-messages_readTime">
-              <div className="my-message">아 넵.</div>
-              <div className="readTime">1:17 PM</div>
-            </div>
-            <img
-              className="message-profile"
-              src="../images/sample_item1.jpg"
-              alt=""
-            />
-          </div>
-        </div>
-        <div className="send-message">
-          <div className="input_fileIcon">
-            <input
-              className="message-input"
-              type="text"
-              placeholder="메시지를 입력해주세요"
-            />
-            <label className="fileInput" htmlFor="fileInput">
-              <img className="fileIcon" src="../images/fileIcon.png" alt="" />
-              <MessageToolTip tooltip={"파일 첨부"} />
-            </label>
-            <input
-              id="fileInput"
-              type="file"
-              multiple
-              name="file"
-              onChange={fileHandler}
-              ref={fileRef}
-            />
-            {file == true ? (
-              <AttachFileModal
-                file={file}
-                fileInfos={fileInfos}
-                closeHandler={() => {
-                  setFile(false);
-                  setFileInfos([]);
-                }}
+              <img
+                className="message-profile"
+                src="../images/sample_item1.jpg"
+                alt=""
               />
-            ) : null}
+            </div>
           </div>
-          <button className="send-btn">보내기</button>
+          <div className="send-message">
+            <div className="input_fileIcon">
+              <input
+                className="message-input"
+                type="text"
+                placeholder="메시지를 입력해주세요"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => handleKeyPress(e)}
+              />
+              <label className="fileInput" htmlFor="fileInput">
+                <img className="fileIcon" src="../images/fileIcon.png" alt="" />
+                <MessageToolTip tooltip={"파일 첨부"} />
+              </label>
+              <input
+                id="fileInput"
+                type="file"
+                multiple
+                name="file"
+                onChange={fileHandler}
+                ref={fileRef}
+              />
+              {file == true ? (
+                <AttachFileModal
+                  file={file}
+                  fileInfos={fileInfos}
+                  closeHandler={() => {
+                    setFile(false);
+                    setFileInfos([]);
+                  }}
+                />
+              ) : null}
+            </div>
+            <button
+              className="send-btn"
+              onClick={(e) => handleSendMessage(e)}
+              disabled={!isConnected}
+            >
+              보내기
+            </button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="view noChat">
+          <img src="/images/message-IconPurple.png" alt="" />
+          <span>대화방을 생성하거나 선택하여 대화를 시작해보세요.</span>
+        </div>
+      )}
     </div>
   );
 }
