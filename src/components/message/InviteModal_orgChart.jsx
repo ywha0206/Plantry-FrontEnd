@@ -4,6 +4,7 @@ import axiosInstance from "../../services/axios";
 import { useQuery } from "@tanstack/react-query";
 import { getDeptsAndTeams } from "./Message_API";
 import CustomAlert from "../Alert";
+import useUserStore from "../../store/useUserStore";
 
 export default function InviteModal_orgChart({
   users,
@@ -113,7 +114,7 @@ export default function InviteModal_orgChart({
     }
   };
 
-  const [uid, setUid] = useState(() => localStorage.getItem("uid"));
+  const uid = useUserStore((state) => state.user.uid);
 
   const favoriteSetHandler = async (e, member) => {
     e.preventDefault();
@@ -127,6 +128,7 @@ export default function InviteModal_orgChart({
           params: {
             uid: uid,
             frequentUid: member.uid,
+            type: "insert",
           },
         }
       );
@@ -135,7 +137,7 @@ export default function InviteModal_orgChart({
       if (resp.data === "success") {
         setMessage("즐겨찾기에 등록되었습니다.");
       } else {
-        setMessage("즐겨찾기 등록 실패!");
+        setMessage("이미 등록된 유저입니다.");
       }
       setIsOpen(true);
       setTimeout(() => {

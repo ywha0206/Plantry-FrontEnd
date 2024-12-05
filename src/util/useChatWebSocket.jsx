@@ -1,22 +1,20 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, useCallback } from "react";
 import { Client } from "@stomp/stompjs";
 import axiosInstance from "@/services/axios.jsx";
 
-const useWebSocket = ({
-  initialDestination,
-  initialMessage,
-  initialCalendarId,
+const useChatWebSocket = ({
+  initialMembers,
   initialUserId,
+  selectedRoomId,
 }) => {
-  const [destination, setDestination] = useState(initialDestination);
-  const [sendMessage, setSendMessage] = useState(initialMessage);
-  const [calendarIds, setCalendarIds] = useState(initialCalendarId || []);
+  const [members, setmembers] = useState(initialMembers || []);
   const [isConnected, setIsConnected] = useState(false);
   const [receiveMessage, setReceiveMessage] = useState([]);
   const [userId, setUserId] = useState(initialUserId);
 
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-  const wsUrl = "ws://" + apiBaseUrl.replace("http://", "") + "/ws-calendar";
+  const wsUrl = "ws://" + apiBaseUrl.replace("http://", "") + "/ws-chat";
 
   const [stompClient, setStompClient] = useState(null);
 
@@ -49,36 +47,17 @@ const useWebSocket = ({
   }, [wsUrl]);
 
   const updateSubscriptions = (client) => {
-    if (calendarIds && calendarIds.length > 0) {
-      calendarIds.forEach((calendarId) => {
-        client.subscribe(`/topic/calendar/${calendarId}`, (message) => {
+    if (members && members.length > 0) {
+      members.forEach(() => {
+        client.subscribe(`/topic/chat/${selectedRoomId}`, (message) => {
           try {
             const response = JSON.parse(message.body);
-            console.log(response);
+            console.log("구독 응답 : ", response);
             setReceiveMessage(response);
           } catch (error) {
             console.error("Failed to parse message:", error);
           }
         });
-      });
-    }
-
-    if (userId) {
-      client.subscribe(`/topic/calendar/user/${userId}`, (message) => {
-        try {
-          const response = JSON.parse(message.body);
-          console.log(response);
-          setReceiveMessage(response);
-        } catch (error) {
-          console.error("Failed to parse user message:", error);
-        }
-      });
-    }
-
-    if (destination && sendMessage) {
-      client.publish({
-        destination,
-        body: sendMessage,
       });
     }
   };
@@ -101,7 +80,7 @@ const useWebSocket = ({
     if (stompClient && isConnected) {
       updateSubscriptions(stompClient);
     }
-  }, [calendarIds, userId, isConnected, stompClient]);
+  }, [members, userId, isConnected, stompClient]);
 
   const sendWebSocketMessage = useCallback(
     (message, path) => {
@@ -117,8 +96,8 @@ const useWebSocket = ({
     [stompClient, isConnected]
   );
 
-  const updateCalendarIds = (newIds) => {
-    setCalendarIds(newIds);
+  const updateMembers = (newIds) => {
+    setmembers(newIds);
   };
 
   const updateUserId = (newId) => {
@@ -127,17 +106,15 @@ const useWebSocket = ({
 
   return {
     stompClient,
-    setDestination,
-    setSendMessage,
-    setCalendarIds,
-    calendarIds,
+    setmembers,
+    members,
     isConnected,
     receiveMessage,
     sendWebSocketMessage,
-    updateCalendarIds,
+    updateMembers,
     updateUserId,
     initializeStompClient,
   };
 };
 
-export default useWebSocket;
+export default useChatWebSocket;
