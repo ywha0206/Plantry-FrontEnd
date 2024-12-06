@@ -10,7 +10,6 @@ import ProfileModal from "../../components/message/ProfileModal";
 import axiosInstance from "../../services/axios";
 import useChatWebSocket from "../../util/useChatWebSocket";
 import { useMutation } from "@tanstack/react-query";
-import { v4 as uuidv4 } from "uuid";
 
 export default function Message({ selectedRoomId, setSelectedRoomId, uid }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -207,7 +206,6 @@ export default function Message({ selectedRoomId, setSelectedRoomId, uid }) {
       if (inputText.trim() === "") return null;
 
       const newMessage = {
-        // id: uuidv4(),
         roomId: selectedRoomId,
         status: 1,
         type: "MESSAGE",
