@@ -17,6 +17,8 @@ const useChatWebSocket = ({
   const isSubscribed = useRef(false); // 중복 구독 방지용
 
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+  console.log(apiBaseUrl);
+
   const wsUrl = "ws://" + apiBaseUrl.replace("http://", "") + "/ws-chat";
 
   const [stompClient, setStompClient] = useState(null);
