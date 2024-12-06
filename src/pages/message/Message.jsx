@@ -1,3 +1,5 @@
+/* eslint-disable react/prop-types */
+/* eslint-disable react-hooks/exhaustive-deps */
 import "@/pages/message/Message.scss";
 import { useCallback, useEffect, useRef, useState } from "react";
 import MessageToolTip from "../../components/message/MessageToolTip";
@@ -6,11 +8,11 @@ import ShowMoreModal from "../../components/message/ShowMoreModal";
 import AttachFileModal from "../../components/message/AttachFileModal";
 import ProfileModal from "../../components/message/ProfileModal";
 import axiosInstance from "../../services/axios";
-import useUserStore from "./../../store/useUserStore";
 import useChatWebSocket from "../../util/useChatWebSocket";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
+import { v4 as uuidv4 } from "uuid";
 
-export default function Message() {
+export default function Message({ selectedRoomId, setSelectedRoomId, uid }) {
   const [isOpen, setIsOpen] = useState(false);
   const [profile, setProfile] = useState(false);
   const [option, setOption] = useState(2);
@@ -18,9 +20,9 @@ export default function Message() {
   const [moreFn, setMoreFn] = useState(false);
   const [file, setFile] = useState(false);
   const [fileInfos, setFileInfos] = useState([]);
-  const [selectedRoomId, setSelectedRoomId] = useState("");
   const [roomData, setRoomData] = useState([]);
   const [roomInfo, setRoomInfo] = useState({});
+  const [messageList, setMessageList] = useState([]);
 
   const fileRef = useRef();
   const profileRef = useRef();
@@ -140,8 +142,6 @@ export default function Message() {
     }
   };
 
-  const uid = useUserStore((state) => state.user.uid);
-
   const frequentHandler = useCallback(
     async (e, room) => {
       e.preventDefault();
@@ -182,8 +182,6 @@ export default function Message() {
     fetchChatRooms();
   }, [uid, isOpen]);
 
-  const [messageList, setMessageList] = useState([]);
-
   const selectRoomHandler = (e, roomId) => {
     e.preventDefault();
     if (selectedRoomId === roomId) {
@@ -192,32 +190,12 @@ export default function Message() {
     setSelectedRoomId(roomId);
     localStorage.removeItem("roomId");
     localStorage.setItem("roomId", roomId);
-    try {
-      axiosInstance.get(`/api/message/roomInfo/${roomId}`).then((resp) => {
-        setRoomInfo(resp.data);
-        setMembers(resp.data.members);
-        setMembers((prevMembers) => [...prevMembers, resp.data.leader]);
-      });
-      axiosInstance.get(`/api/message/getMessage/${roomId}`).then((resp) => {
-        console.log("채팅목록:", resp.data);
-        setMessageList(...messageList, resp.data);
-      });
-    } catch (error) {
-      console.error(error);
-    }
   };
 
   useEffect(() => {
     const roomId = localStorage.getItem("roomId");
     if (!roomId) return;
     setSelectedRoomId(roomId);
-    try {
-      axiosInstance.get(`/api/message/roomInfo/${roomId}`).then((resp) => {
-        setRoomInfo(resp.data);
-      });
-    } catch (error) {
-      console.error(error);
-    }
   }, []);
 
   //==========================================▼웹소켓 연결과 채팅 전송===================================================
@@ -226,9 +204,10 @@ export default function Message() {
 
   const { mutate } = useMutation({
     mutationFn: async (inputText) => {
-      if (input.trim() === "") return null;
+      if (inputText.trim() === "") return null;
 
       const newMessage = {
+        // id: uuidv4(),
         roomId: selectedRoomId,
         status: 1,
         type: "MESSAGE",
@@ -239,8 +218,11 @@ export default function Message() {
 
       console.log("Sending message to DB:", newMessage);
       try {
-        await axiosInstance.post("/api/message/saveMessage", newMessage);
-        return newMessage;
+        const resp = await axiosInstance.post(
+          "/api/message/saveMessage",
+          newMessage
+        );
+        return resp.data;
       } catch (error) {
         console.error(error);
         throw error;
@@ -257,7 +239,18 @@ export default function Message() {
     },
   });
 
-  console.log(new Date());
+  const formatTime = (timeStamp) => {
+    const date = new Date(timeStamp);
+
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+    });
+
+    return formatter.format(date);
+  };
+
   const handleSendMessage = () => {
     mutate(input);
   };
@@ -271,13 +264,46 @@ export default function Message() {
   const {
     stompClient,
     isConnected,
-    receiveMessage,
     updateMembers,
     updateUserId,
     sendWebSocketMessage,
-  } = useChatWebSocket({ selectedRoomId });
+    updateSubscriptions,
+  } = useChatWebSocket({
+    selectedRoomId,
+    setMessageList,
+  });
 
   const [members, setMembers] = useState();
+
+  // 채팅방 변경 시 메시지 가져오기
+  useEffect(() => {
+    if (selectedRoomId) {
+      // 기존 메시지 리스트 초기화
+      setMessageList([]);
+
+      // 초기 메시지 로딩
+      axiosInstance
+        .get(`/api/message/getMessage/${selectedRoomId}`)
+        .then((resp) => {
+          console.log("채팅목록:", resp.data);
+          setMessageList(resp.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching messages:", error);
+        });
+
+      // 채팅방 정보 가져오기
+      axiosInstance
+        .get(`/api/message/roomInfo/${selectedRoomId}`)
+        .then((resp) => {
+          setRoomInfo(resp.data);
+          setMembers([...resp.data.members, resp.data.leader]);
+        })
+        .catch((error) => {
+          console.error("Error fetching room info:", error);
+        });
+    }
+  }, [selectedRoomId]);
 
   useEffect(() => {
     if (members && uid) {
@@ -287,23 +313,10 @@ export default function Message() {
   }, [members, uid, updateMembers, updateUserId]);
   console.log("input:", input);
 
-  const processMessages = (messages, currentUserId) => {
-    return messages.map((message, index) => {
-      const previousMessage = messages[index - 1];
-      const nextMessage = messages[index + 1];
+  const processedMessages = processMessages(messageList, uid);
 
-      const isFirst =
-        !previousMessage || previousMessage.sender !== message.sender;
-      const isLast = !nextMessage || nextMessage.sender !== message.sender;
-
-      return {
-        ...message,
-        isFirst,
-        isLast,
-        isOwnMessage: message.sender === currentUserId,
-      };
-    });
-  };
+  console.log("채팅 내역:", messageList);
+  console.log("선택된 채팅방Id:", selectedRoomId);
 
   //================================================================================================
 
@@ -483,10 +496,10 @@ export default function Message() {
           </div>
           <div className="messages">
             {messageList && messageList.length > 0
-              ? messageList.map((message) => (
+              ? processedMessages.map((message) => (
                   <div
                     className={
-                      message.sender === uid
+                      message.isOwnMessage
                         ? "my-message_profile"
                         : "others-messages"
                     }
@@ -494,60 +507,38 @@ export default function Message() {
                   >
                     <div
                       className={
-                        message.sender === uid
+                        message.isOwnMessage
                           ? "my-messages_readTime"
                           : "others-messages_readTime"
                       }
                     >
                       <div
                         className={
-                          message.sender === uid
-                            ? "my-message"
-                            : "others-message"
+                          message.isOwnMessage ? "my-message" : "others-message"
                         }
                       >
                         {message.content}
                       </div>
-                      <div className="readTime">{message.timeStamp}</div>
+                      {message.isLast ? (
+                        <div className="readTime">
+                          {formatTime(message.timeStamp)}
+                        </div>
+                      ) : null}
                     </div>
-                    <img
-                      className="message-profile"
-                      src="../images/sample_item1.jpg"
-                      alt=""
-                    />
+                    {message.isFirst ? (
+                      <div className="profileDiv">
+                        <img
+                          className="message-profile"
+                          src="../images/sample_item1.jpg"
+                          alt=""
+                        />
+                      </div>
+                    ) : (
+                      <div className="profileDiv"></div>
+                    )}
                   </div>
                 ))
               : null}
-
-            <div className="others-messages">
-              <img
-                className="message-profile"
-                src="../images/sample_item1.jpg"
-                alt=""
-              />
-              <div className="others-messages_readTime">
-                <div className="others-message">
-                  어? 이름이 규찬이세요? 이런 우연이!!! 저 살면서 규찬이라는
-                  이름 쓰는 사람 조규찬 말고는 처음봤어요. 저는 김규찬입니다!
-                </div>
-                <div className="others-message">
-                  죄송해요 말이 좀 많았죠? 너무 신기해서 제가 조금
-                  흥분했나봐요.. 어쨌든 만나뵙게 되어 정말 반갑습니다!
-                </div>
-                <div className="readTime">1:16 PM</div>
-              </div>
-            </div>
-            <div className="my-message_profile">
-              <div className="my-messages_readTime">
-                <div className="my-message">아 넵.</div>
-                <div className="readTime">1:17 PM</div>
-              </div>
-              <img
-                className="message-profile"
-                src="../images/sample_item1.jpg"
-                alt=""
-              />
-            </div>
           </div>
           <div className="send-message">
             <div className="input_fileIcon">
@@ -600,3 +591,22 @@ export default function Message() {
     </div>
   );
 }
+
+const processMessages = (messages, currentUserId) => {
+  if (!messages) return;
+  return messages.map((message, index) => {
+    const previousMessage = messages[index - 1];
+    const nextMessage = messages[index + 1];
+
+    const isFirst =
+      !previousMessage || previousMessage.sender !== message.sender;
+    const isLast = !nextMessage || nextMessage.sender !== message.sender;
+
+    return {
+      ...message,
+      isFirst,
+      isLast,
+      isOwnMessage: message.sender === currentUserId,
+    };
+  });
+};
