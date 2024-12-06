@@ -69,7 +69,6 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
 
   const [selectedRoomId, setSelectedRoomId] = useState("");
-  const uid = useUserStore((state) => state.user.uid);
 
   // 검증 제외 경로
   const excludedRoutesSet = new Set([
@@ -202,7 +201,6 @@ function App() {
               <Message
                 selectedRoomId={selectedRoomId}
                 setSelectedRoomId={setSelectedRoomId}
-                uid={uid}
               />
             }
           />

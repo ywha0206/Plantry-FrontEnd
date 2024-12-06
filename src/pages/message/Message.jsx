@@ -10,8 +10,9 @@ import ProfileModal from "../../components/message/ProfileModal";
 import axiosInstance from "../../services/axios";
 import useChatWebSocket from "../../util/useChatWebSocket";
 import { useMutation } from "@tanstack/react-query";
+import useUserStore from "../../store/useUserStore";
 
-export default function Message({ selectedRoomId, setSelectedRoomId, uid }) {
+export default function Message({ selectedRoomId, setSelectedRoomId }) {
   const [isOpen, setIsOpen] = useState(false);
   const [profile, setProfile] = useState(false);
   const [option, setOption] = useState(2);
@@ -22,6 +23,8 @@ export default function Message({ selectedRoomId, setSelectedRoomId, uid }) {
   const [roomData, setRoomData] = useState([]);
   const [roomInfo, setRoomInfo] = useState({});
   const [messageList, setMessageList] = useState([]);
+
+  const uid = useUserStore((state) => state.user.uid);
 
   const fileRef = useRef();
   const profileRef = useRef();
