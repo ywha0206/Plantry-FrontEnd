@@ -258,6 +258,11 @@
     color: white;
     font-size: 16px;
     font-weight: bold;
+    & > img {
+      width: 20px;
+      height: 20px;
+      margin-right: 5px;
+    }
     &:hover {
       background-color: #5d5ddd;
       cursor: pointer;
@@ -277,6 +282,21 @@
     box-sizing: border-box;
   }
 
+  .noChat {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    & > img {
+      width: 100px;
+      height: 100px;
+      opacity: 80%;
+    }
+    & > span {
+      margin-top: 20px;
+      font-size: 22px;
+    }
+  }
+
   .others {
     width: 100%;
     height: 58px;
@@ -289,6 +309,10 @@
 
   .messages {
     padding: 20px 10px;
+    overflow: scroll;
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .profile_name_preview {

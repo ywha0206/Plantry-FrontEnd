@@ -6,129 +6,129 @@
     background-color: #ffffff;
  
   
-  header{
-    width: 1920px;
-    margin: 0 auto;
-    height: 70px;
-    align-content: end;
+//   header{
+//     //width: 1920px;
+//     margin: 0 auto;
+//     height: 70px;
+//     align-content: end;
 
     
-  }
-  header > .headerIn{
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
+//   }
+//   header > .headerIn{
+//     width: 100%;
+//     display: flex;
+//     justify-content: space-between;
+//     align-items: center;
+//     margin-bottom: 12px;
 
     
 
-  }
+//   }
 
-  header  .headerLogo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+//   header  .headerLogo {
+//     display: flex;
+//     justify-content: center;
+//     align-items: center;
     
-  }
+//   }
 
-  header > .headerIn  h1{
-    line-height: 25px;
-    font-size: 25px;
-  }
+//   header > .headerIn  h1{
+//     line-height: 25px;
+//     font-size: 25px;
+//   }
 
-  header > .headerIn >.gnbWrapper{
-    display: flex;
-    align-items: center;
-  }
-  header > .headerIn >.gnbWrapper > .gnb{
-    display: flex;
-    align-items: center;
-}
+//   header > .headerIn >.gnbWrapper{
+//     display: flex;
+//     align-items: center;
+//   }
+//   header > .headerIn >.gnbWrapper > .gnb{
+//     display: flex;
+//     align-items: center;
+// }
   
 
-  header > .headerIn >.gnbWrapper > .gnb > li{
-    width: 200px;
-    text-align: center;
-  }
+//   header > .headerIn >.gnbWrapper > .gnb > li{
+//     width: 200px;
+//     text-align: center;
+//   }
 
-  header img{
-    width: 25px;
-    height: 25px;
-    margin-right: 10px;
-  }
+//   header img{
+//     width: 25px;
+//     height: 25px;
+//     margin-right: 10px;
+//   }
 
 
-  /* main */
-  main{
+//   /* main */
+//   main{
 
-    width: 1920px;
-    margin: 0 auto;
+//     width: 1920px;
+//     margin: 0 auto;
 
-  }
-  main .mainIn{
-    width: 100%;
-  }
+//   }
+//   main .mainIn{
+//     width: 100%;
+//   }
 
-  main .mainIn > .Topbg{
-    height: 816px;
-    position: relative;
-    box-sizing: border-box;
-  }
+//   main .mainIn > .Topbg{
+//     height: 816px;
+//     position: relative;
+//     box-sizing: border-box;
+//   }
 
-  main .mainIn > .Topbg > img{
-    width: 100%;
-    height: 100%;
-    background-color: #666cff24;
-  }
- .Topbg > .up > div> h2{
-    top: 462px;
-    left: 176px;
-    position: absolute;
-    width: 355px;
-  }
+//   main .mainIn > .Topbg > img{
+//     width: 100%;
+//     height: 100%;
+//     background-color: #666cff24;
+//   }
+//  .Topbg > .up > div> h2{
+//     top: 462px;
+//     left: 176px;
+//     position: absolute;
+//     width: 355px;
+//   }
 
-  .Topbg > .up > div> h2 > p{
-    font-size: 25px;
-  }
+//   .Topbg > .up > div> h2 > p{
+//     font-size: 25px;
+//   }
 
-  .Topbg > .up > div> h2 > p:last-child{
-    position: absolute;
-    padding-left: 20px;
-    left: 20px;
-  }
+//   .Topbg > .up > div> h2 > p:last-child{
+//     position: absolute;
+//     padding-left: 20px;
+//     left: 20px;
+//   }
 
-  .Topbg > .up  >p{
-    position: absolute;
-    top: 569px;
-    left: 163px;
-  }
-  .Topbg > .up  > .projectImg1{
-    position: absolute;
-    top: 387px;
-    right: 215px;
-  }
-  .Topbg > .up  > .projectImg2{
-    position: absolute;
-    top: 120px;
-    right: 284px;
-  }
+//   .Topbg > .up  >p{
+//     position: absolute;
+//     top: 569px;
+//     left: 163px;
+//   }
+//   .Topbg > .up  > .projectImg1{
+//     position: absolute;
+//     top: 387px;
+//     right: 215px;
+//   }
+//   .Topbg > .up  > .projectImg2{
+//     position: absolute;
+//     top: 120px;
+//     right: 284px;
+//   }
 
-  .Topbg > .up  > .icon1{
-    position: absolute;
-    z-index: 2;
-    top: 359px;
-    left: 832px;
-    height: 410px;
-  }
+//   .Topbg > .up  > .icon1{
+//     position: absolute;
+//     z-index: 2;
+//     top: 359px;
+//     left: 832px;
+//     height: 410px;
+//   }
 
-  .Topbg > .up  > .icon2{
-    position: absolute;
-    z-index: 2;
-    top: 100px;
-    right: 50px;
-    height: 434px;
-  }
+//   .Topbg > .up  > .icon2{
+//     position: absolute;
+//     z-index: 2;
+//     top: 100px;
+//     right: 50px;
+//     height: 434px;
+//   }
 
   .serviceInfo{
     height: 425px;

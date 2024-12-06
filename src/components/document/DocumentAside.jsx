@@ -21,25 +21,59 @@ export default function DocumentAside(){
 
     const [isPinnedOpen, setIsPinnedOpen] = useState(true); // State to track "My Page" section visibility    
     const [isSharedOpen, setIsSharedOpen] = useState(true);
+
+    const [usedSize, setUsedSize] = useState(0);
+    const [remainingSize, setRemainingSize] = useState(0);
+    const [usedPercentage, setUsedPercentage] = useState(0);
     
     const [folders, setFolders] = useState([]); // 폴더 목록 상태
     const [pinnedFolders, setPinnedFolders] = useState([]); // Pinned 폴더
     const queryClient = useQueryClient();
     const location = useLocation(); // 현재 경로 가져오기
 
-  // React Query를 사용하여 폴더 데이터 가져오기
-  const { data: allFolders = [], isLoading, isError } = useQuery({
-    queryKey: ["driveList", location.pathname],
-    queryFn: async () => {
-        const response = await axiosInstance.get("/api/drive/folders");
-        return Array.isArray(response.data) ? response.data : response.data.data;
-    },
-    staleTime: 300000, // 5분 동안 데이터 신선 유지
-});
 
-// 폴더 필터링 (공유 및 개인)
-const sharedFolders = allFolders.filter((folder) => folder.isShared === 1);
-const personalFolders = allFolders.filter((folder) => folder.isShared === 0);
+  // React Query를 사용하여 폴더 데이터 가져오기
+    const { data: folderResponse = { folderDtoList: [], uid: "",size: 0 }, isLoading, isError } = useQuery({
+        queryKey: ["driveList", location.pathname],
+        queryFn: async () => {
+            const response = await axiosInstance.get("/api/drive/folders");
+            return response.data; // 백엔드의 데이터 구조 반환
+        },
+        staleTime: 300000, // 데이터 신선 유지 시간 (5분)
+    });
+
+    const user = useUserStore((state) => state.user);
+    console.log("Current user:", user.grade);
+    // 폴더 필터링 (공유 및 개인)
+    const sharedFolders = folderResponse?.folderDtoList?.filter((folder) => folder.isShared === 1) || [];
+    const personalFolders = folderResponse?.folderDtoList?.filter((folder) => folder.isShared === 0) || [];
+   
+    const size = folderResponse?.size || 0; // 기본값 0
+    const userGrade = user?.grade || 1;    // 기본값 1
+    console.log("사이즈!!!",size);
+    let maxSize = 0;
+        if (userGrade === 1 || userGrade  === null) {
+            maxSize = 524288000; // 500 MB
+        } else if (userGrade  === 2) {
+            maxSize = 1048576000; // 1 GB
+        } else {
+            maxSize = 10485760000; // 10 GB
+        }
+
+    useEffect(() => {
+        
+          // KB 단위의 size를 Byte로 변환
+         const sizeInBytes = size * 1024;
+    
+        const currentUsedSize = sizeInBytes;
+        const currentRemainingSize = maxSize - currentUsedSize;
+        const currentUsedPercentage = (currentUsedSize / maxSize) * 100;
+    
+        setUsedSize(currentUsedSize);
+        setRemainingSize(currentRemainingSize);
+        setUsedPercentage(currentUsedPercentage);
+    }, [size, user]); // `size`와 `userGrade`가 변경될 때 계산
+   
 
     const togglePinnedSection = () => {
       setIsPinnedOpen((prev) => !prev); // Toggle the section
@@ -73,6 +107,27 @@ const personalFolders = allFolders.filter((folder) => folder.isShared === 0);
     const handleMenuAction = (action) => {
         console.log(`${action} clicked for folder:`, contextMenu.folder);
         setContextMenu({ visible: false, position: { top: 0, left: 0 }, folder: null });
+    };
+
+    const handleDelete = async (item) => {
+        try {
+            const response = await axiosInstance.delete(
+                `/api/drive/folder/delete/${item.id}`, // 폴더 또는 파일의 타입과 ID 사용
+                { params: { path: item.path } } // 경로 전달
+            );
+    
+            if (response.status === 200) {
+                console.log(`${item.type} 삭제 성공:`, item.id);
+                queryClient.invalidateQueries(['folderContents', folderId]);
+                alert(`${item.type === 'folder' ? '폴더' : '파일'}가 삭제되었습니다.`);
+            } else {
+                console.error('삭제 실패:', response.data);
+                alert('삭제에 실패했습니다. 다시 시도해주세요.');
+            }
+        } catch (error) {
+            console.error('삭제 중 오류 발생:', error);
+            alert('삭제 중 오류가 발생했습니다.');
+        }
     };
 
    
@@ -242,9 +297,23 @@ const personalFolders = allFolders.filter((folder) => folder.isShared === 0);
                         ))}  
                         {sharedFolders.length === 0 && <p className="opacity-60">Shared 폴더가 없습니다.</p>}
                 </section>
+
+                
                 <section className='mt-auto flex flex-col gap-5'>
+                    <div className="bg-gray-100 rounded-md p-4 text-gray-600 text-sm">
+                        <p>사용량: {(usedSize / 1024 / 1024).toFixed(2)} MB / {(maxSize / 1024 / 1024).toFixed(2)} MB</p>
+                        <div className="w-full bg-gray-300 rounded-full h-2.5 my-2">
+                            <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: `${usedPercentage}%` }}></div>
+                        </div>
+                        <p>남은 용량: {(remainingSize / 1024 / 1024).toFixed(2)} MB</p>
+                    </div>
                     <button onClick={makeDrive} className='bg-purple white h-8 rounded-md'>드라이브 생성</button>
+
                 </section>
+
+               {/*  <section className='mt-auto flex flex-col gap-5'>
+                    <button onClick={makeDrive} className='bg-purple white h-8 rounded-md'>드라이브 생성</button>
+                </section> */}
                 <div className='drive-modal'>
                     <NewDrive 
                        isOpen={drive}
