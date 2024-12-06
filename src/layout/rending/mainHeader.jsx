@@ -56,7 +56,7 @@ export default function MainHeader() {
               로그인
             </Link>
             <Link
-              to="/user/register"
+              to="/user/terms"
               className="px-4 py-2 border border-gray-400 rounded text-gray-700 hover:bg-[#666bff] hover:text-white"
             >
               회원가입

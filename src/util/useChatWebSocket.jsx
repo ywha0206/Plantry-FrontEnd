@@ -1,17 +1,20 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState, useCallback } from "react";
+// /* eslint-disable react-hooks/exhaustive-deps */
 import { Client } from "@stomp/stompjs";
-import axiosInstance from "@/services/axios.jsx";
+import { useCallback, useEffect, useRef, useState } from "react";
+import axiosInstance from "../services/axios";
 
 const useChatWebSocket = ({
   initialMembers,
   initialUserId,
   selectedRoomId,
+  setMessageList,
 }) => {
   const [members, setmembers] = useState(initialMembers || []);
   const [isConnected, setIsConnected] = useState(false);
-  const [receiveMessage, setReceiveMessage] = useState([]);
   const [userId, setUserId] = useState(initialUserId);
+  const clientRef = useRef(null);
+  const subscriptionRef = useRef(null);
+  const isSubscribed = useRef(false); // 중복 구독 방지용
 
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
   const wsUrl = "ws://" + apiBaseUrl.replace("http://", "") + "/ws-chat";
@@ -19,7 +22,7 @@ const useChatWebSocket = ({
   const [stompClient, setStompClient] = useState(null);
 
   const getWebSocketHeaders = async () => {
-    const accessToken = await axiosInstance.defaults.headers.Authorization;
+    const accessToken = axiosInstance.defaults.headers.Authorization;
     return {
       Authorization: accessToken || "",
     };
@@ -31,7 +34,7 @@ const useChatWebSocket = ({
       brokerURL: wsUrl,
       connectHeaders: headers,
       debug: function (str) {
-        console.log(str);
+        console.log(`[STOMP DEBUG]: ${str}`);
       },
       reconnectDelay: 5000,
       onConnect: () => {
@@ -46,21 +49,31 @@ const useChatWebSocket = ({
     setStompClient(client);
   }, [wsUrl]);
 
-  const updateSubscriptions = (client) => {
-    if (members && members.length > 0) {
-      members.forEach(() => {
-        client.subscribe(`/topic/chat/${selectedRoomId}`, (message) => {
-          try {
-            const response = JSON.parse(message.body);
-            console.log("구독 응답 : ", response);
-            setReceiveMessage(response);
-          } catch (error) {
-            console.error("Failed to parse message:", error);
+  const updateSubscriptions = useCallback(
+    (client) => {
+      if (selectedRoomId) {
+        // 기존 구독이 존재하면 해제
+        if (subscriptionRef.current) {
+          subscriptionRef.current.unsubscribe();
+        }
+
+        // 새로운 구독 설정
+        subscriptionRef.current = client.subscribe(
+          `/topic/chat/${selectedRoomId}`,
+          (message) => {
+            try {
+              const response = JSON.parse(message.body);
+              console.log("구독 응답 : ", response);
+              setMessageList((prev) => [...prev, response]);
+            } catch (error) {
+              console.error("Failed to parse message:", error);
+            }
           }
-        });
-      });
-    }
-  };
+        );
+      }
+    },
+    [selectedRoomId, setMessageList]
+  );
 
   useEffect(() => {
     if (!stompClient) {
@@ -80,7 +93,7 @@ const useChatWebSocket = ({
     if (stompClient && isConnected) {
       updateSubscriptions(stompClient);
     }
-  }, [members, userId, isConnected, stompClient]);
+  }, [selectedRoomId, isConnected, stompClient, updateSubscriptions]);
 
   const sendWebSocketMessage = useCallback(
     (message, path) => {
@@ -109,11 +122,11 @@ const useChatWebSocket = ({
     setmembers,
     members,
     isConnected,
-    receiveMessage,
     sendWebSocketMessage,
     updateMembers,
     updateUserId,
     initializeStompClient,
+    updateSubscriptions,
   };
 };
 

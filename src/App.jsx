@@ -51,7 +51,8 @@ import { useAuthStore } from "./store/useAuthStore";
 import FAQWrite from "./pages/rending/WritePage";
 import FAQLayout from "./layout/rending/faqLayout";
 import CustomAlert from "./components/Alert";
-import TestIndex from "./pages/test"
+import TestIndex from "./pages/test";
+import useUserStore from "./store/useUserStore";
 const MainIndexComponent = lazy(() => import("./components/render/main"));
 
 function App() {
@@ -62,10 +63,13 @@ function App() {
   const isTokenExpired = useAuthStore((state) => state.isTokenExpired);
   const refreshAccessToken = useAuthStore((state) => state.refreshAccessToken);
   const logout = useAuthStore((state) => state.logout);
-  const [customAlert, setCustomAlert] = useState(false)
-  const [customAlertType, setCustomAlertType] = useState("")
-  const [customAlertMessage, setCustomAlertMessage] = useState("")
+  const [customAlert, setCustomAlert] = useState(false);
+  const [customAlertType, setCustomAlertType] = useState("");
+  const [customAlertMessage, setCustomAlertMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const [selectedRoomId, setSelectedRoomId] = useState("");
+  const uid = useUserStore((state) => state.user.uid);
 
   // 검증 제외 경로
   const excludedRoutesSet = new Set([
@@ -90,12 +94,14 @@ function App() {
 
       if (tokenExpired) {
         const refreshToken = await useAuthStore.getState().getRefreshToken();
-        if(!refreshToken){
-          setCustomAlert(true)
-          setCustomAlertMessage("로그인 세션이 만료되었습니다. 다시 로그인해주세요.")
-          setCustomAlertType("error")
+        if (!refreshToken) {
+          setCustomAlert(true);
+          setCustomAlertMessage(
+            "로그인 세션이 만료되었습니다. 다시 로그인해주세요."
+          );
+          setCustomAlertType("error");
           setTimeout(() => {
-            setCustomAlert(false)
+            setCustomAlert(false);
             logout();
             navigate("/user/login");
           }, 2000);
@@ -103,10 +109,7 @@ function App() {
       }
     };
 
-
-
     checkToken();
-
   }, [location, isTokenExpired, refreshAccessToken, navigate]);
 
   return (
@@ -193,7 +196,16 @@ function App() {
 
         {/* 메신저 */}
         <Route path="/message" element={<Main />}>
-          <Route index element={<Message />} />
+          <Route
+            index
+            element={
+              <Message
+                selectedRoomId={selectedRoomId}
+                setSelectedRoomId={setSelectedRoomId}
+                uid={uid}
+              />
+            }
+          />
         </Route>
 
         {/* 문서작업 */}
@@ -218,7 +230,7 @@ function App() {
           <Route index element={<Page />} />
           <Route path="newPage" element={<NewPagePages />} />
           <Route path="list" element={<PageListPage />} />
-          <Route path="view" element={<PageViewPages />} />
+          <Route path="view/:pageId" element={<NewPagePages />} />
         </Route>
       </Routes>
     </div>
