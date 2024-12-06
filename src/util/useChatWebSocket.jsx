@@ -7,10 +7,10 @@ const useChatWebSocket = ({
   initialMembers,
   initialUserId,
   selectedRoomId,
+  setMessageList,
 }) => {
   const [members, setmembers] = useState(initialMembers || []);
   const [isConnected, setIsConnected] = useState(false);
-  const [receiveMessage, setReceiveMessage] = useState([]);
   const [userId, setUserId] = useState(initialUserId);
 
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -44,23 +44,24 @@ const useChatWebSocket = ({
       },
     });
     setStompClient(client);
-  }, [wsUrl]);
+  }, [wsUrl, selectedRoomId]);
 
-  const updateSubscriptions = (client) => {
-    if (members && members.length > 0) {
-      members.forEach(() => {
+  const updateSubscriptions = useCallback(
+    (client) => {
+      if (selectedRoomId) {
         client.subscribe(`/topic/chat/${selectedRoomId}`, (message) => {
           try {
             const response = JSON.parse(message.body);
             console.log("구독 응답 : ", response);
-            setReceiveMessage(response);
+            setMessageList((prev) => [...prev, response]);
           } catch (error) {
             console.error("Failed to parse message:", error);
           }
         });
-      });
-    }
-  };
+      }
+    },
+    [selectedRoomId]
+  );
 
   useEffect(() => {
     if (!stompClient) {
@@ -74,7 +75,7 @@ const useChatWebSocket = ({
         stompClient.deactivate();
       }
     };
-  }, [stompClient, initializeStompClient]);
+  }, [stompClient, initializeStompClient, selectedRoomId]);
 
   useEffect(() => {
     if (stompClient && isConnected) {
@@ -109,11 +110,11 @@ const useChatWebSocket = ({
     setmembers,
     members,
     isConnected,
-    receiveMessage,
     sendWebSocketMessage,
     updateMembers,
     updateUserId,
     initializeStompClient,
+    updateSubscriptions,
   };
 };
 

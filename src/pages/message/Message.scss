@@ -385,6 +385,7 @@
   .my-message {
     max-width: 650px;
     padding: 10px;
+    margin-right: 10px;
     margin-bottom: 10px;
     background-color: #7e7edf;
     border-radius: 8px;
@@ -394,7 +395,13 @@
 
   .readTime {
     font-size: 10px;
+    margin: 0 10px;
     color: rgb(151, 151, 151);
+  }
+
+  .profileDiv {
+    width: 30px;
+    height: 30px;
   }
 
   .message-profile {
@@ -406,7 +413,8 @@
 
   .others-messages {
     display: flex;
-    justify-content: flex-start;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
     & > img {
       margin-right: 10px;
     }
@@ -421,6 +429,7 @@
   .others-message {
     max-width: 650px;
     padding: 10px;
+    margin-left: 10px;
     margin-bottom: 10px;
     background-color: white;
     border-radius: 8px;
