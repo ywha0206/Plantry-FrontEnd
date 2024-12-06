@@ -42,6 +42,7 @@ const initState = {
   email:"",
   firstName:"",
   lastName:"",
+  name: "",
   hp:"",
   country:"",
   addr1:"",
@@ -125,6 +126,7 @@ export default function Register() {
         validationEnterprise.paymentCardExpiration &&
         validationEnterprise.paymentCardCvc
       );
+      console.log('dfsa', validationEnterprise)
     }else if(selected ==='Basic'){
       setPage3success(true); // 아무 플랜도 선택하지 않은 경우 비활성화
     }else {
@@ -231,6 +233,7 @@ export default function Register() {
     event.preventDefault();
     if(!!page2success){
       setCount(count + 1);
+      setUser({...user, name: user.lastName+user.firstName});
       setStatusMessage({ message: ``, type: '' });
     }else{
       setAlert({
@@ -303,12 +306,14 @@ export default function Register() {
     // 유효성 검사 규칙이 없는 필드면 메시지 없이 바로 통과
     if (!validateRules[name]) {
       setStatusMessage({ message: ``, type: '' });
-      setValidationEnterprise((prev) => ({ ...prev, [name]: true}));
-      setValidationStandard((prev) => ({ ...prev, [name]: true}));
       setUser({...user, [e.target.name]: e.target.value});
       return;
     }
 
+    if(name==='companyName'){
+      setValidationEnterprise((prev) => ({ ...prev, [name]: true}));
+      setValidationStandard((prev) => ({ ...prev, [name]: true}));
+    }
     if(name==='paymentCardCvc'&&value.length >= 3){
       if( !validateRules[name]?.(value)){
         setStatusMessage({ message: `유효하지 않은 형식입니다.`, type: 'error' });
