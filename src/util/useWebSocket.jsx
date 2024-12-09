@@ -28,6 +28,7 @@ const useWebSocket = ({ initialDestination, initialMessage, initialCalendarId, i
             brokerURL: wsUrl,
             connectHeaders: headers,
             debug: function (str) {
+                console.log(str)
             },
             reconnectDelay: 5000,
             onConnect: () => {
