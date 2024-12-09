@@ -258,6 +258,11 @@
     color: white;
     font-size: 16px;
     font-weight: bold;
+    & > img {
+      width: 20px;
+      height: 20px;
+      margin-right: 5px;
+    }
     &:hover {
       background-color: #5d5ddd;
       cursor: pointer;
@@ -277,6 +282,21 @@
     box-sizing: border-box;
   }
 
+  .noChat {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    & > img {
+      width: 100px;
+      height: 100px;
+      opacity: 80%;
+    }
+    & > span {
+      margin-top: 20px;
+      font-size: 22px;
+    }
+  }
+
   .others {
     width: 100%;
     height: 58px;
@@ -289,6 +309,21 @@
 
   .messages {
     padding: 20px 10px;
+    box-sizing: border-box;
+    overflow: scroll;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .end-message {
+    justify-self: center;
+    border-radius: 8px;
+    padding: 5px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.295);
+    text-align: center;
+    width: 260px;
   }
 
   .profile_name_preview {
@@ -361,6 +396,7 @@
   .my-message {
     max-width: 650px;
     padding: 10px;
+    margin-right: 10px;
     margin-bottom: 10px;
     background-color: #7e7edf;
     border-radius: 8px;
@@ -370,7 +406,13 @@
 
   .readTime {
     font-size: 10px;
+    margin: 0 10px;
     color: rgb(151, 151, 151);
+  }
+
+  .profileDiv {
+    width: 30px;
+    height: 30px;
   }
 
   .message-profile {
@@ -382,7 +424,8 @@
 
   .others-messages {
     display: flex;
-    justify-content: flex-start;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
     & > img {
       margin-right: 10px;
     }
@@ -397,6 +440,7 @@
   .others-message {
     max-width: 650px;
     padding: 10px;
+    margin-left: 10px;
     margin-bottom: 10px;
     background-color: white;
     border-radius: 8px;
@@ -487,6 +531,7 @@
     background-color: white;
     border-radius: 20px;
     padding: 10px;
+    box-sizing: border-box;
   }
 }
 
@@ -731,6 +776,10 @@
     flex-direction: column;
     border: 1px solid gainsboro;
     box-sizing: border-box;
+    overflow: scroll;
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .orgs-User {

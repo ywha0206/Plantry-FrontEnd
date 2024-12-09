@@ -9,22 +9,21 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 // 내용 : 드라이브 생성 
 
 
-const initState = {
-  name: "",
-  owner: "",
-  description: "",
-  order: 1,
-  shareUsers : [],
-  isShared : 0,
-  status: 1,
-  linkSharing: "0", // 허용안함
-};
 
-export default function NewDrive({ isOpen, onClose }) {
+export default function NewDrive({ order,isOpen, onClose }) {
   const [authType, setAuthType] = useState("0"); // 기본값: '나만 사용'
-  const [formData, setFormData] = useState(initState);
   const queryClient = useQueryClient();
+  const [formData, setFormData] = useState({  name: "",
+    owner: "",
+    description: "",
+    order: order,
+    shareUsers : [],
+    isShared : 0,
+    status: 1,
+    linkSharing: "0", // 허용안함
+  });
 
+  console.log("order!!!",order);
 
 
   const handleInputChange = (e) => {
@@ -86,9 +85,9 @@ export default function NewDrive({ isOpen, onClose }) {
       },
       onSuccess: (data) => {
         console.log("Drive created successfully:", data);
-        queryClient.invalidateQueries({ queryKey: ['driveList',user.uid] })
+        queryClient.invalidateQueries({ queryKey: ['driveList'] })
         onClose();
-      },
+      }, 
       onError: (error) => {
         console.error("Error creating drive:", error);
       },

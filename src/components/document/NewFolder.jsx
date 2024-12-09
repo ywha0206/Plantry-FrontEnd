@@ -2,28 +2,59 @@ import axios from "axios";
 import axiosInstance from '@/services/axios.jsx'
 import React, { useEffect, useState } from "react";
 import useUserStore from "../../store/useUserStore";
+import { useQueryClient } from "@tanstack/react-query";
 
 // 날짜 : 2024.11.27
 // 이름 : 하진희
 // 내용 : 드라이브 생성 
 
 
-const initState = {
-  name: "",
-  owner: "",
-  description: "",
-  order: 1,
-  shareUsers : [],
-  isShared : 0,
-  linkSharing: "0", // 허용안함
-  parentId:"",
-};
 
 export default function NewFolder({ isOpen, onClose ,parentId,maxOrder }) {
   const [authType, setAuthType] = useState("0"); // 기본값: '나만 사용'
-  const [formData, setFormData] = useState(initState);
+  const queryClient = useQueryClient();
+  const [formData, setFormData] = useState({
+    name: "",
+    owner: "",
+    description: "",
+    order: maxOrder,
+    shareUsers : [],
+    isShared : 0,
+    linkSharing: "0", // 허용안함
+    parentId:"",
+    permissions:7,
+  });
+
+  const permissionOptions = [
+    { label: "읽기", value: "READ" },
+    { label: "쓰기", value: "WRITE" },
+    { label: "모든 권한", value: "FULL" },
+    { label: "공유", value: "SHARE" },
+  ];
+   // 권한 비트맵
+   const permissionMap = {
+    READ: 1,
+    WRITE: 2,
+    FULL: 4,
+    SHARE: 8,
+  };
 
 
+
+ // 권한 비트 연산 업데이트
+ const handlePermissionChange = (permissionValue) => {
+  const permissionBit = permissionMap[permissionValue];
+  setFormData((prev) => {
+    const hasPermission = (prev.permissions & permissionBit) === permissionBit;
+
+    // 이미 선택된 권한이면 제거, 아니면 추가
+    const updatedPermissions = hasPermission
+      ? prev.permissions & ~permissionBit // 제거
+      : prev.permissions | permissionBit; // 추가
+
+    return { ...prev, permissions: updatedPermissions };
+  });
+};
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -41,9 +72,8 @@ export default function NewFolder({ isOpen, onClose ,parentId,maxOrder }) {
     setFormData((prev) => ({
       ...prev,
       parentId: parentId,
-      order: maxOrder + 100, // maxOrder + 100으로 새로운 순서값 설정
     }));
-  }, [parentId, maxOrder]);
+  }, [parentId]);
 
    // 드라이브 마스터 설정 또는 업데이트
    const handleSelectMaster = () => {
@@ -82,6 +112,7 @@ export default function NewFolder({ isOpen, onClose ,parentId,maxOrder }) {
       console.log("formData : ",formData);
       const response = await axiosInstance.post("/api/drive/newFolder", formData);
       console.log("Response:", response.data);
+      queryClient.invalidateQueries(['folderContents']);
 
       // 성공 시 모달 닫기
       onClose();
@@ -218,6 +249,17 @@ export default function NewFolder({ isOpen, onClose ,parentId,maxOrder }) {
                   </div>
                 </div>
               </div>
+              <div>  {permissionOptions.map((option) => (
+                    <label key={option.value}>
+                      <input
+                        type="checkbox"
+                        value={option.value}
+                        onChange={() => handlePermissionChange(option.value)}
+                        />
+                      {option.label}
+                    </label>
+                  ))}
+                  </div>
               <div className="flex gap-8 mb-8 justify-start items-center">
             <span className="w-20 ">링크 공유</span>
             <div>

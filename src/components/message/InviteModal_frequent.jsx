@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import axiosInstance from "../../services/axios";
 import CustomAlert from "../Alert";
+import useUserStore from "../../store/useUserStore";
 
 export default function InviteModal_frequent(props) {
   const {
@@ -19,10 +20,12 @@ export default function InviteModal_frequent(props) {
 
   const [userUids, setUserUids] = useState([]);
   const [frequentList, setFrequentList] = useState([]);
-  const [uid, setUid] = useState(() => localStorage.getItem("uid"));
   const [type, setType] = useState("");
   const [message, setMessage] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+
+  const uid = useUserStore((state) => state.user.uid);
+  console.log("uid:", uid);
 
   const {
     data: memberData,
@@ -56,6 +59,7 @@ export default function InviteModal_frequent(props) {
           params: {
             uid: uid,
             frequentUid: frequent.uid,
+            type: "delete",
           },
         }
       );

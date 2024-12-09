@@ -8,10 +8,11 @@ import axiosInstance from '@/services/axios.jsx'
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FaTrash, FaDownload, FaEdit, FaStar, FaShareAlt } from 'react-icons/fa';
 import ContextMenu from "./ContextMenu";
+import useStorageStore from "../../store/useStorageStore";
 
 
 
-export default function DocumentAside(){
+export default function DocumentAside({onStorageInfo}){
    
     // const [folders, setFolders] = useState([]); // 폴더 목록 상태
     const [drive, setDrive] = useState(false);
@@ -21,6 +22,10 @@ export default function DocumentAside(){
 
     const [isPinnedOpen, setIsPinnedOpen] = useState(true); // State to track "My Page" section visibility    
     const [isSharedOpen, setIsSharedOpen] = useState(true);
+
+    const [usedSize, setUsedSize] = useState(0);
+    const [remainingSize, setRemainingSize] = useState(0);
+    const [usedPercentage, setUsedPercentage] = useState(0);
     
     const [folders, setFolders] = useState([]); // 폴더 목록 상태
     const [pinnedFolders, setPinnedFolders] = useState([]); // Pinned 폴더
@@ -35,7 +40,19 @@ export default function DocumentAside(){
             const response = await axiosInstance.get("/api/drive/folders");
             return response.data; // 백엔드의 데이터 구조 반환
         },
-        staleTime: 300000, // 데이터 신선 유지 시간 (5분)
+        staleTime: 300000, // 데이터 신선 유지 시간 (5분)+
+        onSuccess: (data) => {
+            // 데이터 성공적으로 로드 시 스토리지 정보 업데이트
+            const sizeInBytes = data.size * 1024;
+            const currentUsedSize = sizeInBytes;
+            const currentRemainingSize = maxSize - currentUsedSize;
+    
+            setStorageInfo({
+                maxSize,
+                currentUsedSize,
+                currentRemainingSize,
+            });
+        },
     });
 
     const user = useUserStore((state) => state.user);
@@ -43,22 +60,43 @@ export default function DocumentAside(){
     // 폴더 필터링 (공유 및 개인)
     const sharedFolders = folderResponse?.folderDtoList?.filter((folder) => folder.isShared === 1) || [];
     const personalFolders = folderResponse?.folderDtoList?.filter((folder) => folder.isShared === 0) || [];
-   
-    const size = folderResponse.size;
-    console.log("사이즈!!!",size);
+    const setStorageInfo = useStorageStore((state) => state.setStorageInfo);
 
+ 
+
+    const size = folderResponse?.size || 0; // 기본값 0
+    const userGrade = user?.grade || 1;    // 기본값 1
+    let maxSize = 0;
+        if (userGrade === 1 || userGrade  === null) {
+            maxSize = 524288000; // 500 MB
+        } else if (userGrade  === 2) {
+            maxSize = 1048576000; // 1 GB
+        } else {
+            maxSize = 10485760000; // 10 GB
+        }
+
+    useEffect(() => {
+        
+          // KB 단위의 size를 Byte로 변환
+         const sizeInBytes = size * 1024;
     
-    let maxSize;
-    if (user.grade === 1 || user.grade ===null) {
-        maxSize = 524288000; // 500 MB
-    } else if (user.grade === 2) {
-        maxSize = 1048576000; // 1 GB
-    } else {
-        maxSize = 10485760000; // 10 GB
-    }
-    const usedSize = size;
-    const remainingSize = maxSize - usedSize;
-    const usedPercentage = (usedSize / maxSize) * 100;
+        const currentUsedSize = sizeInBytes;
+        const currentRemainingSize = maxSize - currentUsedSize;
+        const currentUsedPercentage = (currentUsedSize / maxSize) * 100;
+    
+        setUsedSize(currentUsedSize);
+        setRemainingSize(currentRemainingSize);
+        setUsedPercentage(currentUsedPercentage);
+        const fetchedStorageInfo = {
+            maxSize: maxSize,
+            currentUsedSize: currentUsedSize,
+            currentRemainingSize: currentRemainingSize,
+        };
+        setStorageInfo(fetchedStorageInfo);
+
+
+    }, [size, user, usedSize ,folderResponse]); // `size`와 `userGrade`가 변경될 때 계산
+   
 
     const togglePinnedSection = () => {
       setIsPinnedOpen((prev) => !prev); // Toggle the section
@@ -82,6 +120,11 @@ export default function DocumentAside(){
             visible: true,
             position: { top: e.clientY, left: e.clientX },
             folder,
+            folderId : folder.id,
+            isPinned : folder.isPinned,
+            folderName: folder.name,
+            path: folder.path,
+
         });
     };
     const handleCloseMenu = () => {
@@ -194,7 +237,7 @@ export default function DocumentAside(){
                 <section className="py-[0px] px-[20px] mb-10">
                     <div className='flex gap-4 items-center opacity-60 mb-[10px]'>
                         <img className='w-6 h-6' src='/images/document-star.png'></img>
-                        <Link   to={'/document/list/favorite'}
+                        <Link   to={'/document/favorite'}
                                 state={{ folderName: "즐겨찾기" }} // folder.name 전달 
                         >
                             <p>즐겨찾기</p>
@@ -202,14 +245,14 @@ export default function DocumentAside(){
                     </div>
                     <div className='flex gap-4 items-center opacity-60 mb-[10px]'>
                         <img  className='w-6 h-6' src='/images/document-recent.png'></img>
-                        <Link  to={'/document/list/latest'}
+                        <Link  to={'/document/latest'}
                                 state={{ folderName: "최근문서" }} // folder.name 전달 
                         >
                              <p>최근문서</p>
                         </Link>
                     </div><div className='flex gap-4 items-center opacity-60 mb-[10px]'>
                         <img  className='w-6 h-6' src='/images/trash.png'></img>
-                        <Link  to={'/document/list/trash'}
+                        <Link  to={'/document/trash'}
                                 state={{ folderName: "휴지통" }} // folder.name 전달 
                         >
                              <p>휴지통</p>
@@ -301,6 +344,7 @@ export default function DocumentAside(){
                 </section> */}
                 <div className='drive-modal'>
                     <NewDrive 
+                       order={folderResponse?.folderDtoList?.length}
                        isOpen={drive}
                        onClose={() => setDrive(false)}
                        text="드라이브 만들기"
@@ -314,6 +358,11 @@ export default function DocumentAside(){
                     onClose={handleCloseMenu}
                     actions={actions}
                     folder={contextMenu.folder}
+                    isPinned={contextMenu.isPinned}
+                    folderName={contextMenu.folderName}
+                    folderId={contextMenu.folderId}
+                                        path={contextMenu.path}
+
                 />
             
             </aside>
