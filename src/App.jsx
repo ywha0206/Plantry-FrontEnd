@@ -1,6 +1,6 @@
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import "@/App.scss";
-import axiosInstance from '@/services/axios.jsx'
+import axiosInstance from "@/services/axios.jsx";
 import Index from "@/pages";
 import Main from "@/layout/layout/Main.jsx";
 import Login from "@/pages/user/Login.jsx";
@@ -57,6 +57,7 @@ import useUserStore from "./store/useUserStore";
 import Trash from "./pages/document/Trash";
 import alertWebSocket from "./util/alertWebSocket";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { UnreadCountProvider } from "./components/message/UnreadCountContext";
 const MainIndexComponent = lazy(() => import("./components/render/main"));
 
 function App() {
@@ -99,75 +100,72 @@ function App() {
         const refreshToken = await refreshAccessToken();
         if (!refreshToken) {
           console.error("액세스 토큰 재발급 실패함. Redirecting to login...");
-          alert("로그인 세션이 만료되었습니다. 다시 로그인해주세요."); 
+          alert("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
           logout();
           navigate("/user/login");
         } else {
-          setIsToken(true)
+          setIsToken(true);
         }
-
       } else {
-        setIsToken(true)
+        setIsToken(true);
       }
-      
     };
 
     checkToken();
   }, [location, isTokenExpired, refreshAccessToken, navigate]);
 
-  const {data : initialIds2 , isLoading : isLoadingInitialIds2, isError : isErrorInitialIds2 , refetch : refetchInitialIds2} =
-        useQuery({
-            queryKey: ['initial-ids2'],
-            queryFn : async () => {
-                try {
-                    const resp = await axiosInstance.get("/api/user/id")
-                    return resp.data
-                } catch (err) {
-                    return err
-                }
-            },
-            enabled : true,
-        })
-
-    useEffect(()=>{
-        if(!isLoadingInitialIds2 && !isErrorInitialIds2 && initialIds2){
-            updateUserId(initialIds2)
-            console.log(initialIds2)
-        }
-        
-    },[initialIds2])
-
-
-
-  const {updateUserId , receiveMessage } = alertWebSocket({
-
-  });
-
-  useEffect(()=>{
-    if(Array.isArray(receiveMessage)&&receiveMessage.length>0){
-      setCustomAlert(true)
-      setCustomAlertMessage(receiveMessage[0].title)
-      postAlarm.mutateAsync();
-      if(receiveMessage[0].type==3){
-        setCustomAlertType("error")
-      } else if(receiveMessage[0].type==2){
-        setCustomAlert("warning")
-      } else if(receiveMessage[0].type==1){
-        setCustomAlert("info")
-      }
-    }
-  },[receiveMessage])
-
-  const postAlarm = useMutation({
-    mutationFn : async () => {
+  const {
+    data: initialIds2,
+    isLoading: isLoadingInitialIds2,
+    isError: isErrorInitialIds2,
+    refetch: refetchInitialIds2,
+  } = useQuery({
+    queryKey: ["initial-ids2"],
+    queryFn: async () => {
       try {
-        const resp = await axiosInstance.post("/api/alert",receiveMessage[0])
-        return resp.data
+        const resp = await axiosInstance.get("/api/user/id");
+        return resp.data;
       } catch (err) {
-        return err
+        return err;
       }
     },
-  })
+    enabled: true,
+  });
+
+  useEffect(() => {
+    if (!isLoadingInitialIds2 && !isErrorInitialIds2 && initialIds2) {
+      updateUserId(initialIds2);
+      console.log(initialIds2);
+    }
+  }, [initialIds2]);
+
+  const { updateUserId, receiveMessage } = alertWebSocket({});
+
+  useEffect(() => {
+    if (Array.isArray(receiveMessage) && receiveMessage.length > 0) {
+      setCustomAlert(true);
+      setCustomAlertMessage(receiveMessage[0].title);
+      postAlarm.mutateAsync();
+      if (receiveMessage[0].type == 3) {
+        setCustomAlertType("error");
+      } else if (receiveMessage[0].type == 2) {
+        setCustomAlert("warning");
+      } else if (receiveMessage[0].type == 1) {
+        setCustomAlert("info");
+      }
+    }
+  }, [receiveMessage]);
+
+  const postAlarm = useMutation({
+    mutationFn: async () => {
+      try {
+        const resp = await axiosInstance.post("/api/alert", receiveMessage[0]);
+        return resp.data;
+      } catch (err) {
+        return err;
+      }
+    },
+  });
 
   return (
     <div id="app-container m-0 xl2:mx-auto">
@@ -176,120 +174,121 @@ function App() {
         message={customAlertMessage}
         isOpen={customAlert}
       />
-      <Routes>
-        {/*사이드바 안쓰는 레이아웃 */}
-        <Route path="/" element={<RenderDefaultLayout />}>
-          <Route
-            index
-            element={
-              <Suspense fallback={<div>Loading...</div>}>
-                <MainIndexComponent />
-              </Suspense>
-            }
-          />
-          <Route path="test" element={<TestIndex />} />
-          <Route path="service" element={<ServicePage />} />
-          <Route path="price" element={<PricePage />} />
-          <Route path="faq" element={<FAQPage />} />
-          <Route path="faq" element={<FAQLayout />}>
-            <Route index element={<FAQPage />} />
-            <Route path="write" element={<FAQWrite />} />
+      {/* 채팅 관련 웹소켓 전역적 위치에서 연결 */}
+      <UnreadCountProvider>
+        <Routes>
+          {/*사이드바 안쓰는 레이아웃 */}
+          <Route path="/" element={<RenderDefaultLayout />}>
+            <Route
+              index
+              element={
+                <Suspense fallback={<div>Loading...</div>}>
+                  <MainIndexComponent />
+                </Suspense>
+              }
+            />
+            <Route path="test" element={<TestIndex />} />
+            <Route path="service" element={<ServicePage />} />
+            <Route path="price" element={<PricePage />} />
+            <Route path="faq" element={<FAQPage />} />
+            <Route path="faq" element={<FAQLayout />}>
+              <Route index element={<FAQPage />} />
+              <Route path="write" element={<FAQWrite />} />
+            </Route>
           </Route>
-        </Route>
 
-        {/* 홈 */}
-        <Route path="/home" element={<Main />}>
-          <Route index element={<Home />} />
-        </Route>
+          {/* 홈 */}
+          <Route path="/home" element={<Main />}>
+            <Route index element={<Home />} />
+          </Route>
 
-        {/* 유저 */}
-        <Route path="/user">
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
-          <Route path="terms" element={<Terms />} />
-          <Route path="find" element={<Find />} />
-          <Route path="resultId" element={<ResultId />} />
-          <Route path="resultPw" element={<ResultPw />} />
-          <Route index element={<Login />} />
-        </Route>
+          {/* 유저 */}
+          <Route path="/user">
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
+            <Route path="terms" element={<Terms />} />
+            <Route path="find" element={<Find />} />
+            <Route path="resultId" element={<ResultId />} />
+            <Route path="resultPw" element={<ResultPw />} />
+            <Route index element={<Login />} />
+          </Route>
 
-        {/* 마이페이지 */}
-        <Route path="/my" element={<Main />}>
-          <Route index element={<MyMain />} />
-          <Route path="modify" element={<MyModify />} />
-          <Route path="approval" element={<MyApproval />} />
-          <Route path="attendance" element={<MyAttendance />} />
-          <Route path="payment" element={<MyPayment />} />
-        </Route>
+          {/* 마이페이지 */}
+          <Route path="/my" element={<Main />}>
+            <Route index element={<MyMain />} />
+            <Route path="modify" element={<MyModify />} />
+            <Route path="approval" element={<MyApproval />} />
+            <Route path="attendance" element={<MyAttendance />} />
+            <Route path="payment" element={<MyPayment />} />
+          </Route>
 
-        {/* <Route path='/home' element */}
+          {/* 관리자 */}
+          <Route path="/admin" element={<Main />}>
+            <Route index element={<AdminIndex />} />
+            <Route path="user" element={<AdminUser />} />
+            <Route path="project" element={<AdminProject />} />
+            <Route path="outsourcing" element={<AdminOutSourcing />} />
+            <Route path="community" element={<AdminCommunity />} />
+            <Route path="schedule" element={<AdminSchedule />} />
+            <Route path="vacation" element={<AdminVacation />} />
+            <Route path="attendance" element={<AdminAttendance />} />
+            <Route path="outside" element={<AdminOutSide />} />
+          </Route>
 
-        {/* 관리자 */}
-        <Route path="/admin" element={<Main />}>
-          <Route index element={<AdminIndex />} />
-          <Route path="user" element={<AdminUser />} />
-          <Route path="project" element={<AdminProject />} />
-          <Route path="outsourcing" element={<AdminOutSourcing />} />
-          <Route path="community" element={<AdminCommunity />} />
-          <Route path="schedule" element={<AdminSchedule />} />
-          <Route path="vacation" element={<AdminVacation />} />
-          <Route path="attendance" element={<AdminAttendance />} />
-          <Route path="outside" element={<AdminOutSide />} />
-        </Route>
+          {/* 커뮤니티 (게시판) */}
+          <Route path="/community" element={<Main />}>
+            <Route index element={<CommunityIndex />} />
+            <Route path=":boardId/write" element={<CommunityWrite />} />
+            <Route path=":boardId/list" element={<CommunityList />} />
+            <Route path=":boardId/view/:postId" element={<CommunityView />} />
+            <Route path=":boardId/modify" element={<CommunityModify />} />
+          </Route>
 
-        {/* 커뮤니티 (게시판) */}
-        <Route path="/community" element={<Main />}>
-          <Route index element={<CommunityIndex />} />
-          <Route path=":boardId/write" element={<CommunityWrite />} />
-          <Route path=":boardId/list" element={<CommunityList />} />
-          <Route path=":boardId/view/:postId" element={<CommunityView />} />
-          <Route path=":boardId/modify" element={<CommunityModify />} />
-        </Route>
+          {/* 프로젝트 */}
+          <Route path="/project" element={<Main />}>
+            <Route index element={<Project />}></Route>
+          </Route>
 
-        {/* 프로젝트 */}
-        <Route path="/project" element={<Main />}>
-          <Route index element={<Project />}></Route>
-        </Route>
+          {/* 메신저 */}
+          <Route path="/message" element={<Main />}>
+            <Route
+              index
+              element={
+                <Message
+                  selectedRoomId={selectedRoomId}
+                  setSelectedRoomId={setSelectedRoomId}
+                />
+              }
+            />
+          </Route>
 
-        {/* 메신저 */}
-        <Route path="/message" element={<Main />}>
-          <Route
-            index
-            element={
-              <Message
-                selectedRoomId={selectedRoomId}
-                setSelectedRoomId={setSelectedRoomId}
-              />
-            }
-          />
-        </Route>
+          {/* 문서작업 */}
+          <Route path="/document" element={<Main />}>
+            <Route index element={<Document />} />
+            <Route path=":dynamicPart" element={<Favorite />} />
+            <Route path="trash" element={<Trash />} />
+            <Route path="list/:dynamicPart" element={<DocumentList />} />
+          </Route>
 
-        {/* 문서작업 */}
-        <Route path="/document" element={<Main />}>
-          <Route index element={<Document />} />
-          <Route path=":dynamicPart" element={<Favorite />} />
-          <Route path="trash" element={<Trash />} />
-          <Route path="list/:dynamicPart" element={<DocumentList />} />
-        </Route>
+          {/* 달력 */}
+          <Route path="/calendar" element={<Main />}>
+            <Route index element={<Calendar />} />
+          </Route>
 
-        {/* 달력 */}
-        <Route path="/calendar" element={<Main />}>
-          <Route index element={<Calendar />} />
-        </Route>
+          {/* 고객센터 */}
+          <Route path="/cs" element={<Main />}>
+            <Route index element={<Cs />} />
+          </Route>
 
-        {/* 고객센터 */}
-        <Route path="/cs" element={<Main />}>
-          <Route index element={<Cs />} />
-        </Route>
-
-        {/* 페이지 */}
-        <Route path="/page" element={<Main />}>
-          <Route index element={<Page />} />
-          <Route path="newPage" element={<NewPagePages />} />
-          <Route path="list" element={<PageListPage />} />
-          <Route path="view/:pageId" element={<NewPagePages />} />
-        </Route>
-      </Routes>
+          {/* 페이지 */}
+          <Route path="/page" element={<Main />}>
+            <Route index element={<Page />} />
+            <Route path="newPage" element={<NewPagePages />} />
+            <Route path="list" element={<PageListPage />} />
+            <Route path="view/:pageId" element={<NewPagePages />} />
+          </Route>
+        </Routes>
+      </UnreadCountProvider>
     </div>
   );
 }

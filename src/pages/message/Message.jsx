@@ -4,6 +4,7 @@
 import "@/pages/message/Message.scss";
 import {
   useCallback,
+  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -18,6 +19,7 @@ import axiosInstance from "../../services/axios";
 import useChatWebSocket from "../../util/useChatWebSocket";
 import { useMutation } from "@tanstack/react-query";
 import useUserStore from "../../store/useUserStore";
+import { UnreadCountContext } from "../../components/message/UnreadCountContext";
 
 export default function Message({ selectedRoomId, setSelectedRoomId }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -198,12 +200,18 @@ export default function Message({ selectedRoomId, setSelectedRoomId }) {
                   params: { uid, chatRoomId: room.id },
                 }
               );
+              console.log("unreadResponse : ", unreadResponse);
+
               return {
                 ...room,
-                unreadCount: unreadResponse.data.unreadCount,
+                unreadCount: unreadResponse.data.count,
+                lastMessage: unreadResponse.data.content,
+                lastTimeStamp: unreadResponse.data.timeStamp,
               };
             })
           );
+          console.log("초기 채팅방 로드 : ", roomsWithUnread);
+
           setRoomData(roomsWithUnread);
         }
       } catch (error) {
@@ -242,6 +250,12 @@ export default function Message({ selectedRoomId, setSelectedRoomId }) {
   const stompClientRef = useRef(null);
   const isInitialLoadRef = useRef(true); // 초기 로드 플래그
   const inputRef = useRef(null);
+
+  const { unreadCounts, lastMessages } = useContext(UnreadCountContext);
+
+  useEffect(() => {
+    setRoomData((data) => {});
+  }, [unreadCounts, lastMessages]);
 
   const { mutate } = useMutation({
     mutationFn: async (inputText) => {
@@ -314,6 +328,8 @@ export default function Message({ selectedRoomId, setSelectedRoomId }) {
     setUnreadCount,
     chatContainerRef,
     shouldScrollToBottomRef,
+    setRoomData,
+    uid,
   });
 
   const [members, setMembers] = useState();
@@ -350,6 +366,7 @@ export default function Message({ selectedRoomId, setSelectedRoomId }) {
         });
 
       fetchUnreadCount();
+      markAsRead();
     }
   }, [selectedRoomId]);
 
@@ -450,7 +467,7 @@ export default function Message({ selectedRoomId, setSelectedRoomId }) {
   const markAsRead = async () => {
     if (!selectedRoomId || !uid) return;
     try {
-      const readTimestamp = new Date();
+      const readTimestamp = new Date().toISOString().slice(0, 19); // "2023-10-04T17:45:30"
       await axiosInstance.post("/api/message/markAsRead", null, {
         params: { uid, chatRoomId: selectedRoomId, readTimestamp },
       });
@@ -459,21 +476,6 @@ export default function Message({ selectedRoomId, setSelectedRoomId }) {
       console.error("읽음 상태 업데이트 실패:", error);
     }
   };
-
-  // 창 포커스 이벤트 처리 (읽음 상태 업데이트)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        markAsRead();
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [selectedRoomId, uid]);
 
   // 메시지 목록이 변경될 때 스크롤 처리
   useLayoutEffect(() => {
