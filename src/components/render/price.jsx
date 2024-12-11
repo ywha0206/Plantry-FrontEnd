@@ -15,20 +15,28 @@ export default function Price(){
             <h2>Pricing Plans</h2>
             <p>All plans include 40+ advanced tools and features to boost your product.<br />
                 Choose the best plan to fit your needs.</p>
-            <div className="discountTap relative">
-                <img className="absolute" src="images/arrow-icon.png" alt="" />
-                <div className="save absolute">Save up to 10%</div>
-            </div>
-            <div className="periodSelect flex items-center justify-center">
-                <span className="mr-[20px]">Monthly</span>
-                <div className="flex items-center">
-                    <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" className="sr-only peer" />
-                        <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-600 after:border-gray-400 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
-                    </label>
-                </div>
-                <span  className="ml-[20px]">Annually</span>
-            </div>
+            <div className="discountTap flex flex-col items-center mt-6 mb-4 relative">
+  <div className="flex items-center mb-2">
+    <img 
+      src="images/arrow-icon.png" 
+      alt="arrow"
+      className="w-6 h-6 mr-2"
+    />
+    <div className="save bg-blue-500 text-white px-4 py-2 rounded-full">
+      Save up to 10%
+    </div>
+  </div>
+  <div className="periodSelect flex items-center justify-center mt-4">
+    <span className="mr-[20px]">Monthly</span>
+    <div className="flex items-center">
+      <label className="relative inline-flex items-center cursor-pointer">
+        <input type="checkbox" className="sr-only peer" />
+        <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-600 after:border-gray-400 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+      </label>
+    </div>
+    <span className="ml-[20px]">Annually</span>
+  </div>
+</div>
           
        </article>
        <article className="tabWrapper flex h-[880px]">
