@@ -11,6 +11,7 @@ const useChatWebSocket = ({
   setUnreadCount,
   chatContainerRef,
   shouldScrollToBottomRef,
+  uid,
 }) => {
   const [members, setmembers] = useState(initialMembers || []);
   const [isConnected, setIsConnected] = useState(false);
@@ -56,6 +57,9 @@ const useChatWebSocket = ({
   const updateSubscriptions = useCallback(
     (client) => {
       if (selectedRoomId) {
+        if (subscriptionRef.current) {
+          subscriptionRef.current.unsubscribe();
+        }
         // 새로운 구독 설정
         subscriptionRef.current = client.subscribe(
           `/topic/chat/${selectedRoomId}`,
@@ -64,16 +68,12 @@ const useChatWebSocket = ({
               const response = JSON.parse(message.body);
               setMessageList((prev) => [...prev, response]);
               shouldScrollToBottomRef.current = true;
-              // 읽지 않은 메시지 수 업데이트
-              if (document.hidden) {
-                // 사용자가 현재 창을 보고 있지 않으면
-                setUnreadCount((prev) => prev + 1);
-              }
             } catch (error) {
               console.error("Failed to parse message:", error);
             }
           }
         );
+        console.log("현재 구독", subscriptionRef.current);
       }
     },
     [selectedRoomId, setMessageList]
