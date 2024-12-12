@@ -78,8 +78,8 @@ const DynamicTask = React.memo(
   status,
   duedate,
   subTasks = [],
-  comments = [],
-  associate=[],
+  tags = [],
+  commentsList = [],
   columnIndex,
   columnId,
   onAddSubTask,
@@ -156,6 +156,7 @@ const DynamicTask = React.memo(
       )
     );
   };
+  const stopPropagation = (e) => e.stopPropagation();
 
   const renderedSubTasks = useMemo(() => {
     return (nowSubTasks||[]).map((subTask, index) => (
@@ -196,9 +197,9 @@ const DynamicTask = React.memo(
             priority,
             status,
             duedate,
-            subTasks: [...nowSubTasks],
-            comments,
-            associate,
+            subTasks: nowSubTasks,
+            tags,
+            commentsList,
           }}
           columnIndex={columnIndex}
           onSave={(updatedTask) => {
@@ -293,8 +294,11 @@ const DynamicTask = React.memo(
                     </div>
                   ) : (
                     <button
-                      className="flex items-center justify-center gap-1.5 py-1.5 mt-2 text-sm rounded-lg border border-gray-600/40 text-gray-600/60"
-                      onClick={() => setShowInput(true)}
+                      className="flex items-center justify-center gap-1.5 py-1.5 mt-2 text-sm rounded-lg bg-gray-600/10 text-gray-600/60"
+                      onClick={(e) => {
+                        stopPropagation(e);
+                        setShowInput(true);
+                      }}
                       aria-label="새 하위 목표 추가"
                     >
                       <CustomSVG id="add-checkbox" />
@@ -323,6 +327,8 @@ const DynamicTask = React.memo(
                     )||"정해지지 않음"}
                     </div>
                   </section>
+                )}
+
                 {/* 마감일 및 코멘트 */}
                 <section
                   className="flex flex-wrap gap-2 mt-1.5 text-sm text-gray-600/60"
@@ -359,16 +365,14 @@ const DynamicTask = React.memo(
                         className="w-5 h-5 rounded-full"
                       />
                       <div className="flex-1">
-                        <span className="text-gray-600">{comment.user_id}</span>
-                        <time className="text-gray-600 text-xs"> {getFormattedRdate(comment.rdate)}</time>
+                        <span className="text-gray-600">{comment.user}</span>
+                        <time className="text-gray-600"> {comment.rdate}</time>
                         <p>{comment.content}</p>
                       </div>
                     </article>
                   ))}
-                </section>
-                <form className="flex items-center justify-between mt-2 gap-2">
-                  <section
-                    className="flex items-center flex-1 gap-1.5 px-2.5 py-1 rounded-lg bg-gray-600/5 w-full"
+                  <form
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-600/10"
                     aria-label="의견 작성하기"
                   >
                     <input
@@ -377,11 +381,8 @@ const DynamicTask = React.memo(
                       className="bg-transparent outline-none text-sm"
                       aria-label="의견 입력란"
                     />
-                  </section>
-                  <button className="bg-gray-600/40 rounded-3xl p-[2px] pl-1 pb-1">
-                    <CustomSVG id="send" size={16} color="#FFFFFF"/>
-                  </button>
-                </form>
+                  </form>
+                </section>
 
                 {/* 작업 버튼 */}
                 <section
@@ -398,12 +399,12 @@ const DynamicTask = React.memo(
                   >
                     수정
                   </button>
-                  <MenuItem
-                    className=""
-                    border={'1 px-6 py-1 rounded-lg border-slate-500/50'}
-                    onClick={onDelete}
-                    confirm={true}
-                    tooltip={'삭제 후엔 되돌릴 수 없습니다. 정말로 삭제하시겠습니까?'}
+                  <button
+                    className="px-6 py-1 border rounded-lg border-slate-500/50"
+                    onClick={(e) => {
+                      stopPropagation(e);
+                      onDelete();
+                    }}
                     aria-label="작업 삭제"
                   >
                     삭제
