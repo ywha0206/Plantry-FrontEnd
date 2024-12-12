@@ -147,7 +147,7 @@ export default function FAQ() {
             </div>
             <img
               className="absolute"
-              src="images/search-icon.png"
+              src="/images/search-icon.png"
               alt="돋보기"
             />
             <div className="topinput absolute">
@@ -159,64 +159,65 @@ export default function FAQ() {
             </div>
           </div>
         </section>
-        <section className="Faq h-max pb-[20px] flex flex-wrap lg:flex-nowrap ">
-          <div className="Faq h-max mb-[20px] pb-[20px] flex my-[40px] w-full lg:w-1/3">
-            <aside className="w-full lg:w-[300px]">
-              <ul className="m-[20px]">
-                {contents.map((content, index) => (
-                  <li
-                    key={index}
-                    className={`faqTitle ${
-                      activeIndex === index ? "bg-gray-200 font-bold" : ""
-                    } p-5px leading-[38px] mb-[10px] hover:bg-gray-100 hover:shadow-md transition-all`}
-                    onClick={() => handleActive(index)}
-                  >
-                    <div className="flex leading-[38px] text-center items-center">
-                      <img
-                        className={`w-[20px] h-[20px] ml-[20px] ${
-                          activeIndex === index
-                            ? "filter brightness-0 invert"
-                            : ""
-                        }`}
-                        src={content.image}
-                        alt="아이콘"
-                      />
-                      <span className="ml-[10px]">{content.title}</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </aside>
-          </div>
-          <article className="w-full lg:w-[1548px] lg:ml-[40px]">
-            <div className="faqlist bg-white rounded-lg shadow-xl ">
-              <ul className="w-full pl-5 space-y-3 rounded-[8px]">
-                {filteredItems.map((item, idx) => (
-                  <li
-                    key={idx}
-                    className="border-b leading-[51px] flex justify-between items-center cursor-pointer hover:bg-gray-100 hover:text-blue-600 transition-all duration-200"
-                    onClick={() => handleItemClick(item)}
-                  >
-                    <span>{item.title}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="mt-6 text-center">
-              {isAdmin && (
-                <button
-                  className="px-6 py-2 rounded-lg hover:opacity-90"
-                  style={{ backgroundColor: "#666bff", color: "white" }}
-                  onClick={() =>
-                    handleButtonClick(contents[activeIndex]?.buttonLabel)
-                  }
-                >
-                  {contents[activeIndex]?.buttonLabel}
-                </button>
-              )}
-            </div>
-          </article>
-        </section>
+        <div className="mainIn bg-gray-100 flex justify-center">
+  <section className="w-full max-w-screen-2xl flex flex-wrap lg:flex-nowrap mt-4 mb-4">
+    {/* 사이드바 */}
+    <aside className="w-full lg:w-1/5 bg-white p-4 rounded-lg shadow-lg">
+      <ul>
+        {contents.map((content, index) => (
+          <li
+            key={index}
+            className={`py-3 px-4 mb-2 rounded-md cursor-pointer flex items-center transition-all duration-300 text-base ${
+              activeIndex === index
+                ? "bg-[#666bff] text-white font-bold"
+                : "hover:bg-[#666bff] hover:text-white"
+            }`}
+            onClick={() => handleActive(index)}
+          >
+            <img
+              src={content.image}
+              alt="icon"
+              className={`w-6 h-6 mr-3 transition-transform duration-300 ${
+                activeIndex === index
+                  ? "brightness-150"
+                  : "hover:scale-105 hover:opacity-75"
+              }`}
+            />
+            <span>{content.title}</span>
+          </li>
+        ))}
+      </ul>
+    </aside>
+
+    {/* 콘텐츠 영역 */}
+    <article className="w-full lg:w-4/5 bg-white rounded-lg shadow-lg p-6 ml-6">
+      <ul className="space-y-3">
+        {filteredItems.map((item, idx) => (
+          <li
+            key={idx}
+            className="py-3 px-5 border-b text-base cursor-pointer hover:bg-gray-50 transition"
+            onClick={() => handleItemClick(item)}
+          >
+            <span className="text-gray-800">{item.title}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="text-center mt-4">
+        {isAdmin && (
+          <button
+            className="px-6 py-3 bg-blue-500 text-white rounded-lg text-base hover:bg-blue-400"
+            onClick={() =>
+              handleButtonClick(contents[activeIndex]?.buttonLabel)
+            }
+          >
+            {contents[activeIndex]?.buttonLabel}
+          </button>
+        )}
+      </div>
+    </article>
+  </section>
+</div>
+
         {/* 이메일/연락처 섹션 */}
         <section className="question flex flex-col text-center bg-white">
           <span className="text-[24px] font-bold text-gray-800 transition-all duration-300 hover:text-[#666bff]">
@@ -227,41 +228,41 @@ export default function FAQ() {
             We will answer you shortly!
           </p>
           <article className="flex flex-wrap justify-center items-center mt-[40px] space-y-4 lg:space-y-0">
-            {/* 전화번호 카드 */}
-            <div className="w-full lg:w-[384px] h-[180px] text-center flex flex-col items-center shadow-lg bg-white rounded-lg p-4 text-gray-800 transition-all duration-300 hover:bg-gradient-to-br hover:from-[#666bff] hover:to-[#7d84ff] hover:text-white">
-              <div className="w-[50px] h-[50px] flex justify-center items-center rounded-full bg-white text-[#666bff] mb-3 shadow-md transition-all duration-300 hover:text-white">
-                <img
-                  src="/images/phoneIcon.png"
-                  alt="phone"
-                  className="w-[28px] h-[28px]"
-                />
-              </div>
-              <span className="text-lg font-semibold transition-all duration-300 hover:text-white">
-                82+ (010) 2548 2568
-              </span>
-              <p className="text-sm mt-2 transition-all duration-300 hover:text-white">
-                We are always happy to help!
-              </p>
-            </div>
+        {/* 전화번호 카드 */}
+        <div className="w-full lg:w-[384px] h-[180px] text-center flex flex-col items-center shadow-lg bg-white rounded-lg p-4 text-gray-800 transition-all duration-300 hover:bg-gradient-to-br hover:from-[#666bff] hover:to-[#7d84ff] hover:text-white">
+          <div className="w-[50px] h-[50px] flex justify-center items-center rounded-full bg-white text-[#666bff] mb-3 shadow-md transition-all duration-300 hover:text-white">
+            <img
+              src="/images/phoneIcon.png"
+              alt="phone"
+              className="w-[28px] h-[28px]"
+            />
+          </div>
+          <span className="text-lg font-semibold transition-all duration-300 hover:text-white">
+            82+ (010) 2548 2568
+          </span>
+          <p className="text-sm mt-2 transition-all duration-300 hover:text-white">
+            We are always happy to help!
+          </p>
+        </div>
 
-            {/* 이메일 카드 */}
-            <div className="w-full lg:w-[384px] h-[180px] text-center flex flex-col items-center shadow-lg bg-white rounded-lg p-4 text-gray-800 transition-all duration-300 hover:bg-gradient-to-br hover:from-[#666bff] hover:to-[#7d84ff] hover:text-white">
-              <div className="w-[50px] h-[50px] flex justify-center items-center rounded-full bg-white text-[#666bff] mb-3 shadow-md transition-all duration-300 hover:text-white">
-                <img
-                  src="/images/LetterIcon.png"
-                  alt="mail"
-                  className="w-[28px] h-[28px]"
-                />
-              </div>
-              <span className="text-lg font-semibold transition-all duration-300 hover:text-white">
-                sanghun1101088@gmail.com
-              </span>
-              <p className="text-sm mt-2 transition-all duration-300 hover:text-white">
-                We are always happy to help!
-              </p>
-            </div>
-          </article>
-        </section>
+        {/* 이메일 카드 */}
+        <div className="w-full lg:w-[384px] h-[180px] text-center flex flex-col items-center shadow-lg bg-white rounded-lg p-4 text-gray-800 transition-all duration-300 hover:bg-gradient-to-br hover:from-[#666bff] hover:to-[#7d84ff] hover:text-white">
+          <div className="w-[50px] h-[50px] flex justify-center items-center rounded-full bg-white text-[#666bff] mb-3 shadow-md transition-all duration-300 hover:text-white">
+            <img
+              src="/images/LetterIcon.png"
+              alt="mail"
+              className="w-[28px] h-[28px]"
+            />
+          </div>
+          <span className="text-lg font-semibold transition-all duration-300 hover:text-white">
+            sanghun1101088@gmail.com
+          </span>
+          <p className="text-sm mt-2 transition-all duration-300 hover:text-white">
+            We are always happy to help!
+          </p>
+        </div>
+      </article>
+    </section>
 
         {/* 모달 창 */}
         {isModalOpen && activeItem && (

@@ -6,7 +6,7 @@ import NewDrive from "./NewDrive";
 import useUserStore from "../../store/useUserStore";
 import axiosInstance from '@/services/axios.jsx'
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FaTrash, FaDownload, FaEdit, FaStar, FaShareAlt } from 'react-icons/fa';
+import { FaTrash, FaDownload, FaEdit, FaStar, FaShareAlt, FaBarcode } from 'react-icons/fa';
 import ContextMenu from "./ContextMenu";
 import useStorageStore from "../../store/useStorageStore";
 
@@ -32,12 +32,25 @@ export default function DocumentAside({onStorageInfo}){
     const queryClient = useQueryClient();
     const location = useLocation(); // 현재 경로 가져오기
 
+    const [trashAlert,setTrashAlert] = useState(false);
+    const handleCloseTrashAlert = () => setTrashAlert(false);
+    const user = useUserStore((state)=>state.user);
+
 
   // React Query를 사용하여 폴더 데이터 가져오기
-    const { data: folderResponse = { folderDtoList: [], uid: "",size: 0 }, isLoading, isError } = useQuery({
+    const { data: folderResponse = { folderDtoList: [], uid: "" }, isLoading, isError } = useQuery({
         queryKey: ["driveList", location.pathname],
         queryFn: async () => {
             const response = await axiosInstance.get("/api/drive/folders");
+            return response.data; // 백엔드의 데이터 구조 반환
+        },
+        staleTime: 300000, // 데이터 신선 유지 시간 (5분)+
+    });
+
+    const { data: size , isDataLoading, isDataError } = useQuery({
+        queryKey: ["driveSize", user.uid],
+        queryFn: async () => {
+            const response = await axiosInstance.get("/api/drive/size");
             return response.data; // 백엔드의 데이터 구조 반환
         },
         staleTime: 300000, // 데이터 신선 유지 시간 (5분)+
@@ -55,7 +68,6 @@ export default function DocumentAside({onStorageInfo}){
         },
     });
 
-    const user = useUserStore((state) => state.user);
     console.log("Current user:", user.grade);
     // 폴더 필터링 (공유 및 개인)
     const sharedFolders = folderResponse?.folderDtoList?.filter((folder) => folder.isShared === 1) || [];
@@ -63,8 +75,6 @@ export default function DocumentAside({onStorageInfo}){
     const setStorageInfo = useStorageStore((state) => state.setStorageInfo);
 
  
-
-    const size = folderResponse?.size || 0; // 기본값 0
     const userGrade = user?.grade || 1;    // 기본값 1
     let maxSize = 0;
         if (userGrade === 1 || userGrade  === null) {
@@ -76,7 +86,6 @@ export default function DocumentAside({onStorageInfo}){
         }
 
     useEffect(() => {
-        
           // KB 단위의 size를 Byte로 변환
          const sizeInBytes = size * 1024;
     
@@ -87,15 +96,13 @@ export default function DocumentAside({onStorageInfo}){
         setUsedSize(currentUsedSize);
         setRemainingSize(currentRemainingSize);
         setUsedPercentage(currentUsedPercentage);
-        const fetchedStorageInfo = {
-            maxSize: maxSize,
-            currentUsedSize: currentUsedSize,
-            currentRemainingSize: currentRemainingSize,
-        };
-        setStorageInfo(fetchedStorageInfo);
+        setStorageInfo({
+            maxSize,
+            currentUsedSize,
+            currentRemainingSize,
+        });
 
-
-    }, [size, user, usedSize ,folderResponse]); // `size`와 `userGrade`가 변경될 때 계산
+    }, [size]); // `size`와 `userGrade`가 변경될 때 계산
    
 
     const togglePinnedSection = () => {
@@ -203,13 +210,13 @@ export default function DocumentAside({onStorageInfo}){
     };
 
         // 로딩 상태 처리
-    if (isLoading) {
-        return <div>Loading folders...</div>;
-    }
-
-    if (isError) {
-        return <div>Error loading folders.</div>;
-    }
+        if (isLoading || isDataLoading) {
+            return <div>Loading data...</div>;
+        }
+        
+        if (isError || isDataError) {
+            return <div>Error loading data.</div>;
+        }
 
    
         
@@ -257,6 +264,9 @@ export default function DocumentAside({onStorageInfo}){
                         >
                              <p>휴지통</p>
                         </Link>
+                        <img src="/images/setting.png"  className="w-[20px] ml-[90px] cursor-pointer" alt="" 
+                            onClick={() => setTrashAlert(true)} // 상태 변경
+                            />
                     </div>
 
                 </section>
@@ -364,7 +374,33 @@ export default function DocumentAside({onStorageInfo}){
                                         path={contextMenu.path}
 
                 />
-            
             </aside>
+            {trashAlert && (
+                <div
+                    className="bg-gray-100 rounded-xl shadow-md p-4 absolute z-[999]"
+                    style={{
+                        top: "50px", // 위치 조정
+                        left: "50px", // 위치 조정
+                        background: "#fff",
+                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+                        padding: "10px",
+                        borderRadius: "4px",
+                    }}
+                >
+                    <div className="space-y-4">
+                        <div
+                            onClick={() => console.log("휴지통 비우기 클릭됨")}
+                            className="flex items-center justify-between rounded-lg p-1 cursor-pointer transition-all duration-300 hover:bg-gray-200 hover:shadow-lg"
+                        >
+                            <div className="flex items-center space-x-4">
+                                <div className={`p-3 rounded-lg bg-opacity-20`}>
+                                    <FaBarcode className={`w-5 h-5`} />
+                                </div>
+                                <span className="font-semibold">휴지통 비우기</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
     </>)
 }

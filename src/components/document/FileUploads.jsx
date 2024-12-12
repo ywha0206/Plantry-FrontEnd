@@ -11,7 +11,7 @@ import useStorageStore from "../../store/useStorageStore";
 // 이름 : 하진희
 // 내용 : 드라이브 생성 
 
-export default function FileUploads({ isOpen, onClose, folderId, maxOrder, uid ,triggerAlert }) {
+export default function FileUploads({ isOpen, onClose, folderId, fileMaxOrder, folderMaxOrder,uid ,triggerAlert }) {
 
   const [uploadProgress, setUploadProgress] = useState(null); // 업로드 진행 상황 상태
   const [isUploadInProgress, setIsUploadInProgress] = useState(false);
@@ -23,7 +23,6 @@ export default function FileUploads({ isOpen, onClose, folderId, maxOrder, uid ,
   const handleUploadComplete = () => {
     setIsUploadInProgress(false);
     setUploadProgress(null); // 초기화
-    onClose(); // 업로드 완료 후 모달 닫기
 
   };
 
@@ -45,7 +44,8 @@ export default function FileUploads({ isOpen, onClose, folderId, maxOrder, uid ,
         <div className="p-8">
           <MyDropzone 
             folderId={folderId} 
-            maxOrder={maxOrder} 
+            folderMaxOrder={folderMaxOrder}
+            fileMaxOrder={fileMaxOrder} 
             uid={uid} 
             onUploadProgress={setUploadProgress}
             onUploadStart={handleUploadStart}

@@ -1,106 +1,49 @@
-import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import React from 'react';
 import Chart from 'react-apexcharts';
+import useUserStore from '../../store/useUserStore';
 
-const WorkTimeline = () => {
-  const date = '2024-11-18T'; 
-  // const [color, setColor] = useState("");
-  // if(type === 'working'){
-  //   setColor("#818CF8")
-  // }else{
-  //   setColor("#ddd")
-  // }
-  // 데이터 설정
-  const testData = [
-      {
-        date: '2024/11/18',
-        start: '08:55:00',
-        end:   `18:00:00`,
-        color: '#818CF8'
-      },
-      {
-        date: '2024/11/18',
-        start: '18:00:00',
-        end:   `19:05:00`,
-        color: '#ddd'
-      },
-      {
-        date: '2024/11/19',
-        start: '08:30:00',
-        end:   `18:00:00`,
-        color: '#818CF8'
-      },
-      {
-        date: '2024/11/19',
-        start: '18:00:00',
-        end:   `18:30:00`,
-        color: '#ddd'
-      },
-      {
-        date: '2024/11/20',
-        start: '08:55:00',
-        end:   `18:00:00`,
-        color: '#818CF8'
-      },
-      {
-        date: '2024/11/20',
-        start: '18:00:00',
-        end:   `18:22:00`,
-        color: '#ddd'
-      },
-      {
-        date: '2024/11/21',
-        start: '08:56:00',
-        end:   `18:00:00`,
-        color: '#818CF8'
-      },
-      {
-        date: '2024/11/22',
-        start: '08:27:30',
-        end:   `18:00:00`,
-        color: '#818CF8'
-      },
-      {
-        date: '2024/11/22',
-        start: '18:00:00',
-        end:   `18:30:00`,
-        color: '#ddd'
-      },
-      {
-        date: '2024/11/23',
-        start: '08:48:00',
-        end:   `18:00:00`,
-        color: '#818CF8'
-      },
-      {
-        date: '2024/11/24',
-        start: '08:55:00',
-        end:   `18:00:00`,
-        color: '#818CF8'
-      },
-      {
-        date: '2024/11/25',
-        start: '08:55:00',
-        end:   `18:00:00`,
-        color: '#818CF8'
-      },
-      {
-        date: '2024/11/25',
-        start: '18:00:00',
-        end:   `22:33:00`,
-        color: '#ddd'
-      },
-      
-  ];
+const WorkTimeline = ({data}) => {
 
-  const chartData = testData.map((entry) => ({
+  const user = useUserStore((state)=> state.user);
+  
+  const weekAttendanceAPI = async () => {
+    const resp = await axiosInstance.get('/api/attendance/week');
+    console.log("주간  근태 "+JSON.stringify(resp.data))
+    return resp.data;
+  }
+  const {data: weekData, isError: weekError, isLoading: weekLoading } = useQuery({
+    queryKey: [`${user.uid}+week`],
+    queryFn: weekAttendanceAPI,
+    initialData: [],
+    enabled: true,
+    refetchOnWindowFocus: false, 
+  })
+
+  if(weekLoading){
+    return <p className='h-full flex items-center justify-center'>로딩 중입니다.</p>;
+  }
+
+
+  if ((!Array.isArray(data) || data.length === 0) && !weekData.length) {
+    return <p className='h-full flex items-center justify-center'>근태 기록 데이터가 없습니다.</p>;
+  }
+
+  console.log('차트 컴포넌트 내부 프랍 '+JSON.stringify(data));
+  const displayData = data.length > 0 ? data : weekData;
+  const work = displayData.slice().reverse();
+
+  const fixDate = '2024-11-18T'; 
+  console.log('차트 리버스 데이터 '+JSON.stringify(work))
+
+  const chartData = work.map((entry) => ({
     x: entry.date,
     y: [
-      new Date(`2024-11-18T${entry.start}`).getTime(),
-      new Date(`2024-11-18T${entry.end}`).getTime()
+      new Date(`${fixDate + entry.checkInTime}`).getTime(),
+      new Date(`${fixDate + entry.checkOutTime}`).getTime()
     ],
-    fillColor: `${entry.color}` // 데이터마다 같은 색상 적용
+    fillColor: `#818CF8` // 데이터마다 같은 색상 적용
   }));
-
 
   const options = {
     chart: {
@@ -121,7 +64,7 @@ const WorkTimeline = () => {
     xaxis: {
       type: 'datetime',
       min: new Date('2024-11-18T08:00:00').getTime(), // X축 시작 시간 (08:00)
-      max: new Date('2024-11-18T22:00:00').getTime(), // X축 끝 시간 (19:00)
+      max: new Date('2024-11-18T23:00:00').getTime(), // X축 끝 시간 (19:00)
       labels: {
         format: 'HH:mm', // 시간만 표시
         datetimeUTC: false // 현지 시간 사용
