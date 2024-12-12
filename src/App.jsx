@@ -56,7 +56,7 @@ import TestIndex from "./pages/test";
 import useUserStore from "./store/useUserStore";
 import Trash from "./pages/document/Trash";
 import alertWebSocket from "./util/alertWebSocket";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 const MainIndexComponent = lazy(() => import("./components/render/main"));
 
 function App() {
@@ -71,6 +71,7 @@ function App() {
   const [customAlertType, setCustomAlertType] = useState("");
   const [customAlertMessage, setCustomAlertMessage] = useState("");
   const [isToken, setIsToken] = useState(false);
+  const queryClient = useQueryClient();
 
   const [selectedRoomId, setSelectedRoomId] = useState("");
 
@@ -161,12 +162,16 @@ function App() {
   const postAlarm = useMutation({
     mutationFn : async () => {
       try {
-        const resp = await axiosInstance.post("/api/alert",receiveMessage[0])
+        const resp = await axiosInstance.post("/api/alarm",receiveMessage[0])
         return resp.data
       } catch (err) {
         return err
       }
     },
+    onSuccess : (data)=>{
+      queryClient.fetchQuery(['alarm'])
+      queryClient.fetchQuery(['alarm-cnt'])
+    }
   })
 
   return (
@@ -175,6 +180,7 @@ function App() {
         type={customAlertType}
         message={customAlertMessage}
         isOpen={customAlert}
+        onClose={()=>setCustomAlert(false)}
       />
       <Routes>
         {/*사이드바 안쓰는 레이아웃 */}
