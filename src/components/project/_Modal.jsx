@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useCallback, useEffect, useRef, useState } from "react";
+import useUserStore from "@/store/useUserStore"
 import { CustomSVG } from "./_CustomSVG";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import axiosInstance from "@/services/axios.jsx";
@@ -8,7 +9,6 @@ import templates from "./templates.json";
 
 export const TemplateSelection = ({isOpen,onClose,onSelectTemplate}) => {
   if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white rounded-lg shadow-lg p-6 w-96">
@@ -57,8 +57,9 @@ export const AddProjectModal = ({
 }) => {
   if (!isOpen) return null;
 
+  const loginUser = useUserStore((state) => state.user)
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [selectedGroupId, setSelectedGroupId] = useState();
+  const [selectedGroupId, setSelectedGroupId] = useState(loginUser.groupId);
   const [listType, setListType] = useState(1);
   const [project, setProject] = useState({
     title: "새 프로젝트",
@@ -101,7 +102,7 @@ export const AddProjectModal = ({
     queryFn: fetchAllUsers,
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
-      if (!lastPage.hasNextPage) {
+      if (!lastPage||!lastPage.hasNextPage) {
         return null;
       }
 
@@ -117,7 +118,6 @@ export const AddProjectModal = ({
     },
     cacheTime: 6 * 1000 * 60,
     retry: false,
-    enabled: !!selectedGroupId, // selectedGroupId가 null이 아닐 때만 실행
   });
   // 무한 스크롤로 그룹 데이터를 가져오는 React Query 훅
   const {
@@ -132,7 +132,7 @@ export const AddProjectModal = ({
     initialPageParam: 0, // 첫 페이지 파라미터
     getNextPageParam: (lastPage) => {
       // 다음 페이지 파라미터 결정 로직
-      if (!lastPage.hasNextPage) {
+      if (!lastPage||!lastPage.hasNextPage) {
         return null; // 더 이상 페이지가 없으면 null 반환
       }
       if (lastPage.currentPage < lastPage.totalPages) {
@@ -169,7 +169,7 @@ export const AddProjectModal = ({
       if (isFetchingNextPageAllGroups) return;
       if (observerGroups.current) observerGroups.current.disconnect();
       observerGroups.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasNextPageAllUsers) {
+        if (entries[0].isIntersecting && hasNextPageAllGroups) {
           fetchNextPageAllGroups();
         }
       });
@@ -177,22 +177,6 @@ export const AddProjectModal = ({
     },
     [isFetchingNextPageAllGroups, hasNextPageAllGroups, fetchNextPageAllGroups]
   );
-  useEffect(() => {
-    if(text=="새 프로젝트"){
-      const fetchGroupInfo = async () => {
-        try {
-          const res = await axiosInstance.get("/api/project/user/group"); // 그룹 정보를 가져오는 API 호출
-          console.log(res.data);
-          selectGroup(res?.data.id); // 데이터에서 필요한 값 설정
-        } catch (error) {
-          console.error("그룹 정보를 가져오는 중 오류가 발생했습니다:", error);
-          selectGroup(0);
-        }
-      };
-      fetchGroupInfo();
-      refetchAllUsers();
-    }
-  }, []);
   useEffect(() => {
     if (searchKeyword !== "") {
       refetchAllUsers();
@@ -215,7 +199,8 @@ export const AddProjectModal = ({
       [name]: value,
       ...(name === 'type' && value !== "2" ? { coworkers: [] } : {}),
     }));
-    if (name === 'type' && value === '2') { selectGroup(0);}
+    if (name === 'type' && value === "2") { selectGroup(0);}
+    if (name === 'type' && value === "1") { selectGroup(loginUser.groupId);setListType(1);}
   };
   
   // 멤버 클릭 핸들러 (토글 방식)
@@ -244,7 +229,7 @@ export const AddProjectModal = ({
   };
 
   const selectGroup = (id) => {
-    setSelectedGroupId((prev) => (prev == id ? 0 : id));
+    setSelectedGroupId((prev) => (prev === id ? 0 : id));
   };
 
   const handleSubmit = async () => {
@@ -419,7 +404,7 @@ export const AddProjectModal = ({
               ) : null
             ) : (
               <>
-                {project.type === 2 && (
+                {project.type === "2" && (
                   <div className="cursor-pointer text-xs sticky bg-white top-0 text-left z-30 py-2 mt-0">
                     <span onClick={() => { setListType(1); selectGroup(0); }}> 전체 보기 </span> | 
                     <span onClick={() => setListType(2)}> 부서별 보기 </span>
@@ -433,8 +418,7 @@ export const AddProjectModal = ({
                     allUsers.pages[0].users &&
                     allUsers.pages[0].users.length > 0 ? (
                       allUsers.pages[0].users
-                        .slice()
-                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .filter(m => m.id !== loginUser.id)
                         .map((m) => (
                           <li
                             key={m?.id}
@@ -463,6 +447,13 @@ export const AddProjectModal = ({
                         ))
                     ) : (
                       <li>로딩중입니다...</li>
+                    )}
+                    {hasNextPageAllUsers && (
+                      <div ref={lastUserRef} className="text-center mt-4">
+                        {(isFetchingNextPageAllUsers) 
+                          ? "Loading more..."
+                          : "Load more"}
+                      </div>
                     )}
                   </>
                 )}
@@ -502,6 +493,7 @@ export const AddProjectModal = ({
                                 allUsers.pages[0].users &&
                                 allUsers.pages[0].users.length > 0 ? (
                                   allUsers.pages[0].users
+                                    .filter(m => m.id !== loginUser.id)
                                     .slice()
                                     .sort((a, b) => a.name.localeCompare(b.name))
                                     .map((m) => (
@@ -532,6 +524,13 @@ export const AddProjectModal = ({
                                     ))
                                 ) : (
                                   <li>로딩중입니다...</li>
+                                )}
+                                {hasNextPageAllUsers && (
+                                  <div ref={lastUserRef} className="text-center mt-4">
+                                    {(isFetchingNextPageAllUsers) 
+                                      ? "Loading more..."
+                                      : "Load more"}
+                                  </div>
                                 )}
                               </ul>
                             )}
