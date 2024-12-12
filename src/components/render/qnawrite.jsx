@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom"; // 페이지 이동을 위한 useNavigate 추가
 
-export default function FAQWrite() {
+export default function QNAWrite() {
   const [formData, setFormData] = useState({
+    category: "",
+    priority: "",
     title: "",
     content: "",
     email: "",
     name: "",
+    attachments: "",
   });
 
   const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 훅
@@ -21,25 +24,25 @@ export default function FAQWrite() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Form Submitted:", formData);
+    console.log("QNA Inquiry Submitted:", formData);
   };
 
   const menus = [
-    { title: "PAYMENT", icon: "/images/paymentIcon_gray.png", path: "/payment" },
+    { title: "PAYMENT", icon: "/images/paymentIcon_gray.png", path: "/faq/write/payment" },
     {
       title: "CANCELLATION & RETURN",
       icon: "/images/return.png",
-      path: "/return",
+      path: "/faq/write/cancellation",
     },
-    { title: "QNA", icon: "/images/CardGiftcard.png", path: "/qna" },
+    { title: "QNA", icon: "/images/CardGiftcard.png", path: "/faq/write/qna" },
     {
       title: "PRODUCT & SERVICES",
       icon: "/images/Settings.png",
-      path: "/services",
+      path: "/faq/write/services",
     },
   ];
 
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(2);
 
   const handleMenuClick = (index, path) => {
     setActiveIndex(index);
@@ -58,23 +61,11 @@ export default function FAQWrite() {
       >
         <div className="text-center z-10">
           <h2 className="text-4xl font-bold text-gray-800 mb-4">
-            Hello, how can we help?
+            Questions & Answers
           </h2>
           <p className="text-gray-600 text-lg mb-6">
-            or choose a category to quickly find the help you need
+            Have a question? We're here to provide the answers you need.
           </p>
-          <div className="relative w-full max-w-lg mx-auto">
-            <input
-              type="text"
-              className="w-full p-4 pl-12 rounded-full border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#666bff] shadow-lg"
-              placeholder="Ask a question...."
-            />
-            <img
-              src="/images/search-icon.png"
-              alt="돋보기"
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6"
-            />
-          </div>
         </div>
       </section>
 
@@ -110,35 +101,80 @@ export default function FAQWrite() {
           {/* 폼 영역 */}
           <article className="w-full lg:w-3/4 bg-white rounded-lg shadow-lg p-8 ml-6">
             <h2 className="text-2xl font-semibold mb-6 text-center">
-              Fill out the Inquiry Form
+              Questions & Answers Inquiry Form
             </h2>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium mb-2">Title</label>
+                <label className="block text-sm font-medium mb-2">Question Category</label>
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select question category</option>
+                  <option value="account">Account Related</option>
+                  <option value="technical">Technical Issue</option>
+                  <option value="billing">Billing & Pricing</option>
+                  <option value="shipping">Shipping & Delivery</option>
+                  <option value="general">General Question</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Priority Level</label>
+                <select
+                  name="priority"
+                  value={formData.priority}
+                  onChange={handleChange}
+                  className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select priority level</option>
+                  <option value="low">Low - General Question</option>
+                  <option value="medium">Medium - Need Help Soon</option>
+                  <option value="high">High - Urgent Issue</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Question Title</label>
                 <input
                   type="text"
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
                   className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter title here"
+                  placeholder="Enter your question title"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Details</label>
+                <label className="block text-sm font-medium mb-2">Question Details</label>
                 <textarea
                   name="content"
                   rows="5"
                   value={formData.content}
                   onChange={handleChange}
                   className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="Describe your question or issue"
+                  placeholder="Please describe your question in detail"
                   required
                 ></textarea>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Email</label>
+                <label className="block text-sm font-medium mb-2">Attachments</label>
+                <input
+                  type="file"
+                  name="attachments"
+                  onChange={handleChange}
+                  className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  accept=".pdf,.doc,.docx,.jpg,.png"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Supported files: PDF, DOC, DOCX, JPG, PNG (Max size: 5MB)
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Email Address</label>
                 <input
                   type="email"
                   name="email"
@@ -150,14 +186,14 @@ export default function FAQWrite() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Name</label>
+                <label className="block text-sm font-medium mb-2">Full Name</label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
                   className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter your name"
+                  placeholder="Enter your full name"
                   required
                 />
               </div>
@@ -165,7 +201,7 @@ export default function FAQWrite() {
                 type="submit"
                 className="w-full py-4 bg-[#666bff] text-white font-semibold rounded-lg hover:bg-[#5555ee] transition duration-300"
               >
-                Submit Inquiry
+                Submit Question
               </button>
             </form>
           </article>

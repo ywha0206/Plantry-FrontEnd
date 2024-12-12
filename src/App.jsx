@@ -57,6 +57,10 @@ import useUserStore from "./store/useUserStore";
 import Trash from "./pages/document/Trash";
 import alertWebSocket from "./util/alertWebSocket";
 import { UnreadCountProvider } from "./components/message/UnreadCountContext";
+import PaymentWrite from "./components/render/paymentwrite";
+import CancellationReturnWrite from "./components/render/cancellationreturnwrite";
+import QNAWrite from "./components/render/qnawrite";
+import ProductServicesWrite from "./components/render/productserviceswrite";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 const MainIndexComponent = lazy(() => import("./components/render/main"));
 
@@ -199,7 +203,10 @@ function App() {
             <Route path="faq" element={<FAQPage />} />
             <Route path="faq" element={<FAQLayout />}>
               <Route index element={<FAQPage />} />
-              <Route path="write" element={<FAQWrite />} />
+              <Route path="write/payment" element={<PaymentWrite />} />
+              <Route path="write/cancellation" element={<CancellationReturnWrite />} />
+              <Route path="write/qna" element={<QNAWrite />} />
+              <Route path="write/services" element={<ProductServicesWrite />} />
             </Route>
           </Route>
 

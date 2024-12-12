@@ -327,7 +327,6 @@ const DynamicTask = React.memo(
                     )||"정해지지 않음"}
                     </div>
                   </section>
-                )}
 
                 {/* 마감일 및 코멘트 */}
                 <section
@@ -399,7 +398,7 @@ const DynamicTask = React.memo(
                   >
                     수정
                   </button>
-                  <button
+                  <MenuItem
                     className="px-6 py-1 border rounded-lg border-slate-500/50"
                     onClick={(e) => {
                       stopPropagation(e);
