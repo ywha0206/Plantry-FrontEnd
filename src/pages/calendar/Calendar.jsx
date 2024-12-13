@@ -18,14 +18,11 @@ import { useAuthStore } from '../../store/useAuthStore'
 export default function Calendar() {
 
     const [calendarId, setCalendarId] = useState(0);
-    const [calendarAdded, setCalendarAdded] = useState(false);
-    const [calendarDeleted, setCalendarDeleted] = useState(false);
-    const [changeCalendarAdd,setChangeCalendarAdd] = useState(false);
-    const [changeCalendarRemove,setChangeCalendarRemove] = useState(false);
     const [openPostCalendar, setOpenPostCalendar] = useState(false);
     const [openDeleteAndModifyCalendar, setOpenDeleteAndModifyCalendar] = useState(false);
     const [selectedCalendarIds, setSelectedCalendarIds] = useState([]);
     const [selectedColor, setSelectedColor] = useState({});
+    const [triger, setTriger] = useState(false);
     const [selectedCalendar, setSelectedCalendar] = useState({
         id : 0,
         color : "",
@@ -49,7 +46,6 @@ export default function Calendar() {
         setCalendarId(id);
     };
     const { stompClient, isConnected, receiveMessage , updateCalendarIds , updateUserId } = useWebSocket({
-
     });
 
     useEffect(()=>{        
@@ -199,7 +195,7 @@ export default function Calendar() {
 
     return (
         <div id='calendar-container'>
-            <aside className='calendar-aside overflow-scroll flex flex-col scrollbar-none'>
+            <aside className='calendar-aside overflow-scroll flex flex-col scrollbar-none border'>
                 <section className='mb-[120px]'>
 
                 </section>
@@ -292,7 +288,7 @@ export default function Calendar() {
                     <button onClick={openModal} className='bg-blue white px-8 py-2 text-xl rounded-lg flex justify-center items-center'>캘린더 등록</button>
                 </section>
             </aside>
-            <section className='calendar-main'>
+            <section className='calendar-main border'>
                 <section className='big-calendar mt-8 overflow-scroll max-h-[700px] w-[1080px] mx-auto scrollbar-none'>
                     <MainBigCalendar
                         calendarDate={calendarDate}

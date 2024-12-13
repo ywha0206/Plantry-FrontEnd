@@ -4,6 +4,9 @@ import adminProfile from '@/assets/admin-profile.png'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore';
 import axiosInstance from '@/services/axios.jsx'
+import CustomAlert from '../../components/Alert';
+import { useQuery } from '@tanstack/react-query';
+import useUserStore from '../../store/useUserStore';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -11,7 +14,7 @@ export default function Home() {
   const timeRef = useRef(null); // 시간 DOM 참조
   const dateRef = useRef(null); // 시간 DOM 참조
   const [isActive, setIsActive] = useState(true); // 페이지 활성화 상태 관리
-
+  const user = useUserStore((state)=> state.user);
   const currentDate = new Date();
   const formattedDate = new Intl.DateTimeFormat('ko-KR', {
     timeZone: 'Asia/Seoul',
@@ -27,6 +30,17 @@ export default function Home() {
 
   const decodeAccessToken = useAuthStore((state)=>state.decodeAccessToken);
   const getAccessToken = useAuthStore((state)=>state.getAccessToken);
+  
+  const [alert, setAlert] = useState({message : '', type: '', isOpen: false, onClose: false})
+  const closeAlert = () =>{
+    setAlert({ message: '', type: '', isOpen: false, onClose: false });
+  }
+
+  const todayAttendanceAPI = async () => {
+    const resp = await axiosInstance.get('/api/attendance/today');
+    console.log("오늘 근태 "+JSON.stringify(resp.data))
+    return resp.data;
+  }
 
   
   useEffect(() => {
@@ -67,10 +81,63 @@ export default function Home() {
     };
   }, [isActive]);
 
+  
+  const { data, error, isLoading, isError } = useQuery({
+    queryKey: [`${user.uid}`],  // 캐싱에 사용할 키
+    queryFn: todayAttendanceAPI,  // 데이터를 가져오는 함수
+    staleTime: 1000 * 60 * 5,  // 5분 동안 데이터가 신선하다고 간주
+    cacheTime: 1000 * 60 * 60, // 10분 후에 캐시가 만료되도록 설정
+  });
+
+  if (isLoading) {
+    return <div>로딩 중...</div>;
+  }
+
+  if (isError) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  const goToWorkHandler = async (e) => {
+    e.preventDefault();
+    if(confirm("출근하시겠습니까?")){
+      try{
+        const resp = await axiosInstance.post('/api/attendance/checkIn', null);
+        console.log("출근하기! "+resp.data)
+        setAlert({message: `${resp.data} \n \n \n출근이 완료되었습니다.`,type: 'success',isOpen: true, onClose: false,})
+      }catch(err){
+        console.log("에러 "+JSON.stringify(err.response.data))
+        setAlert({message: `${err.response.data}`,type: 'warning',isOpen: true,onClose: false,})
+      }
+    }else{
+      return;
+    }
+  }
+  const leaveWorkHandler = async (e) => {
+    e.preventDefault();
+    if(confirm("퇴근하시겠습니까?")){
+      try{
+        const resp = await axiosInstance.post('/api/attendance/checkOut', null);
+        console.log("퇴근하기! "+resp.data)
+        setAlert({message: `${resp.data} \n 퇴근완료! `,type: 'success',isOpen: true, onClose: false,})
+      }catch(err){
+        console.log("에러 "+JSON.stringify(err.response.data))
+        setAlert({message: `${err.response.data}`,type: 'warning',isOpen: true,onClose: false,})
+      }
+    }else{
+      return;
+    }
+  }
+
     return (
       <div id='home-container'>
         <section className='admin-index-top'>
-          <article className='home-top-left'>
+        <CustomAlert
+              type={alert.type}
+              message={alert.message}
+              isOpen={alert.isOpen}
+              onClose={closeAlert}
+            />
+          <article className='home-top-left border'>
             <h2 className='text-2xl'>Project</h2>
             <div className='w-full h-full flex justify-around'>
               <div className='home-project'>
@@ -142,7 +209,7 @@ export default function Home() {
             </div>
           </article>
           <article className='home-top-right'>
-            <div className='home-my flex'>
+            <div className='home-my flex border'>
               <div className='my-left flex flex-col justify-between'>
                 <div>
                   <p className='gray'>welcome Yeonhwa Park</p>
@@ -157,7 +224,7 @@ export default function Home() {
                 <img src={adminProfile}/>
               </div>
             </div>
-            <div className='home-commute'>
+            <div className='home-commute border'>
               <div className='flex flex-col items-center h-[80px] mt-1'>
                 <span className='' ref={dateRef}></span>
                 <p  className='flex items-end' ref={timeRef}></p>
@@ -168,26 +235,26 @@ export default function Home() {
                     <span className='text-lg w-full h-full text-center flex items-center justify-center text-gray-600'>
                       출근시간</span>
                     <span className='text-2xl w-full h-full text-center text-gray-600 font-extralight'>
-                      08:17:00</span>
+                    {data.checkInTime}</span>
                   </div>
                   <img src='/images/arrowRight.png' alt='allow' className='commute-allow'></img>
                   <div className='checktime flex flex-col'>
                     <span className='text-lg w-full h-full text-center flex items-center justify-center text-gray-600'>
                       퇴근시간</span>
                     <span className='text-2xl w-full h-full text-center text-gray-600 font-extralight'>
-                      -</span>
+                    {data.checkOutTime}</span>
                   </div>
                 </div>
                 <div className='flex flex-col justify-between w-[200px]'>
-                  <button className='btn-commute bg-indigo-500 text-white'>출근하기</button>
-                  <button className='btn-commute border border-gray-300 text-gray-500 mt-10'>퇴근하기</button>
+                  <button onClick={goToWorkHandler} className='btn-commute bg-indigo-500 text-white'>출근하기</button>
+                  <button onClick={leaveWorkHandler} className='btn-commute border border-gray-300 text-gray-500 mt-10'>퇴근하기</button>
                 </div>
               </div>
             </div>
           </article>
         </section>
         <section className='home-index-bot'>
-          <div className='home-bot'>
+          <div className='home-bot border'>
             <h2 className='text-2xl mb-10'>Notice</h2>
             <div className='border rounded-lg flex flex-col py-2 px-5 mt-1'>
               <div className='flex justify-between'>
@@ -212,7 +279,7 @@ export default function Home() {
             </div>
             <button className='btn-home float-right mt-[20px]'>전체보기<img className='ml-2' src="/images/home-my-btn-arrow.png" alt="allow" /></button>
           </div>
-          <div className='home-bot'>
+          <div className='home-bot border'>
             <h2 className='text-2xl mb-10'>Schedule</h2>
             <div>
               <p>오늘 <span>(2024.11.18)</span></p>
@@ -233,11 +300,10 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className='home-bot'>
+          <div className='home-bot border'>
             <h2 className='text-2xl'>Calendar</h2>
           </div>
         </section>
-      
       </div>
     );
 }

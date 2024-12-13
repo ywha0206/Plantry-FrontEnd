@@ -1,6 +1,7 @@
 import axios from "axios";
 import { create } from "zustand";
 import axiosInstance from '@/services/axios.jsx';
+import { useQueryClient } from "@tanstack/react-query";
 /*
     날짜 : 2024/11/28
     이름 : 박연화
@@ -97,14 +98,14 @@ export const useAuthStore = create((set) => ({
 
     // 로그아웃 처리
     logout: () => {
-        localStorage.clear()
+        localStorage.clear() 
         axiosInstance
             .post("/api/auth/logout",null)
             .then((resp)=>{
                 console.log("로그아웃! 잘 가세요!");
             })
             .catch((err)=>{
-                console.error("Logout failed", error);
+                console.error("Logout failed", err);
             });
         set(() => ({ accessToken: null, authorized: false }));
     },

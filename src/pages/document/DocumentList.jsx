@@ -15,6 +15,12 @@ import RenameModal from '../../components/document/ChangeName';
 import ContextMenu from '../../components/document/ContextMenu';
 import ContextFileMenu from '../../components/document/ContextFileMenu';
 import CustomAlert from '../../components/document/CustomAlert';
+import MyDropzone from '../../components/DropZone';
+import useStorageStore from '../../store/useStorageStore';
+import ShareMember from "@/components/ShareMember";
+import { AddProjectModal } from '../../components/project/_Modal';
+import { AddDocumentModal } from '../../components/document/addDocumentModal';
+import DriveShareModal from '../../components/document/documentShareMenu';
 
 export default function DocumentList() {
     const [viewType, setViewType] = useState('box'); // Default to 'box'
@@ -24,6 +30,8 @@ export default function DocumentList() {
     const [newFolderName, setNewFolderName] = useState(''); // 새로운 폴더 이름
     const [isRenameModalOpen, setIsRenameModalOpen] = useState(false); // 모달 열림 상태
     const [isFavorite,setIsFavorite] = useState(0);
+    const [shareMenu,setShareMenu] = useState(false);
+    const [saveCoworker,setSaveCoworker] = useState([]);
 
     const location = useLocation();
     const user = useUserStore((state) => state.user);
@@ -76,6 +84,23 @@ export default function DocumentList() {
         setSelectedFile(null);
       };
 
+    const handleShare = (type,selected)=>{
+        if (type === "folder") {
+            setSelectedFolder(selected); // 폴더 선택 상태 업데이트
+            setSelectedFile(null); // 파일 선택 초기화
+        } else if (type === "file") {
+            setSelectedFile(selected); // 파일 선택 상태 업데이트
+            setSelectedFolder(null); // 폴더 선택 초기화
+        }
+        setIsModalOpen(true);
+    }
+
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+        setSelectedFolder(null);
+        setSelectedFile(null);
+    };
+
 
     const [menuState, setMenuState] = useState({
         isMenuOpen: false,
@@ -111,7 +136,8 @@ export default function DocumentList() {
         staleTime: 300000, // 데이터가 5분 동안 신선하다고 간주
     });
 
-
+      // 폴더 및 파일 데이터 가져오기
+    
 
     // 폴더 이름 변경 Mutation
     const renameFolderMutation = useMutation({
@@ -128,19 +154,6 @@ export default function DocumentList() {
         },
     });
 
-    // 파일 업로드 Mutation
-    const uploadFileMutation = useMutation({
-        mutationFn: async (files) => {
-            const formData = new FormData();
-            files.forEach((file) => formData.append('files', file));
-            await axiosInstance.post(`/api/drive/upload?folderId=${folderId}`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['folderContents', folderId, user.uid] });
-        },
-    });
 
     // 이름 변경 핸들러
     const handleRename = () => {
@@ -249,8 +262,7 @@ export default function DocumentList() {
 
 
     //선택 삭제
-    const [selectedFolders,setSelectedFolders] = useState([]);
-    const [selectedFiles,setSelectedFiles] = useState([]);
+
     const [selectedItems, setSelectedItems] = useState({
         folders: [],
         files: [],
@@ -389,21 +401,7 @@ const handleCloseFileMenu = () => {
 
     
     
-    
 
-    // 드래그 앤 드롭 업로드 핸들러
-    const handleFileDrop = useCallback(
-        (event) => {
-            event.preventDefault();
-            const files = Array.from(event.dataTransfer.files);
-            if (files.length === 0) {
-                console.error('No files dropped');
-                return;
-            }
-            uploadFileMutation.mutate(files);
-        },
-        [uploadFileMutation]
-    );
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
@@ -451,7 +449,7 @@ const handleCloseFileMenu = () => {
                 link.click();
                 document.body.removeChild(link);
             } else {
-                console.error('zip 파��� 생성 실패:', response.data);
+                console.error('zip 파일 생성 실패:', response.data);
             }
         } catch (error) {
             console.error('zip 파일 생성 업데이트 중 오류 발생:', error);
@@ -491,7 +489,120 @@ const handleCloseFileMenu = () => {
 
   
 
+    const parentFolder = (data?.parentFolder || []);
+    console.log(parentFolder);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const [isShareModalOpen,setIsShareModalOpen] = useState(false);
+
+
+   
+
+
+    useEffect(() => {
+        console.log("isDeleteAlert 상태 변경:", isDeleteAlert);
+    }, [isDeleteAlert]);
+
+    const [isDragging, setIsDragging] = useState(false); // 드래그 중인지 상태 관리
+    const [isUploading,setIsUploading] = useState(false);
+    const storageInfo = useStorageStore((state) => state.storageInfo) || { currentRemainingSize: 0, totalSize: 0 };
+
+    const [uploadProgress, setUploadProgress] = useState(null); // 업로드 진행 상황 상태
+    const [isUploadInProgress, setIsUploadInProgress] = useState(false);
+    const handleUploadStart = () => {
+      setIsUploadInProgress(true);
+      setUploadProgress(0); // 초기화
+    };
+  
+    const handleUploadComplete = () => {
+      setIsUploadInProgress(false);
+      setUploadProgress(null); // 초기화
+  
+    };
+
+ 
+   // 파일 업로드 Mutation
+   const uploadFileMutation = useMutation({
+    mutationFn: async (files) => {
+      const totalFileSize = files.reduce((total, file) => total + file.size, 0);
+      if (totalFileSize > storageInfo.currentRemainingSize) {
+        throw new Error(`남은 용량(${storageInfo.currentRemainingSize} bytes)보다 큰 파일은 업로드할 수 없습니다.`);
+      }
+  
+      const formData = new FormData();
+      const fileStructure = {};
+  
+      files.forEach((file) => {
+        // 파일 경로 분리
+        const path = file.path || file.name; // `path`가 없으면 파일 이름 사용
+        const segments = path.split('/');
+        const folderPath = segments.slice(0, -1).join('/'); // 폴더 경로만 추출
+        // 폴더 경로에 따라 파일 그룹화
+        if (!fileStructure[folderPath]) {
+          fileStructure[folderPath] = [];
+        }
+        fileStructure[folderPath].push(file);
+  
+        formData.append('files', file);
+        formData.append('relativePaths', folderPath); // 경로를 서버로 전송
+      });
+  
+      formData.append('fileMaxOrder', fileMaxOrder);
+      formData.append('folderMaxOrder', folderMaxOrder);
+      formData.append('uid', user.uid);
+  
+      console.log('FormData before sending:', formData);
+  
+      return axiosInstance.post(`/api/drive/upload/${folderId}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total > 0) {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded / progressEvent.total) * 100
+            );
+            setUploadProgress(percentCompleted); // 진행률 업데이트
+          } else {
+            console.warn('총 파일 크기를 알 수 없습니다.');
+            setUploadProgress(0);
+          }
+        },
+      });
+    },
+    onSuccess: (response, variables) => {
+      queryClient.invalidateQueries(['folderContents']);
+      triggerAlert('success', '업로드 성공', `${variables.length}개의 파일이 성공적으로 업로드되었습니다.`);
+      console.log('업로드 성공:', response.data);
+    },
+    onError: (error) => {
+      const errorMessage = error.response?.data || '파일 업로드 중 오류가 발생했습니다. 다시 시도해주세요.';
+      const errorType = error.response?.status === 400 ? 'warning' : 'error';
+      triggerAlert(errorType, '업로드 실패', errorMessage);
+    },
+    onSettled: () => {
+      setIsUploading(false); // 업로드 상태 초기화
+    },
+  });
+  
+    const handleDropDragOver = (e) => {
+        e.preventDefault(); // 기본 동작 방지
+        setIsDragging(true); // 드래그 중 상태로 설정
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault(); // 기본 동작 방지
+        setIsDragging(false); // 드래그 중 상태 해제
+    };
+
+    const handleD_Drop = (e) => {
+        e.preventDefault(); // 기본 동작 방지
+        setIsDragging(false); // 드래그 상태 해제
+      
+        const files = Array.from(e.dataTransfer.files);
+        if (files.length > 0) {
+          setIsUploading(true); // 업로드 상태 설정
+          uploadFileMutation.mutate(files); // Mutation 호출
+        }
+    };
 
     const subFolders = (data?.subFolders || [])
     .map((folder) => ({
@@ -508,17 +619,13 @@ const handleCloseFileMenu = () => {
         type: 'file', // 파일 타입 추가
     }));
 
-    const maxOrder = subFolders.length*100;
-    const fileMaxOrder =
-        files.length > 0
-            ? Math.max(...files.map(file => file.order || 0))
-            : 0; // 기본값을 0으로 설정
+    const sharedUser = (data?.sharedUser);
+    console.log("공유인원!!",sharedUser);
 
-    console.log("fileMaxorder",fileMaxOrder);
+    const folderMaxOrder = subFolders.length;
+    const fileMaxOrder = files.length;
+  
 
-    useEffect(() => {
-        console.log("isDeleteAlert 상태 변경:", isDeleteAlert);
-    }, [isDeleteAlert]);
 
     
     if (isLoading) return <div>Loading...</div>;
@@ -526,31 +633,67 @@ const handleCloseFileMenu = () => {
 
     return (
         <DocumentLayout isDetailVisible={isDetailVisible} selectedFolder={selectedFolder} selectedFile={selectedFile} path={location.pathname} parentfolder={location.state?.folderName} uid={data.uid} closeDetailView={closeDetailView}>
-           
     
-           
-            <section className="flex gap-4 items-center">
-                {editing ? (
-                    <input
-                        className="text-2xl ml-4 mt-4 border-b-2 border-gray-400 outline-none"
-                        value={newFolderName}
-                        onChange={(e) => setNewFolderName(e.target.value)}
-                        onBlur={handleRename}
-                        onKeyDown={handleKeyDown}
-                        autoFocus
-                    />
-                ) : (
-                    <>
-                        <span className="text-[25px] ml-[25px]">{location.state?.folderName}</span>
-                        <img
-                            className="w-6  h-6 cursor-pointer"
-                            src="/images/document-pen.png"
-                            alt="Rename"
-                            onClick={() => setEditing(true)}
+           <div   
+                className={`document-list-container ${isDragging ? 'dragging' : ''}`}
+                onDragOver={handleDropDragOver} // 드래그 중 이벤트
+                onDragLeave={handleDragLeave} // 드래그 종료 이벤트
+                onDrop={handleD_Drop} // 파일 드롭 이벤트
+                style={{
+                    border: isDragging ? '2px dashed #0066cc' : 'none',
+                    backgroundColor: isDragging ? '#f0f8ff' : 'transparent',
+                }}>
+            <section className="flex gap-4 items-center justify-between">
+                    {editing ? (
+                        <input
+                            className="text-2xl ml-4 mt-4 border-b-2 border-gray-400 outline-none"
+                            value={newFolderName}
+                            onChange={(e) => setNewFolderName(e.target.value)}
+                            onBlur={handleRename}
+                            onKeyDown={handleKeyDown}
+                            autoFocus
                         />
-                    </>
-                )}
-            </section>
+                    ) : (
+                        <>
+                            <div className='flex items-center gap-4 ml-[25px]'>
+                            <span className="text-[25px]">{location.state?.folderName}</span>
+                            <img
+                                className="w-6  h-6 cursor-pointer"
+                                src="/images/document-pen.png"
+                                alt="Rename"
+                                onClick={() => setEditing(true)}
+                            />
+                            </div>
+
+                        </>
+                    )}
+                    <div>
+                    <ShareMember
+                         listName="작업자"
+                         isShareOpen={isModalOpen}
+                         setIsShareOpen={setIsModalOpen}
+                         members={sharedUser}
+                    >
+                        <DriveShareModal
+                            isModalOpen={isModalOpen}
+                            setIsModalOpen={setIsModalOpen}
+                            selectedFolder={selectedFolder}
+                            selectedFile={selectedFile}
+                            company={user.company}
+                            user={user}
+                            id={selectedFolder?.id || parentFolder?.id}
+                            type={selectedFolder?.type || selectedFile?.type}
+                            name={selectedFolder?.name || parentFolder?.name} // 선택된 폴더나 파일 이름 전달
+                            sharedMember = {selectedFolder?.sharedUser || selectedFile?.sharedUser || parentFolder?.sharedUser}
+                            sharedDept = {selectedFolder?.sharedDept || selectedFile?.sharedDept || parentFolder?.sharedDept}
+                            >
+                        </DriveShareModal>
+                    </ShareMember>
+                    </div>
+                    
+                
+                </section>
+                
             <section className="flex justify-between mt-[22px] mb-6">
                 <div className="flex gap-4 mx-[15px] w-[98%] items-center">
                     <CustomSearch width1="20" width2="80" />
@@ -590,16 +733,12 @@ const handleCloseFileMenu = () => {
                         onClick={() => setIsOpen(true)}
                         className="bg-purple white w-20 h-8 rounded-md text-xs"
                     >
-                        파일 업로드
+                        업로드
                     </button>
-                    <button
-                        onClick={() => setIsOpen(true)}
-                        className="bg-purple white w-20 h-8 rounded-md text-xs"
-                    >
-                        폴더 업로드
-                    </button>
+                   
                 </div>
             </section>
+          
 
             {viewType === 'box' ? (
                 <div className='h-[600px] mx-[30px] w-[97%] overflow-scroll scrollbar-none'>
@@ -735,8 +874,10 @@ const handleCloseFileMenu = () => {
                 </>
 
             )}
+           </div>
+            
 
-            <FileUploads isOpen={isOpen} onClose={() => setIsOpen(false)} folderId={folderId} maxOrder={fileMaxOrder} uid={user.uid} triggerAlert={triggerAlert} />
+            <FileUploads isOpen={isOpen} onClose={() => setIsOpen(false)} folderId={folderId} fileMaxOrder={fileMaxOrder} folderMaxOrder={folderMaxOrder} uid={user.uid} triggerAlert={triggerAlert} />
             <NewFolder isOpen={folder} onClose={() => setFolder(false)} parentId={folderId}     maxOrder={subFolders.length} // 최대 order 값을 계산해서 전달
             />
              {/* ContextMenu 컴포넌트 */}
@@ -749,9 +890,10 @@ const handleCloseFileMenu = () => {
                     folderName={contextMenu.folderName}
                     folderId={contextMenu.folderId}
                     path={contextMenu.path}
+                    onShare={handleShare}
                     onDetailToggle={() => handleDetailToggle(contextMenu.folder)} // 상세 정보 토글 함수 전달
                     downloadHandler={() => zipDownloadHandler(contextMenu.folder)}
-
+                    selectedFolder = {setSelectedFolder}
                 />
               <ContextFileMenu
                     visible={contextFileMenu.visible}
@@ -766,9 +908,7 @@ const handleCloseFileMenu = () => {
                     downloadHandler={downloadHandler}
                 />
 
-                    {alert.isVisible
-                    ? console.log("CustomAlert 렌더링 조건 충족")
-                    : console.warn("CustomAlert 렌더링 조건 미충족")}
+        
                   {alert.isVisible  && (
                     <CustomAlert
                         type={alert.type}
@@ -814,6 +954,18 @@ const handleCloseFileMenu = () => {
                         </div>
                     </Modal>
                 )}
+                   <DriveShareModal
+                    isModalOpen={isModalOpen}
+                    setIsModalOpen={setIsModalOpen}
+                    selectedFolder={selectedFolder}
+                    selectedFile={selectedFile}
+                    company={user.company}
+                    user={user}
+                    id={selectedFolder?.id || selectedFile?.id ||  parentFolder?.id}
+                    type={selectedFolder?.type || selectedFile?.type || "folder"}
+                    name={selectedFolder?.name || selectedFile?.name ||parentFolder?.name} // 선택된 폴더나 파일 이름 전달
+                    >
+                    </DriveShareModal>
 
 
                    

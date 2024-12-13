@@ -2,16 +2,15 @@ import { useEffect, useState, useCallback } from 'react';
 import { Client } from '@stomp/stompjs';
 import axiosInstance from '@/services/axios.jsx';
 
-const useWebSocket = ({ initialDestination, initialMessage, initialCalendarId, initialUserId }) => {
+const usePageSocket = ({ initialDestination, initialMessage}) => {
     const [destination, setDestination] = useState(initialDestination);
     const [sendMessage, setSendMessage] = useState(initialMessage);
-    const [calendarIds, setCalendarIds] = useState(initialCalendarId || []);
     const [isConnected, setIsConnected] = useState(false);
     const [receiveMessage, setReceiveMessage] = useState([]);
-    const [userId, setUserId] = useState(initialUserId);
+    const [pageId, setPageId] = useState();
 
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-    const wsUrl = "ws://" + apiBaseUrl.replace("http://", "") + "/ws-calendar";
+    const wsUrl = "ws://" + apiBaseUrl.replace("http://", "") + "/ws-page";
 
     const [stompClient, setStompClient] = useState(null);
 
@@ -28,6 +27,7 @@ const useWebSocket = ({ initialDestination, initialMessage, initialCalendarId, i
             brokerURL: wsUrl,
             connectHeaders: headers,
             debug: function (str) {
+                // console.log(str)
             },
             reconnectDelay: 5000,
             onConnect: () => {
@@ -43,38 +43,14 @@ const useWebSocket = ({ initialDestination, initialMessage, initialCalendarId, i
     }, [wsUrl]);
 
     const updateSubscriptions = (client) => {
-        if (calendarIds && calendarIds.length > 0) {
-            calendarIds.forEach((calendarId) => {
-                // 이미 구독하고 있는 topic에 대한 연결을 끊는다
-                client.unsubscribe(`/topic/calendar/${calendarId}`);
-            });
+        if (pageId) {
+            client.unsubscribe(`/topic/page/${pageId}`);
         }
     
-        if (userId) {
-            // 이전에 해당 userId에 대한 구독도 끊는다
-            client.unsubscribe(`/topic/calendar/user/${userId}`);
-        }
-    
-        // 새로운 구독 시작
-        if (calendarIds && calendarIds.length > 0) {
-            calendarIds.forEach((calendarId) => {
-                client.subscribe(`/topic/calendar/${calendarId}`, (message) => {
-                    try {
-                        const response = JSON.parse(message.body);
-                        console.log(response);
-                        setReceiveMessage(response);
-                    } catch (error) {
-                        console.error("Failed to parse message:", error);
-                    }
-                });
-            });
-        }
-    
-        if (userId) {
-            client.subscribe(`/topic/calendar/user/${userId}`, (message) => {
+        if (pageId) {
+            client.subscribe(`/topic/page/${pageId}`, (message) => {
                 try {
                     const response = JSON.parse(message.body);
-                    console.log(response);
                     setReceiveMessage(response);
                 } catch (error) {
                     console.error("Failed to parse user message:", error);
@@ -108,7 +84,7 @@ const useWebSocket = ({ initialDestination, initialMessage, initialCalendarId, i
         if (stompClient && isConnected) {
             updateSubscriptions(stompClient);
         }
-    }, [calendarIds, userId, isConnected, stompClient]);
+    }, [ pageId, isConnected, stompClient]);
 
     const sendWebSocketMessage = useCallback((message, path) => {
         if (isConnected && stompClient) {
@@ -122,27 +98,21 @@ const useWebSocket = ({ initialDestination, initialMessage, initialCalendarId, i
     }, [stompClient, isConnected]);
 
 
-    const updateCalendarIds = (newIds) => {
-        setCalendarIds(newIds);
+    const updatePageId = (newIds) => {
+        setPageId(newIds);
     };
 
-    const updateUserId = (newId) => {
-        setUserId(newId);
-    };
 
     return {
         stompClient,
         setDestination,
         setSendMessage,
-        setCalendarIds,
-        calendarIds,
         isConnected,
         receiveMessage,
         sendWebSocketMessage,
-        updateCalendarIds,
-        updateUserId,
+        updatePageId,
         initializeStompClient
     };
 };
 
-export default useWebSocket;
+export default usePageSocket;

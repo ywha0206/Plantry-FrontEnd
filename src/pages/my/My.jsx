@@ -3,6 +3,9 @@ import '@/pages/my/My.scss'
 import MyAside from '@/components/my/MyAside.jsx';
 import { useNavigate, useParams } from "react-router-dom";
 import { MyPlanModal } from '../../components/my/PlanModal';
+import axiosInstance from '@/services/axios.jsx'
+import { useQuery } from '@tanstack/react-query';
+import useUserStore from '../../store/useUserStore';
 
 
 export default function MyMain() {
@@ -11,6 +14,7 @@ export default function MyMain() {
   const navigate = useNavigate();
   const [progress, setProgress] = useState(65)
   const [menuActive, setMenuActive] = useState("")
+  const user = useUserStore(state => state.user);
 
   useEffect(() => {
     if (params.page) {
@@ -19,7 +23,22 @@ export default function MyMain() {
       setMenuActive("")
     }
   }, [params.page]);
-  
+
+  const getUserAPI = async () => {
+    if (!user?.uid) {
+      throw new Error("유저 정보가 없습니다.");
+    }
+    const resp = await axiosInstance.get('/api/my/user');
+    console.log("유저 데이터 조회 "+JSON.stringify(resp.data));
+    return resp.data;
+  }
+
+  const { data: userData, isError: userError, isLoading: userLoading } = useQuery({
+    queryKey: [`${user.uid}`],
+    queryFn: getUserAPI,
+    enabled: !!user?.uid,
+  })
+
   const paymentHandler = (event) => {
     event.preventDefault();
     navigate("/my/payment")
@@ -39,64 +58,84 @@ export default function MyMain() {
       setPlan(false)
   }
 
-
+    const test = 'http://3.35.170.26:90/profileImg/bdf33032-4941-4edf-a7a6-3497f3735f63.png'
   return (
     <div id='my-main-container'>
       <MyAside />
       <section className='my-main-main'>
         <article className='my-profile flex flex-col justify-center'>
           <div className='flex flex-row justify-left items-center p-10 ml-[30px]'>
-            <img className='profile-img' src="/images/user_face_icon.png" alt="user-face-icon" />
+            {userLoading ? (
+              <div className='w-[200px] h-[200px] bg-white drop-shadow-lg flex items-center justify-center overflow-hidden rounded-full'>
+                <p>로딩 중...</p>
+              </div>
+            ) : userError ? (
+              <p>데이터를 불러오는 데 실패했습니다.</p>
+            ) : (
+              <div className='w-[200px] h-[200px] bg-white drop-shadow-lg flex items-center justify-center overflow-hidden rounded-full'>
+                <img
+                  className='w-full h-full object-cover flex items-center between-center'
+                  src={userData?.profileImgPath ? `http://3.35.170.26:90/profileImg/${userData.profileImgPath}` : '/images/default-profile.png'}
+                  alt="프로필 이미지" 
+                />
+              </div>
+            )}
             <div className='flex flex-col ml-[40px]'>
               <h3 className='text-lg mb-3 font-light text-gray-500'>yeonwha****</h3>
               <div className='speech-bubble drop-shadow-lg py-[20px] px-[40px] flex items-center'>
-                <span>안녕하세요. 개발팀 박연화입니다.<br/> 어쩌고</span>
+                <span>안녕하세요. 개발팀 박연화입니다.</span>
               </div>
             </div>
           </div>
           <div className='profile'>
             <div className='myinfo border relative h-[450px] p-[20px] mr-10'>
               <h2 className='text-lg mb-2 ml-2 text-gray-500 my-sub-title'>나의 프로필</h2>
+              {userLoading ? (
+                <p>로딩 중...</p>
+              ) : userError ? (
+                <p>데이터를 불러오는 데 실패했습니다.</p>
+              ) : (
               <div >
                 <table className='myinfo-table mt-[30px]'>
                   <tbody>
                     <tr className='my-tr'>
                       <th className='my-th'>이름  </th>
-                      <td className='my-td'>박연화</td>
+                      <td className='my-td'>{userData?.name||''}</td>
                     </tr>
                     <tr className='my-tr'>
                       <th className='my-th'>회사명 </th>
-                      <td className='my-td'>Plantry</td>
+                      <td className='my-td'>{userData?.companyName||''}</td>
                     </tr>
                     <tr className='my-tr'>
-                      <th className='my-th'>부서 </th>
-                      <td className='my-td'>개발팀</td>
+                      <th className='my-th'>부서</th>
+                      <td className='my-td'>{userData?.department || '등록된 부서가 없습니다.'}</td>
                     </tr>
                     <tr className='my-tr'>
-                      <th className='my-th'>직급 </th>
-                      <td className='my-td'>박연화</td>
+                      <th className='my-th'>직급</th>
+                      <td className='my-td'>{userData?.level || ''}</td>
                     </tr>
                     <tr className='my-tr'>
-                      <th className='my-th'>이메일 </th>
-                      <td className='my-td'>ppyyf@naver.com</td>
+                      <th className='my-th'>이메일</th>
+                      <td className='my-td'>{userData?.email || ''}</td>
                     </tr>
                     <tr className='my-tr'>
-                      <th className='my-th'>전화번호 </th>
-                      <td className='my-td'>010-1234-1234</td>
+                      <th className='my-th'>전화번호</th>
+                      <td className='my-td'>{userData?.hp || ''}</td>
                     </tr>
                     <tr className='my-tr'>
-                      <th className='my-th'>국가/지역 </th>
-                      <td className='my-td'>대한민국 / 부산</td>
+                      <th className='my-th'>국가</th>
+                      <td className='my-td'>{userData?.country || ''}</td>
                     </tr>
                     <tr className='my-tr'>
-                      <th className='my-th'>주소 </th>
-                      <td className='my-td'> 없음</td>
+                      <th className='my-th'>주소</th>
+                      <td className='my-td'>{userData?.addr1 ? `${userData.addr1} ${userData.addr2 || ''}` : ''}</td>
                     </tr>
                   </tbody>
                 </table>
                 <button onClick={profileModify}
                 className='btn-profile bg-indigo-500 mt-20 float-right text-white  absolute bottom-[20px] right-[20px]'>프로필 수정</button>
               </div>
+              )}
             </div>
             <div className='current-plan relative border p-[20px]  h-[450px] '>
               <h2 className='text-lg text-gray-600 my-sub-title'>나의 구독정보</h2>

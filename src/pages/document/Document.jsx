@@ -18,6 +18,7 @@ import axiosInstance from '../../services/axios';
 import ContextMenu from '../../components/document/ContextMenu';
 import NewFolder from '../../components/document/NewFolder';
 import NewDrive from '../../components/document/NewDrive';
+import DriveShareModal from '../../components/document/documentShareMenu';
 
 
 export default function Document() {
@@ -36,6 +37,19 @@ export default function Document() {
 
     const [isDetailVisible, setIsDetailVisible] = useState(false); // 상세 정보 표시 상태 추가
     const [selectedFolder, setSelectedFolder] = useState(null); // 선택된 폴더 정보 상태 추가
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const user = useUserStore((state)=> state.user);
+
+    const handleShare = (type,selected)=>{
+        setSelectedFolder(selected); // 폴더 선택 상태 업데이트
+        setIsModalOpen(true);
+    }
+
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+        setSelectedFolder(null);
+    };
+
 
     const handleDetailToggle = (folder) => {
         console.log("handleDetailToggle",folder)
@@ -139,19 +153,7 @@ export default function Document() {
             setEditing(false);
         },
     });
-    // 파일 업로드 Mutation
-    const uploadFileMutation = useMutation({
-        mutationFn: async (files) => {
-            const formData = new FormData();
-            files.forEach((file) => formData.append('files', file));
-            await axiosInstance.post(`/api/drive/upload?folderId=${folderId}`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['folderContents', folderId, user.uid] });
-        },
-    });
+
 
     // 이름 변경 핸들러
     const handleRename = () => {
@@ -281,31 +283,11 @@ export default function Document() {
     };
 
     
+
     
     
+    
 
-    // 드래그 앤 드롭 업로드 핸들러
-    const handleFileDrop = useCallback(
-        (event) => {
-            event.preventDefault();
-            const files = Array.from(event.dataTransfer.files);
-            if (files.length === 0) {
-                console.error('No files dropped');
-                return;
-            }
-            uploadFileMutation.mutate(files);
-        },
-        [uploadFileMutation]
-    );
-
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            handleRename();
-        }
-    };
-
-  
 
 
     if (isLoading) return <div>Loading...</div>;
@@ -440,9 +422,22 @@ export default function Document() {
                     folderName={contextMenu.folderName}
                     folderId={contextMenu.folderId}
                     path={contextMenu.path}
+                    onShare={handleShare}
                     onDetailToggle={() => handleDetailToggle(contextMenu.folder)} // 상세 정보 토글 함수 전달
+                    selectedFolder = {setSelectedFolder}
 
                 />
+                 <DriveShareModal
+                    isModalOpen={isModalOpen}
+                    setIsModalOpen={setIsModalOpen}
+                    selectedFolder={selectedFolder}
+                    company={user.company}
+                    user={user}
+                    id={selectedFolder?.id }
+                    type={"folder"}
+                    name={selectedFolder?.name} // 선택된 폴더나 파일 이름 전달
+                    >
+                </DriveShareModal>
                
             </DocumentLayout>
     )

@@ -1,73 +1,30 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useCallback, useEffect, useRef, useState } from "react";
-import useUserStore from "@/store/useUserStore"
-import { CustomSVG } from "./_CustomSVG";
+import { CustomSVG } from "@/components/project/_CustomSVG";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import axiosInstance from "@/services/axios.jsx";
-import templates from "./templates.json";
-
-export const TemplateSelection = ({isOpen,onClose,onSelectTemplate}) => {
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white rounded-lg shadow-lg p-6 w-96">
-        <h2 className="text-lg font-bold mb-4">프로젝트 템플릿 선택</h2>
-        <p className="text-sm text-gray-600 mb-6">
-          시작할 템플릿을 선택하세요. 언제든지 변경할 수 있습니다.
-        </p>
-        <div className="flex flex-col gap-4">
-          <button
-            onClick={() => onSelectTemplate("empty")}
-            className="p-4 bg-gray-100 hover:bg-gray-200 rounded-md shadow-sm text-left"
-          >
-            <span className="font-bold text-gray-800">빈 프로젝트</span>
-            <p className="text-sm text-gray-600">템플릿 없이 프로젝트를 시작합니다.</p>
-          </button>
-          <button
-            onClick={() => onSelectTemplate("kanban")}
-            className="p-4 bg-gray-100 hover:bg-gray-200 rounded-md shadow-sm text-left"
-          >
-            <span className="font-bold text-gray-800">기본 칸반 보드</span>
-            <p className="text-sm text-gray-600">칸반 보드를 포함한 기본 템플릿.</p>
-          </button>
-        </div>
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
-          >
-            닫기
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 
-export const AddProjectModal = ({
+export const AddDocumentModal = ({
   isOpen,
   onClose,
   text,
   selectedUsers = [],
-  selectedTemplate,
   setSelectedUsers,
-  projectId,
+  folderId,
 }) => {
   if (!isOpen) return null;
 
-  const loginUser = useUserStore((state) => state.user)
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [selectedGroupId, setSelectedGroupId] = useState(loginUser.groupId);
+  const [selectedGroupId, setSelectedGroupId] = useState();
   const [listType, setListType] = useState(1);
-  const [project, setProject] = useState({
-    title: "새 프로젝트",
-    type: 1,
-    template: selectedTemplate,
-    coworkers: selectedUsers,
-    ...(selectedTemplate && { columns: templates[selectedTemplate].columns }) // selectedTemplate이 있을 때만 columns 설정
+  const [folder,setFolder] = useState({
+    folderId : folderId,
+    shareWorker: [],
+    permission:[],
   });
+
   const fetchAllUsers = async ({ pageParam }) => {
     try {
       const response = await axiosInstance.get(
@@ -102,7 +59,7 @@ export const AddProjectModal = ({
     queryFn: fetchAllUsers,
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
-      if (!lastPage||!lastPage.hasNextPage) {
+      if (!lastPage.hasNextPage) {
         return null;
       }
 
@@ -118,6 +75,7 @@ export const AddProjectModal = ({
     },
     cacheTime: 6 * 1000 * 60,
     retry: false,
+    enabled: !!selectedGroupId, // selectedGroupId가 null이 아닐 때만 실행
   });
   // 무한 스크롤로 그룹 데이터를 가져오는 React Query 훅
   const {
@@ -132,7 +90,7 @@ export const AddProjectModal = ({
     initialPageParam: 0, // 첫 페이지 파라미터
     getNextPageParam: (lastPage) => {
       // 다음 페이지 파라미터 결정 로직
-      if (!lastPage||!lastPage.hasNextPage) {
+      if (!lastPage.hasNextPage) {
         return null; // 더 이상 페이지가 없으면 null 반환
       }
       if (lastPage.currentPage < lastPage.totalPages) {
@@ -169,7 +127,7 @@ export const AddProjectModal = ({
       if (isFetchingNextPageAllGroups) return;
       if (observerGroups.current) observerGroups.current.disconnect();
       observerGroups.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasNextPageAllGroups) {
+        if (entries[0].isIntersecting && hasNextPageAllUsers) {
           fetchNextPageAllGroups();
         }
       });
@@ -177,6 +135,7 @@ export const AddProjectModal = ({
     },
     [isFetchingNextPageAllGroups, hasNextPageAllGroups, fetchNextPageAllGroups]
   );
+
   useEffect(() => {
     if (searchKeyword !== "") {
       refetchAllUsers();
@@ -194,48 +153,29 @@ export const AddProjectModal = ({
   // 프로젝트 상태 변경 핸들러
   const handleProjectChange = (e) => {
     const { name, value } = e.target;
-    setProject((prev) => ({
-      ...prev,
-      [name]: value,
-      ...(name === 'type' && value !== "2" ? { coworkers: [] } : {}),
-    }));
-    if (name === 'type' && value === "2") { selectGroup(0);}
-    if (name === 'type' && value === "1") { selectGroup(loginUser.groupId);setListType(1);}
+    
   };
   
   // 멤버 클릭 핸들러 (토글 방식)
   const handleMemberClick = (member) => {
-    setProject((prev) => {
-      const isSelected = prev.coworkers.some((user) => user.id === member.id);
-      const updatedCoworkers = isSelected
-        ? prev.coworkers.filter((user) => user.id !== member.id) // 선택 해제
-        : [...prev.coworkers, member]; // 선택 추가
-  
-      return {
-        ...prev,
-        coworkers: updatedCoworkers,
-      };
-    });
+    
     setSearchKeyword(""); // 검색어 초기화
     document.getElementById("focus").focus();
   };
   
   // 멤버 삭제 핸들러
   const handleDeleteTag = (index) => {
-    setProject((prev) => ({
-      ...prev,
-      coworkers: prev.coworkers.filter((_, i) => i !== index),
-    }));
+   
   };
 
   const selectGroup = (id) => {
-    setSelectedGroupId((prev) => (prev === id ? 0 : id));
+    setSelectedGroupId((prev) => (prev == id ? 0 : id));
   };
 
   const handleSubmit = async () => {
     if(text === "작업자 추가") {
       const prevCoworkers = selectedUsers; // 기존 작업자 목록
-      const newCoworkers = project.coworkers; // 수정 후 작업자 목록
+      const newCoworkers = folderId.coworkers; // 수정 후 작업자 목록
 
       const coworkerIds = new Set(prevCoworkers.map((coworker) => coworker.id)); // 기존 작업자 ID 집합
       const newCoworkerIds = new Set(newCoworkers.map((user) => user.id)); // 수정 후 작업자 ID 집합
@@ -244,7 +184,7 @@ export const AddProjectModal = ({
       const removedCoworkers = prevCoworkers.filter((coworker) => !newCoworkerIds.has(coworker.id));
 
       const payload = {
-        projectId: projectId,
+        folderId: folderId,
         addedCoworkers: addedCoworkers.map((user) => user.id ),
         removedCoworkers: removedCoworkers.map((coworker) => coworker.id),
       };
@@ -252,7 +192,7 @@ export const AddProjectModal = ({
       try {
         await axiosInstance.patch(`/api/project/coworkers`, payload);
       
-        setProject((prev) => ({
+        setFolder((prev) => ({
           ...prev,
           coworkers: newCoworkers,
         }));
@@ -267,18 +207,16 @@ export const AddProjectModal = ({
     }
     else{
       try {
-        console.log(project);
-        const res = await axiosInstance.post('/api/project', project);
-        console.log(res.data)
+        await axiosInstance.post('/api/project');
         onClose();
       } catch (err) {
-        console.error(err);
+          return err;
       }
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="relative bg-white rounded-lg shadow-lg max-w-3xl modal-custom-width">
         <div className="absolute top-5 right-5 rounded-t-xl">
           <button
@@ -290,74 +228,6 @@ export const AddProjectModal = ({
         </div>
         <div className="modal-content flex flex-col items-center">
           <div className="text-xl pt-7 px-12">{text}</div>
-          {text === "새 프로젝트" && (
-            <>
-              <span className="text-xs font-light text-gray-500 mt-10">
-                새 프로젝트를 만드시겠어요? 도와드릴테니 같이 만들어봐요!
-              </span>
-              <div className="w-full flex flex-col mt-10">
-                <span className="bg-white text-gray-500 text-xs relative top-2 w-fit ml-10 px-1">
-                  프로젝트 명
-                </span>
-                <input
-                  type="text"
-                  className="border rounded-md h-[45px] indent-4"
-                  placeholder="프로젝트 이름을 입력해주세요"
-                    onChange={handleProjectChange}
-                    value={project.title}
-                    name="title"
-                />
-              </div>
-              <div className="flex w-full">
-                <div className="w-2/5 flex flex-col">
-                  <span className="bg-white text-gray-500 text-xs relative top-2 w-fit ml-10 px-1">
-                    프로젝트 형태
-                  </span>
-                  <select
-                    value={project.type}
-                    onChange={handleProjectChange}
-                    name="type"
-                    className="border rounded-md h-[60px] indent-4 mr-2 text-sm"
-                  >
-                    <option value="1" selected>부서 내 프로젝트</option>
-                    <option value="2">회사 내 프로젝트</option>
-                    <option value="3">협력 프로젝트</option>
-                    <option value="4">팀 프로젝트</option>
-                    <option value="5">공개 프로젝트</option>
-                  </select>
-                </div>
-                <div className="w-3/5 flex flex-col">
-                  <span className="bg-white text-gray-500 text-xs relative top-2 w-fit ml-10 px-1">
-                    작업자 목록 ({project.coworkers.length})
-                  </span>
-
-                  <div className="border rounded h-[60px] p-3 flex items-center gap-1 overflow-x-auto overflow-y-hidden scrollbar-thin">
-                    {project.coworkers.map((user, index) => (
-                      <span
-                        key={user.id}
-                        className="flex items-center flex-shrink-0 gap-[2px] px-2 py-[2px] rounded-2xl bg-indigo-200 bg-opacity-70 text-xs text-indigo-500"
-                      >
-                        <img src={user.img} className="h-[24px]" />
-                        <span className="">{user.name}</span>
-                        <span className="text-indigo-400">({user.group})</span>
-                        <button onClick={() => handleDeleteTag(index)}>
-                          <CustomSVG id="cancel" color="#666CFF" />
-                        </button>
-                      </span>
-                    ))}
-                    <input
-                      id="focus"
-                      type="text"
-                      value={searchKeyword}
-                      autoFocus
-                      onChange={handleSearch}
-                      className="border-0 flex-shrink-0 min-w-[100px]"
-                    />
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
           {text === "작업자 추가" && (
             <>
               <span className="text-xs font-light text-gray-500 mt-10">
@@ -365,11 +235,11 @@ export const AddProjectModal = ({
               </span>
 
               <span className="bg-white text-gray-500 text-xs relative top-2 right-[43%] w-fit ml-10 px-1">
-                작업자 목록 ({project.coworkers.length})
+                작업자 목록 ({folder.coworkers.length})
               </span>
 
               <div className="border rounded-md h-[60px] p-3 flex items-center gap-1 overflow-x-auto overflow-y-hidden scrollbar-thin w-full">
-                {project.coworkers.map((user, index) => (
+                {folder.coworkers.map((user, index) => (
                   <span
                     key={user.id}
                     className="flex items-center flex-shrink-0 gap-[2px] px-2 py-[2px] rounded-2xl bg-indigo-200 bg-opacity-70 text-xs text-indigo-500"
@@ -397,14 +267,14 @@ export const AddProjectModal = ({
           <ul className="border rounded-lg w-full h-[400px] mt-10 px-4 pb-3 overflow-auto scrollbar-none scroll-smooth relative">
           {
             selectedGroupId === null ? (
-              project.type === 1 ? (
+              folder.type === 1 ? (
                 <>
                   <li>부서가 존재하지 않습니다.</li>
                 </>
               ) : null
             ) : (
               <>
-                {project.type === "2" && (
+                {folder.type === 2 && (
                   <div className="cursor-pointer text-xs sticky bg-white top-0 text-left z-30 py-2 mt-0">
                     <span onClick={() => { setListType(1); selectGroup(0); }}> 전체 보기 </span> | 
                     <span onClick={() => setListType(2)}> 부서별 보기 </span>
@@ -418,13 +288,14 @@ export const AddProjectModal = ({
                     allUsers.pages[0].users &&
                     allUsers.pages[0].users.length > 0 ? (
                       allUsers.pages[0].users
-                        .filter(m => m.id !== loginUser.id)
+                        .slice()
+                        .sort((a, b) => a.name.localeCompare(b.name))
                         .map((m) => (
                           <li
                             key={m?.id}
                             onClick={() => handleMemberClick(m)}
                             className={`rounded-3xl px-3 py-3 flex mt-2 cursor-pointer border border-transparent ${
-                              project.coworkers.some((coworker) => coworker.id === m.id)
+                                folder.coworkers.some((coworker) => coworker.id === m.id)
                                 ? "bg-indigo-100 hover:border-indigo-300"
                                 : "bg-gray-100 hover:border-gray-300"
                             }`}
@@ -447,13 +318,6 @@ export const AddProjectModal = ({
                         ))
                     ) : (
                       <li>로딩중입니다...</li>
-                    )}
-                    {hasNextPageAllUsers && (
-                      <div ref={lastUserRef} className="text-center mt-4">
-                        {(isFetchingNextPageAllUsers) 
-                          ? "Loading more..."
-                          : "Load more"}
-                      </div>
                     )}
                   </>
                 )}
@@ -493,7 +357,6 @@ export const AddProjectModal = ({
                                 allUsers.pages[0].users &&
                                 allUsers.pages[0].users.length > 0 ? (
                                   allUsers.pages[0].users
-                                    .filter(m => m.id !== loginUser.id)
                                     .slice()
                                     .sort((a, b) => a.name.localeCompare(b.name))
                                     .map((m) => (
@@ -501,7 +364,7 @@ export const AddProjectModal = ({
                                         key={m.id}
                                         onClick={() => handleMemberClick(m)}
                                         className={`flex rounded-3xl p-3 mt-2 cursor-pointer border border-transparent ${
-                                          project.coworkers.some((coworker) => coworker.id === m.id)
+                                            folder.coworkers.some((coworker) => coworker.id === m.id)
                                             ? "bg-indigo-100 hover:border-indigo-300"
                                             : "bg-gray-100 hover:border-gray-300"
                                         }`}
@@ -524,13 +387,6 @@ export const AddProjectModal = ({
                                     ))
                                 ) : (
                                   <li>로딩중입니다...</li>
-                                )}
-                                {hasNextPageAllUsers && (
-                                  <div ref={lastUserRef} className="text-center mt-4">
-                                    {(isFetchingNextPageAllUsers) 
-                                      ? "Loading more..."
-                                      : "Load more"}
-                                  </div>
                                 )}
                               </ul>
                             )}

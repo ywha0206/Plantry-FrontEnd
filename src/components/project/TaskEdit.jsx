@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useRef, useState } from "react";
 import { CustomSVG } from "./_CustomSVG";
+import useUserStore from "@/store/useUserStore"
 
 export function DynamicTaskEditor({
   mode,
@@ -10,7 +11,10 @@ export function DynamicTaskEditor({
   setIsAdded,
   onSave,
   onClose,
+  coworkers =[],
 }) {
+  
+  const loginUser = useUserStore((state) => state.user)
   const [task, setTask] = useState({
     columnId: columnId,
     id:taskToEdit?.id||"",
@@ -20,11 +24,12 @@ export function DynamicTaskEditor({
     duedate: taskToEdit?.duedate||"",
     tags: taskToEdit?.tags||[],
     subTasks:taskToEdit?.subTasks||[],
+    comments:taskToEdit?.comments||[],
     status: taskToEdit?.status||1,
+    associate: taskToEdit?.associate||[],
   });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [newTag, setNewTag] = useState("");
-  const [isNewTagAdded, setIsNewTagAdded] = useState(false);
+  const [isAssoOpen, setIsAssoOpen] = useState(false);
   const textareaRef = useRef(null); // textarea에 대한 ref
 
   useEffect(() => {
@@ -33,6 +38,21 @@ export function DynamicTaskEditor({
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`; // scrollHeight에 맞춰 조정
     }
   }, [task.content]); // content가 변경될 때마다 높이를 조정
+
+    // 다른 곳 클릭 시 창 닫기
+    useEffect(() => {
+      const handleClickOutside = (e) => {
+        if (!e.target.closest(".relative")) {
+          setIsDropdownOpen(false);
+          setIsAssoOpen(false);
+        }
+      };
+      document.addEventListener("click", handleClickOutside);
+      return () => {
+        document.removeEventListener("click", handleClickOutside);
+      };
+    }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setTask((prevTask) => ({ ...prevTask, [name]: value }));
@@ -41,7 +61,6 @@ export function DynamicTaskEditor({
     e.target.style.height = 'auto'; // 초기화
     e.target.style.height = `${e.target.scrollHeight}px`;
   };
-
   const handleClose = () => {
     if (mode === "create") setIsAdded(false);
     else if (mode === "edit") onClose();
@@ -49,27 +68,11 @@ export function DynamicTaskEditor({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (task.title.trim() === "") return;
-    console.log("TaskEdit - columnIndex : "+columnIndex);
-    
     onSave(task, columnIndex);
-    setIsAdded(false); // 태스크 추가 후 창 닫기
+    if (mode === "create") setIsAdded(false);
   };
 
-  const handleAddTag = () => {
-    if (newTag.trim() === "") return;
-    setTask((prevTask) => ({ ...prevTask, tags: [...prevTask.tags, newTag] }));
-    setNewTag("");
-    setIsNewTagAdded(false);
-  };
-  const handleDeleteTag = (index) => {
-    setTask((prevTask) => ({
-      ...prevTask,
-      tags: prevTask.tags.filter((_, i) => i !== index),
-    }));
-  };
-  const handleNewTag = () => {
-    if (!isNewTagAdded) setIsNewTagAdded(true);
-  };
+
   const handleDeleteSubTask = (index) => {
     setTask((prevTask) => ({
       ...prevTask,
@@ -77,8 +80,8 @@ export function DynamicTaskEditor({
     }));
   };
 
-
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+  const toggleAsso = () => setIsAssoOpen(!isAssoOpen);
 
   const handlePrioritySelect = (priority) => {
     setTask((prevTask) => ({ ...prevTask, priority }));
@@ -242,57 +245,7 @@ export function DynamicTaskEditor({
               </div>
             ))}
           </section>
-          {/* Tags */}
-          <div className={`${colClassName} flex-wrap`}>
-            <CustomSVG id="tag" />
-            {task.tags.map((tag, index) => (
-              <span
-                key={index}
-                className="flex items-center justify-center px-2 py-1 rounded-2xl bg-zinc-700 bg-opacity-10 text-xs"
-              >
-                {tag}
-                <button
-                  type="button"
-                  onClick={() => handleDeleteTag(index)}
-                  aria-label={`Remove tag ${tag}`}
-                >
-                  <CustomSVG id="cancel" size="14" />
-                </button>
-              </span>
-            ))}
-            {isNewTagAdded ? (
-              <span className="flex items-center self-stretch px-0.5 py-1 my-auto rounded-2xl bg-zinc-700 bg-opacity-10">
-                <span className="flex justify-center px-1 my-auto text-xs">
-                  <input
-                    className="bg-transparent"
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    aria-label="New tag input"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddTag}
-                    aria-label="Add new tag"
-                  >
-                    <CustomSVG id="add" size="15" />
-                  </button>
-                </span>
-              </span>
-            ) : (
-              <button
-                onClick={handleNewTag}
-                type="button"
-                className="flex gap-1.5 items-center tracking-normal leading-none text-black text-opacity-50"
-                aria-label="Add new tag"
-              >
-                <span className="flex items-center self-stretch px-0.5 py-1 my-auto rounded-2xl bg-zinc-700 bg-opacity-10">
-                  <span className="flex justify-center px-1 my-auto text-xs">
-                    <CustomSVG id="add" size="15" /> 새 태그
-                  </span>
-                </span>
-              </button>
-            )}
-          </div>
+          
 
           {/* Submit Button */}
           <div className="flex overflow-hidden flex-wrap gap-2 items-start mt-2 w-full">
@@ -300,8 +253,9 @@ export function DynamicTaskEditor({
               type="submit"
               className="flex grow shrink justify-center items-start font-medium tracking-wide leading-6 uppercase whitespace-nowrap text-zinc-700 w-[214px]"
               aria-label="Submit task"
+              onClick={handleSubmit}
             >
-              <span className="flex overflow-hidden flex-col justify-center items-center rounded-lg border border-solid border-zinc-700 border-opacity-50">
+              <span className="flex overflow-hidden flex-col justify-center items-center rounded-lg border border-solid border-zinc-700/50">
                 <span className="overflow-hidden px-6 py-1 max-md:px-5">
                   {mode === "edit" ? "수정" : "저장"}
                 </span>
