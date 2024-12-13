@@ -23,7 +23,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, "index.html"),
-        embed: path.resolve(__dirname, "src/embed.js"),
       },
     },
   },
