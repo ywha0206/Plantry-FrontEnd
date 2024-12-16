@@ -18,6 +18,7 @@ import GetAddressModal from "../calendar/GetAddressModal";
 import { multiply } from "lodash";
 import useUserStore from "../../store/useUserStore";
 import CustomAlert from "./CustomAlert";
+import { PROFILE_URI } from "../../api/_URI";
 
 // 공유 권한 타입
 const PERMISSIONS = {
@@ -90,6 +91,7 @@ const DriveShareModal = ({
       return prev.filter((selectedUser) => selectedUser.id !== user.id);
     });
   };
+  const Profile= PROFILE_URI;
 
 
   // 부서 공유 관련 새로운 상태 추가
@@ -697,7 +699,7 @@ const DriveShareModal = ({
                               <div className="flex justify-between items-center">
                                 <div className="flex items-center gap-3">
                                   <img
-                                    src="/images/admin-profile.png"
+                                    src={user.profile ? `${Profile}${user.profile}`:"/images/admin-profile.png"}
                                     className="w-10 h-10 rounded-full"
                                     alt={user.name}
                                   />
