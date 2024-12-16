@@ -63,8 +63,8 @@ height: 100%;
     }
     .speech-bubble{
         width: 500px;
-        height: 80px;
-        box-shadow: 2px 2px 8px #ccc;
+        height: 70px;
+        // box-shadow: 2px 2px 8px #ccc;
         border-radius: 0 30px 30px 30px;
     }
     .my-sub-title{
@@ -426,4 +426,13 @@ input[type='radio']:checked {
     box-shadow: 0 0 0 1.6px #666CFF; // 얘가 테두리가 됨
     // 그림자로 테두리를 직접 만들어야 함 (퍼지는 정도를 0으로 주면 테두리처럼 보입니다.)
     // 그림자가 없으면 그냥 설정한 색상이 꽉 찬 원으로만 나옵니다.
+}
+
+.alert-container {
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+  }
+  
+.alert-container.fade-out {
+opacity: 0;
 }

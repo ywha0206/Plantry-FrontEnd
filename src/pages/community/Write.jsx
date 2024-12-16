@@ -62,47 +62,54 @@ function CommunityWrite() {
     e.preventDefault();
     console.log("handleSubmit에서 boardId:", boardId);
 
+    if (selectedBoardId) {
+      const postData = {
+        boardId: selectedBoardId,
+        title: title,
+        content: content,
+        files: files,
+        commentOption: isCommentEnabled ? commentOption : "댓글 비활성화",
+        isPinned,
+        fileCount: fileCount,
+        favoritePost: false,
+        isMandatory: isPinned,
+        writer: currentUser.username, // 사용자 이름
+        uid: currentUser?.id,
+      };
 
-  if (selectedBoardId) {
-  const postData = {
-    boardId: selectedBoardId,
-    title: title,
-    content: content,
-    files: files,
-    commentOption: isCommentEnabled ? commentOption : "댓글 비활성화",
-    isPinned,
-    fileCount: fileCount,
-    favoritePost: false,
-    isMandatory: isPinned,
-    writer: currentUser.username, // 사용자 이름
-    uid: currentUser?.id,
+      console.log("전송 데이터 " + JSON.stringify(postData));
+
+      // Authorization 헤더에 토큰을 포함시킴
+      const token = localStorage.getItem("token"); // 혹은 현재 상태에서 가져올 수 있는 방법으로 토큰을 불러옵니다.
+      if (token) {
+        try {
+          const response = await axiosInstance.post(
+            `/api/community/write`,
+            postData,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`, // JWT 토큰을 Authorization 헤더에 추가
+              },
+            }
+          );
+          console.log("작성 성공:", response.data);
+
+          alert("글 작성이 완료되었습니다!");
+          navigate(`/community/${selectedBoardId}/list`); // 글 작성 후 리스트 페이지로 이동
+        } catch (error) {
+          console.error("작성 실패:", error);
+          alert("글 작성에 실패했습니다. 다시 시도해주세요.");
+        }
+      } else {
+        console.error("JWT 토큰이 없습니다.");
+        alert("로그인 후 다시 시도해주세요.");
+      }
+    } else {
+      console.error("Board ID is undefined, can't navigate");
+    }
   };
 
-
-  console.log("전송 데이터 " + JSON.stringify(postData));
-
-
-
-    try {
-      const response = await axiosInstance.post(
-        `/api/community/write`,
-        postData,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      console.log("작성 성공:", response.data);
-
-      alert("글 작성이 완료되었습니다!");
-      navigate(`/community/${selectedBoardId}/list`); // 글 작성 후 리스트 페이지로 이동
-    } catch (error) {
-      console.error("작성 실패:", error);
-      alert("글 작성에 실패했습니다. 다시 시도해주세요.");
-    }
-  } else {
-    console.error("Board ID is undefined, can't navigate");
-  }
-};
   return (
     <div id="community-container">
       {/* 사이드바 */}

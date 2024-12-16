@@ -252,6 +252,7 @@ function App() {
           {/* 커뮤니티 (게시판) */}
           <Route path="/community" element={<Main />}>
             <Route index element={<CommunityIndex />} />
+            <Route path=":boardId" element={<CommunityIndex />} />
             <Route path=":boardId/write" element={<CommunityWrite />} />
             <Route path=":boardId/list" element={<CommunityList />} />
             <Route path=":boardId/view/:postId" element={<CommunityView />} />
