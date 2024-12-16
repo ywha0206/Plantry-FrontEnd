@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import '@/pages/my/My.scss'
 import MyAside from '@/components/my/MyAside.jsx';
 import { useNavigate, useParams } from "react-router-dom";
@@ -7,6 +7,7 @@ import axiosInstance from '@/services/axios.jsx'
 import { useQuery } from '@tanstack/react-query';
 import useUserStore from '../../store/useUserStore';
 
+const profileURL = 'http://3.35.170.26:90/profileImg/';
 
 export default function MyMain() {
 
@@ -25,6 +26,9 @@ export default function MyMain() {
   }, [params.page]);
 
   const getUserAPI = async () => {
+    if (!user?.uid) {
+      throw new Error("유저 정보가 없습니다.");
+    }
     const resp = await axiosInstance.get('/api/my/user');
     console.log("유저 데이터 조회 "+JSON.stringify(resp.data));
     return resp.data;
@@ -33,6 +37,7 @@ export default function MyMain() {
   const { data: userData, isError: userError, isLoading: userLoading } = useQuery({
     queryKey: [`${user.uid}`],
     queryFn: getUserAPI,
+    enabled: !!user?.uid,
   })
 
   const paymentHandler = (event) => {
@@ -50,10 +55,10 @@ export default function MyMain() {
       event.preventDefault();
       setPlan(true);
   }
+  const showMoreRef = useRef();
   const planClose = () => {
       setPlan(false)
   }
-
 
   return (
     <div id='my-main-container'>
@@ -61,57 +66,81 @@ export default function MyMain() {
       <section className='my-main-main'>
         <article className='my-profile flex flex-col justify-center'>
           <div className='flex flex-row justify-left items-center p-10 ml-[30px]'>
-            <img className='profile-img' src="/images/user_face_icon.png" alt="user-face-icon" />
+            {userLoading ? (
+              <div className='w-[200px] h-[200px] bg-white drop-shadow-lg flex items-center justify-center overflow-hidden rounded-full'>
+                <p>로딩 중...</p>
+              </div>
+            ) : userError ? (
+              <p>데이터를 불러오는 데 실패했습니다.</p>
+            ) : (
+              <div className='w-[200px] h-[200px] bg-white drop-shadow-lg flex items-center justify-center overflow-hidden rounded-full'>
+                <img
+                  className='w-full h-full object-cover flex items-center between-center'
+                  src={userData?.profileImgPath ? `${profileURL}${userData.profileImgPath}` : '/images/default-profile.png'}
+                  alt="프로필 이미지" 
+                />
+              </div>
+            )}
             <div className='flex flex-col ml-[40px]'>
-              <h3 className='text-lg mb-3 font-light text-gray-500'>yeonwha****</h3>
-              <div className='speech-bubble drop-shadow-lg py-[20px] px-[40px] flex items-center'>
-                <span>안녕하세요. 개발팀 박연화입니다.</span>
+              <h3 className='text-lg mb-3 font-light text-gray-500'>
+                {userData?.name||''}
+                ({userData?.levelString||'직급미정'})
+              </h3>
+
+              <div className='speech-bubble border py-[20px] px-[40px] flex items-center'>
+                <span>{userData?.profileMessage||''}</span>
               </div>
             </div>
           </div>
-          <div className='profile border'>
+          <div className='profile'>
             <div className='myinfo border relative h-[450px] p-[20px] mr-10'>
               <h2 className='text-lg mb-2 ml-2 text-gray-500 my-sub-title'>나의 프로필</h2>
+              {userLoading ? (
+                <p>로딩 중...</p>
+              ) : userError ? (
+                <p>데이터를 불러오는 데 실패했습니다.</p>
+              ) : (
               <div >
                 <table className='myinfo-table mt-[30px]'>
                   <tbody>
                     <tr className='my-tr'>
                       <th className='my-th'>이름  </th>
-                      <td className='my-td'>{userData.name!=null?userData.name:''}</td>
+                      <td className='my-td'>{userData?.name||''}</td>
                     </tr>
                     <tr className='my-tr'>
                       <th className='my-th'>회사명 </th>
-                      <td className='my-td'>{userData.companyName!=null?userData.companyName:''}</td>
+                      <td className='my-td'>{userData?.companyName||''}</td>
                     </tr>
                     <tr className='my-tr'>
-                      <th className='my-th'>부서 </th>
-                      <td className='my-td'>{userData.department!=null?userData.department:'등록된 부서가 없습니다.'}</td>
+                      <th className='my-th'>부서</th>
+                      <td className='my-td'>{userData?.department || '등록된 부서가 없습니다.'}</td>
                     </tr>
                     <tr className='my-tr'>
-                      <th className='my-th'>직급 </th>
-                      <td className='my-td'>{userData.level!=null?userData.level:''}</td>
+                      <th className='my-th'>직급</th>
+                      <td className='my-td'>{userData?.levelString || ''}</td>
                     </tr>
                     <tr className='my-tr'>
-                      <th className='my-th'>이메일 </th>
-                      <td className='my-td'>{userData.email!=null?userData.email:''}</td>
+                      <th className='my-th'>이메일</th>
+                      <td className='my-td'>{userData?.email || ''}</td>
                     </tr>
                     <tr className='my-tr'>
-                      <th className='my-th'>전화번호 </th>
-                      <td className='my-td'>{userData.hp!=null?userData.hp:''}</td>
+                      <th className='my-th'>전화번호</th>
+                      <td className='my-td'>{userData?.hp || ''}</td>
                     </tr>
                     <tr className='my-tr'>
-                      <th className='my-th'>국가 </th>
-                      <td className='my-td'>{userData.country!=null?userData.country:''}</td>
+                      <th className='my-th'>국가</th>
+                      <td className='my-td'>{userData?.country || ''}</td>
                     </tr>
                     <tr className='my-tr'>
-                      <th className='my-th'>주소 </th>
-                      <td className='my-td'> {userData.addr1!=null?userData.addr1+userData.addr2:''}</td>
+                      <th className='my-th'>주소</th>
+                      <td className='my-td'>{userData?.addr1 ? `${userData.addr1} ${userData.addr2 || ''}` : ''}</td>
                     </tr>
                   </tbody>
                 </table>
                 <button onClick={profileModify}
                 className='btn-profile bg-indigo-500 mt-20 float-right text-white  absolute bottom-[20px] right-[20px]'>프로필 수정</button>
               </div>
+              )}
             </div>
             <div className='current-plan relative border p-[20px]  h-[450px] '>
               <h2 className='text-lg text-gray-600 my-sub-title'>나의 구독정보</h2>
@@ -139,7 +168,7 @@ export default function MyMain() {
                 <span className='text-sm text-gray-500'>4일 후 만료</span>
               
               </div>
-              <button onClick={upgradePlan} className='btn-profile border border-indigo-500 text-indigo-800 absolute bottom-[20px] right-[193px]'>플랜 업그레이드</button>
+              <button onClick={upgradePlan} className='btn-profile border border-indigo-500 text-indigo-800 absolute bottom-[20px] right-[203px]'>플랜 업그레이드</button>
               <button onClick={paymentHandler} className='btn-profile  bg-indigo-500 text-white absolute bottom-[20px] right-[20px]'>결제정보등록</button>
             </div>
           </div>
@@ -149,6 +178,7 @@ export default function MyMain() {
                     isOpen={plan}
                     onClose={planClose}
                     text="요금제 변경"
+                    showMoreRef={showMoreRef}
                 />
         </div>
       </section>
