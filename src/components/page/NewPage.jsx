@@ -14,8 +14,6 @@ import GetAddressModal from "../calendar/GetAddressModal";
 import ShareMember from "../ShareMember";
 import usePageTitleSocket from "../../util/usePageTitleSocket";
 
-
-
 export default function NewPage(){
     const [openAddress,setOpenAddress] = useState(false);
     const [selectedUsers, setSelectedUsers] = useState([]);
@@ -24,7 +22,7 @@ export default function NewPage(){
     const { pageId } = useParams();
     const [title, setTitle] = useState(null);
     const [isTyping,setIsTyping] = useState(false);
-    const userId = useUserStore((state) => state.user.uid);
+    const userId = useUserStore((state) => state.user?.uid);
     const timerRef = useRef(null)
     const queryClient = useQueryClient();
     const cancleSelectedUsersHandler = (e,user) => {
@@ -151,7 +149,9 @@ export default function NewPage(){
     },[title,isTyping])
 
     useEffect(()=>{
-        if(pageTitle && !isLoadingTitle && !isErrorTitle){
+        if(pageId===undefined){
+            return
+        } else if(pageTitle && !isLoadingTitle && !isErrorTitle){
             setTitle(pageTitle)
             updatePageId(pageId)
         }
@@ -169,8 +169,6 @@ export default function NewPage(){
                 <section className="newPage-main-container w-full h-full bg-white">
                         <div className="titleHeader flex">
                         <EmojiPickerComponent
-                            selectedEmoji={null}
-                            onEmojiSelect={null} // 부모에서 상태 관리
                         />
                         <input
                             className="title-input"
