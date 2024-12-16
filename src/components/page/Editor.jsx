@@ -19,7 +19,7 @@ const Editor = () => {
   const [receiveData, setReceiveData] = useState(null);
   const { sendWebSocketMessage, updatePageId, isConnected } = usePageSocket({ setReceiveData });
   const { pageId } = useParams();
-  const userId = useUserStore((state) => state.user.uid);
+  const userId = useUserStore((state) => state.user?.uid);
   const [editorData, setEditorData] = useState(null);
 
   const isReceivedData = useRef(false);

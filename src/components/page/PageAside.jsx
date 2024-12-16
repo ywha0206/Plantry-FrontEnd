@@ -61,7 +61,7 @@ export default function PageAside() {
   const [isSharePageOpen, setIsSharePageOpen] = useState(true);
   const [receiveUsers, setReceiveUsers] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-  const userId = useUserStore((state) => state.user.uid);
+  const userId = useUserStore((state) => state.user?.uid);
   const [selectedPage,setSelectedPage] = useState();
   const queryClient = useQueryClient();
   const navi = useNavigate();
@@ -71,7 +71,9 @@ export default function PageAside() {
   };
 
   useEffect(()=>{
-    if(userId){
+    if(userId===undefined){
+      return;
+    } else if(userId){
       updateUserId(userId)
     }
   },[userId])
