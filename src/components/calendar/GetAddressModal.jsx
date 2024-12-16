@@ -4,6 +4,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import axiosInstance from '@/services/axios.jsx'
 import { CustomSVG } from '../project/_CustomSVG';
 import { CheckCircle, Filter, Search, UserPlus, Users, X } from 'lucide-react';
+import { PROFILE_URI } from '../../api/_URI';
 export default function GetAddressModal({isOpen, onClose, selectedUsers, setSelectedUsers, cancleSelectedUsersHandler}) {
 
     const [customAlert, setCustomAlert] = useState(false);
@@ -166,6 +167,8 @@ export default function GetAddressModal({isOpen, onClose, selectedUsers, setSele
             setCustomAlert(false)
         }, 1000);
     }
+
+    const Profile= PROFILE_URI;
     if(!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[999] p-4">
@@ -265,8 +268,8 @@ export default function GetAddressModal({isOpen, onClose, selectedUsers, setSele
                         >
                             <div className="flex items-center">
                                 <img 
-                                    src='/images/admin-profile.png' 
-                                    alt={user.name}
+                                        src={user.profile ? `${Profile}${user.profile}`:"/images/admin-profile.png"}
+                                        alt={user.name}
                                     className="w-10 h-10 rounded-full mr-4"
                                 />
                                 <div>
@@ -302,7 +305,7 @@ export default function GetAddressModal({isOpen, onClose, selectedUsers, setSele
                             >
                                 <div className="flex items-center">
                                     <img 
-                                        src='/images/admin-profile.png' 
+                                        src={user.profile ? `${Profile}${user.profile}`:"/images/admin-profile.png"}
                                         alt={user.name}
                                         className="w-10 h-10 rounded-full mr-4"
                                     />
