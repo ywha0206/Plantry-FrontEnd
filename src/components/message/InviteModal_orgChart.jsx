@@ -16,6 +16,7 @@ export default function InviteModal_orgChart({
   userList,
   setUserList,
   selectHandler,
+  originMembers,
 }) {
   const [userUids, setUserUids] = useState([]);
   const [depts, setDepts] = useState([]);
