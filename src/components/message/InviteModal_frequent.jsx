@@ -16,6 +16,7 @@ export default function InviteModal_frequent(props) {
     userList,
     setUserList,
     selectHandler,
+    originMembers,
   } = props;
 
   const [userUids, setUserUids] = useState([]);

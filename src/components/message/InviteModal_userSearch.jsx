@@ -14,6 +14,7 @@ export default function InviteModal_userSearch(props) {
     userList,
     setUserList,
     selectHandler,
+    originMembers,
   } = props;
 
   const {
