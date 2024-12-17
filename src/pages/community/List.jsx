@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import "@/pages/community/Community.scss";
 import CommunitySidebar from "@/components/community/CommunitySidebar";
 import useUserStore from "../../store/useUserStore";
@@ -7,12 +7,13 @@ import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "../../services/axios";
 
 function CommunityList() {
+  const location = useLocation();
+  const { boardId } = useParams();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const { boardId } = useParams();
   console.log("보드 들어오나보자" + boardId); // boardId 값 확인
-
-  const { boardName } = useParams();
+  const boardName = location.state?.boardName || "게시판"; //
   const currentUser = useUserStore((state) => state.user);
   const itemsPerPage = 5;
   const navigate = useNavigate();
