@@ -1,10 +1,14 @@
-function FolderDetails({ folder, uid, closeDetailView,shared, navigate,parentfolder,path }) {
+import { PROFILE_URI } from "../../api/_URI";
+
+function FolderDetails({ folder,uid, closeDetailView,shared, navigate,parentfolder,path }) {
 
     console.log("folder" , folder);
+    const folderName = parentfolder; 
     const linkHandler = (file) => {
-        navigate(path,{state : folder});
+        navigate(path,{state : { folderName : parentfolder}});
    
     };
+    const fileURL = PROFILE_URI;
     const getAccessMessage = () => {
         if (!folder) return null;
 
@@ -22,7 +26,7 @@ function FolderDetails({ folder, uid, closeDetailView,shared, navigate,parentfol
              {folder.ownerId === uid && folder.isShared === 1 && (
             <>
                 {folder.sharedUsers && folder.sharedUsers.length > 0 ? (
-                    <ul className="mt-2 space-y-2 flex w-max-[250px] overflow-scroll-y">
+                    <ul className="mt-2 space-y-2 flex w-max-[250px] overflow-visible">
                         {folder.sharedUsers.map((user, index) => (
                             <li
                                 key={user.id || `shared-user-${index}`}
@@ -31,7 +35,7 @@ function FolderDetails({ folder, uid, closeDetailView,shared, navigate,parentfol
                                 {/* 프로필 이미지 */}
                                 <div className="relative group">
                                     <img
-                                        src={user.profile}
+                                        src={`PROFILE_URI+${user.profile}`}
                                         alt="Profile"
                                         className="w-8 h-8 rounded-full"
                                     />
