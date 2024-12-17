@@ -888,7 +888,7 @@ const handleCloseFileMenu = () => {
             
 
             <FileUploads isOpen={isOpen} onClose={() => setIsOpen(false)} folderId={folderId} fileMaxOrder={fileMaxOrder} folderMaxOrder={folderMaxOrder} uid={user.uid} triggerAlert={triggerAlert} />
-            <NewFolder isOpen={folder} onClose={() => setFolder(false)} parentId={folderId}     maxOrder={subFolders.length} // 최대 order 값을 계산해서 전달
+            <NewFolder isOpen={folder} onClose={() => setFolder(false)} parentId={folderId} user={user}    maxOrder={subFolders.length} // 최대 order 값을 계산해서 전달
             />
              {/* ContextMenu 컴포넌트 */}
              <ContextMenu
