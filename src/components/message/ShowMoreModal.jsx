@@ -9,8 +9,11 @@ export default function ShowMoreModal({
   showMoreRef,
   uid,
   selectedRoomId,
+  openHandler2,
+  changeRoomNameHandler,
 }) {
   const [isOpen, setIsOpen] = useState();
+
   useOnClickOutSide(showMoreRef, moreFnHandler);
 
   const exitHandler = (e) => {
@@ -18,19 +21,22 @@ export default function ShowMoreModal({
     const confirmQuit = confirm("정말 나가시겠습니까?");
     if (confirmQuit) {
       try {
-        axiosInstance
-          .delete("/api/message/quitRoom", {
-            params: {
-              uid,
-              selectedRoomId,
-            },
-          })
-          .then(() => {
+        const data = {
+          id: selectedRoomId,
+          leader: uid,
+        };
+        axiosInstance.delete("/api/message/quitRoom", { data }).then((resp) => {
+          console.log("status : ", resp.data);
+
+          if (resp.data === "success") {
             setIsOpen(true);
             setTimeout(() => {
               setIsOpen(false);
             }, 1500);
-          });
+          } else {
+            alert("대화방 나기기 중 오류가 발생했습니다.");
+          }
+        });
       } catch (error) {
         console.error(error);
       }
@@ -41,11 +47,11 @@ export default function ShowMoreModal({
 
   return (
     <div className="viewMore" ref={showMoreRef}>
-      <div className="inviteFn">
+      <div className="inviteFn" onClick={openHandler2}>
         <img src="/images/message-invite.png" alt="" className="inviteFnImg" />
         <span>대화상대 초대</span>
       </div>
-      <div className="nameChangeFn">
+      <div className="nameChangeFn" onClick={changeRoomNameHandler}>
         <img
           src="/images/message-changeName.png"
           alt=""

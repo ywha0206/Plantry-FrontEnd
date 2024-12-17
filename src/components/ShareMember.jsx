@@ -1,9 +1,10 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
 import { CustomSVG } from "./project/_CustomSVG";
+import { PROFILE_URI } from "../api/_URI";
 
 const ShareMember = ({ members = [], maxNum="3", listName="참여자", children , isShareOpen, setIsShareOpen}) => {
-  
+  console.log("멤버버버:",members);
   const [isMembersDropdownOpen, setIsMembersDropdownOpen] = useState(false); // 참가자 드롭다운 상태
   const [tooltip, setTooltip] = useState({ visible: false, name: "", x: 0, y: 0 });
 
@@ -32,6 +33,8 @@ const ShareMember = ({ members = [], maxNum="3", listName="참여자", children 
     };
   }, []);
 
+  const ProfileURI = PROFILE_URI;
+
 
   return (
     <div className="relative flex justify-end pr-6">
@@ -41,7 +44,7 @@ const ShareMember = ({ members = [], maxNum="3", listName="참여자", children 
           {/* 프로필 사진 표시 */}
           <div className="relative flex items-center">
             {members.slice(0, maxNum).map((member, index) => (
-              <img key={member.id} src={member.img||"/images/document-folder-profile.png"} alt={member.name}
+              <img key={member.id+index} src={`${ProfileURI}${member.profile}` || '/images/admin-profile.png' } alt={member.name}
                 className="w-10 h-10 rounded-full border-2 border-white -ml-3 first:ml-0"
                 style={{zIndex: maxNum - index,}}
                 onMouseEnter={(e) => handleMouseEnter(e, index, member.name)} // 툴팁 표시
@@ -78,9 +81,9 @@ const ShareMember = ({ members = [], maxNum="3", listName="참여자", children 
         <div className="absolute top-full left-12 z-20 bg-white border rounded shadow-sm p-4 w-48 ">
           <h3 className="text-sm font-semibold mb-2">{listName} 목록 ({members.length})</h3>
           <ul className="space-y-2 max-h-[300px] scrollbar-none overflow-auto">
-            {members.map((member) => (
-              <li key={member.id} className="flex items-center gap-2 text-sm text-gray-700">
-                <img src={member.img} alt={member.name} className="w-6 h-6 rounded-full"/>
+            {members.map((member,index) => (
+              <li key={member.id+ index} className="flex items-center gap-2 text-sm text-gray-700">
+                <img src={`${ProfileURI}${member.profile}`} alt={member.name} className="w-6 h-6 rounded-full"/>
                 <span>{member.name}</span>
               </li>
             ))}

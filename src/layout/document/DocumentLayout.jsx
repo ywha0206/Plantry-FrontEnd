@@ -80,6 +80,7 @@ export default function DocumentLayout({children, isDetailVisible , selectedFold
                         {selectedFolder && !selectedFile && (
                             <FolderDetails
                                 folder={selectedFolder}
+                                folderName={selectedFolder.name}
                                 parentfolder = {parentfolder}
                                 uid={uid}
                                 closeDetailView={closeDetailView}

@@ -21,6 +21,8 @@ import { useMutation } from "@tanstack/react-query";
 import useUserStore from "../../store/useUserStore";
 import { UnreadCountContext } from "../../components/message/UnreadCountContext";
 import { debounce } from "lodash";
+import InviteModal_chatRoomName2 from "../../components/message/InviteModal_chatRoomName2";
+import CustomAlert from "../../components/Alert";
 
 export default function Message() {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,6 +36,10 @@ export default function Message() {
   const [roomData, setRoomData] = useState([]);
   const [roomInfo, setRoomInfo] = useState({});
   const [messageList, setMessageList] = useState([]);
+  const [mode, setMode] = useState("");
+  const [changeRoomName, setChangeRoomName] = useState(false);
+  const [roomName, setRoomName] = useState("");
+  const [isRoomNameAlertOpen, setIsRoomNameAlertOpen] = useState(false);
 
   const uid = useUserStore((state) => state.user.uid);
 
@@ -41,13 +47,21 @@ export default function Message() {
   const profileRef = useRef();
   const inviteRef = useRef();
   const showMoreRef = useRef();
+  const chatRoomNameRef = useRef();
+  const chatRoomNameRef2 = useRef();
 
   const openHandler = () => {
     setIsOpen(true);
+    setMode("create");
+  };
+  const openHandler2 = () => {
+    setIsOpen(true);
+    setMode("invite");
   };
   const closeHandler = () => {
     setIsOpen(false);
     setOption(2);
+    setMode("");
   };
   const profileHandler = () => {
     setProfile(!profile);
@@ -63,20 +77,16 @@ export default function Message() {
     }
   };
 
-  const propsObject = {
-    isOpen,
-    closeHandler,
-    option,
-    optionHandler,
-    inviteRef,
-  };
-
   const searchHandler = () => {
     setSearch(!search);
   };
 
   const moreFnHandler = () => {
     setMoreFn(!moreFn);
+  };
+
+  const changeRoomNameHandler = () => {
+    setChangeRoomName(!changeRoomName);
   };
 
   const fileHandler = (e) => {
@@ -246,6 +256,12 @@ export default function Message() {
     setSelectedRoomId(roomId);
   }, []);
 
+  const [roomNameModal, setRoomNameModal] = useState(false);
+
+  const roomNameHandler = () => {
+    setRoomNameModal(!roomNameModal);
+  };
+
   //==========================================▼웹소켓 연결과 채팅 전송===================================================
 
   const [input, setInput] = useState("");
@@ -263,7 +279,6 @@ export default function Message() {
   const previousScrollHeightRef = useRef(0);
   const systemMessageRef = useRef(null);
   const scrollToSystemRef = useRef(false);
-
   const {
     unreadCounts,
     setUnreadCounts,
@@ -274,6 +289,21 @@ export default function Message() {
     selectedRoomId,
     setSelectedRoomId,
   } = useContext(UnreadCountContext);
+
+  const propsObject = {
+    isOpen,
+    closeHandler,
+    option,
+    optionHandler,
+    inviteRef,
+    mode,
+    setMode,
+    uid,
+    selectedRoomId,
+    roomNameHandler,
+    roomNameModal,
+    chatRoomNameRef,
+  };
 
   useEffect(() => {
     setRoomData((prevRoomData) =>
@@ -432,6 +462,7 @@ export default function Message() {
         });
     }
   }, [selectedRoomId]);
+  console.log("roomName : ", roomName);
 
   // 메시지 로드 함수
   const loadMessages = useCallback(async () => {
@@ -748,21 +779,51 @@ export default function Message() {
                   onClick={searchHandler}
                 />
               )}
-
-              {moreFn == true ? (
-                <ShowMoreModal
-                  moreFnHandler={moreFnHandler}
-                  showMoreRef={showMoreRef}
-                  uid={uid}
+              {changeRoomName && (
+                <InviteModal_chatRoomName2
+                  chatRoomNameRef2={chatRoomNameRef2}
+                  changeRoomNameHandler={changeRoomNameHandler}
                   selectedRoomId={selectedRoomId}
+                  roomName={roomName}
+                  setRoomName={setRoomName}
+                  setRoomInfo={setRoomInfo}
+                  setRoomData={setRoomData}
+                  setIsRoomNameAlertOpen={setIsRoomNameAlertOpen}
+                />
+              )}
+              {isRoomNameAlertOpen == true ? (
+                <CustomAlert
+                  type={"success"}
+                  message={"대화방 이름이 변경되었습니다."}
+                  isOpen={isRoomNameAlertOpen}
                 />
               ) : null}
-              <img
-                className="searchImg"
-                src="../images/More.png "
-                alt=""
-                onClick={moreFnHandler}
-              />
+              {moreFn == true ? (
+                <>
+                  <ShowMoreModal
+                    moreFnHandler={moreFnHandler}
+                    showMoreRef={showMoreRef}
+                    inviteRef={inviteRef}
+                    uid={uid}
+                    selectedRoomId={selectedRoomId}
+                    openHandler2={openHandler2}
+                    changeRoomNameHandler={changeRoomNameHandler}
+                  />
+                  <img
+                    className="searchImg"
+                    src="../images/More.png "
+                    alt=""
+                    onClick={moreFnHandler}
+                  />
+                </>
+              ) : (
+                <img
+                  className="searchImg"
+                  src="../images/More.png "
+                  alt=""
+                  onClick={moreFnHandler}
+                />
+              )}
             </div>
           </div>
           <div
@@ -776,6 +837,19 @@ export default function Message() {
             )}
             {messageList && messageList.length > 0
               ? processedMessages.map((message) => {
+                  // Sender가 "System"인 경우 별도로 렌더링
+                  if (message.sender === "System") {
+                    return (
+                      <div
+                        key={`system-${message.id}`}
+                        className="system-message"
+                      >
+                        {message.content}
+                      </div>
+                    );
+                  }
+
+                  // 기존의 status === 2인 경우 처리
                   if (message.status === 2) {
                     return (
                       <React.Fragment key={`fragment-${message.id}`}>
@@ -827,6 +901,8 @@ export default function Message() {
                       </React.Fragment>
                     );
                   }
+
+                  // 일반 메시지 렌더링
                   return (
                     <div
                       className={
@@ -874,6 +950,7 @@ export default function Message() {
                 })
               : null}
           </div>
+
           <div className="send-message">
             <div className="input_fileIcon">
               <input
@@ -943,6 +1020,9 @@ export default function Message() {
           <span>대화방을 생성하거나 선택하여 대화를 시작해보세요.</span>
         </div>
       )}
+      {roomNameModal ? (
+        <ShowMoreModal roomNameHandler={roomNameHandler} />
+      ) : null}
     </div>
   );
 }
@@ -976,11 +1056,15 @@ const processMessages = (messages, currentuid) => {
       isLast = !sameSender || minuteChanged;
     }
 
+    // className 설정: sender가 "System"이면 "system-message", 아니면 빈 문자열
+    const className = message.sender === "System" ? "system-message" : "";
+
     return {
       ...message,
       isFirst,
       isLast,
       isOwnMessage: message.sender === currentuid,
+      className, // 새로 추가된 속성
     };
   });
 };

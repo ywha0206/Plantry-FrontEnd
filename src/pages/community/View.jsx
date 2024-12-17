@@ -127,18 +127,27 @@ function CommunityView() {
     }
   };
 
-  const handleCommentLike = async (commentId) => {
+  const handleCommentLike = async (postId, commentId) => {
+    console.log("Comment ID:", commentId); // Debugging: Log the commentId
+
     try {
-      await axiosInstance.post(
+      const response = await fetch(
         `/api/community/posts/${postId}/comments/${commentId}/like`,
-        { userId: user?.id }
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
-      setCommentLikes((prev) => ({
-        ...prev,
-        [commentId]: !prev[commentId],
-      }));
+
+      if (response.ok) {
+        location.reload(); // 새로 고침
+      } else {
+        console.error("서버 오류:", response.status);
+      }
     } catch (error) {
-      console.error("좋아요 실패:", error);
+      console.error("좋아요 처리 중 오류 발생:", error);
     }
   };
 
@@ -354,11 +363,11 @@ function CommunityView() {
                     <button
                       onClick={() => handleCommentLike(comment.commentId)}
                       className={`reply-button ${
-                        commentLikes[comment.commentId] ? "liked" : ""
+                        comment.likes > 0 ? "liked" : ""
                       }`}
                     >
                       <Heart size={16} />
-                      좋아요
+                      좋아요 ({comment.likesCount})
                     </button>
                     <button className="reply-button">
                       <MessageCircle size={16} />

@@ -626,9 +626,6 @@ const handleCloseFileMenu = () => {
         type: 'file', // 파일 타입 추가
     }));
 
-    const sharedUser = (data?.sharedUsers);
-    console.log("공유인원!!",sharedUser);
-
     const folderMaxOrder = subFolders.length;
     const fileMaxOrder = files.length;
 
