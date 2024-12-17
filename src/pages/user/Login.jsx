@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import '@/pages/user/Login.scss'
 import axiosInstance from '@/services/axios.jsx'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { CustomGubun } from '@/components/Gubun';
 import CustomAlert from '@/components/Alert';
 import { CustomMessage } from '@/components/Message';
@@ -30,6 +30,9 @@ export default function Login() {
     const setAccessToken = useAuthStore((state) => state.setAccessToken);
     const [alertClass, setAlertClass] = useState("");
     
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const redirectPath = searchParams.get("redirect");
 
     const handleKeyDown = (e) => {
       if (e.key === 'Enter') {
@@ -44,11 +47,15 @@ export default function Login() {
         setPwd(e.target.value)
       }
     }
+  
+
     const submitData = ()=> {
       const data = {
         "uid" : uid,
         "pwd" : pwd
       }
+     
+
       axiosInstance
         .post("/api/auth/login",data)
         .then((resp)=>{
@@ -111,7 +118,7 @@ export default function Login() {
         if(role === 'COMPANY'){
           navigate("/admin")
         } else {
-          navigate("/home")
+          navigate(redirectPath || "/home")
         }
           
       }

@@ -62,7 +62,7 @@ export default function MainHeader() {
         <Link to="/" className="flex items-center">
           <img src="/images/plantry_logo(purple).png" alt="Plantry 로고" className="w-16" />
           <span className="ml-2 text-3xl font-extrabold text-[#333366] hover:text-[#b3b8ff] transition-colors duration-300">
-            PLANTY
+            PLANTRY
           </span>
         </Link>
 

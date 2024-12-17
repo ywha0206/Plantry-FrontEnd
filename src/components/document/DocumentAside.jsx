@@ -74,6 +74,7 @@ export default function DocumentAside({onStorageInfo}){
     const sharedFolderDtoList = folderResponse?.shareFolderDtoList || [];
     const filteredSharedFolders = sharedFolderDtoList.filter(
         (folder) =>
+            folder.ownerId !== user.uid && // 현재 사용자가 소유한 폴더 제외
             !sharedFolderDtoList.some(
                 (parent) =>
                     folder.path !== parent.path && folder.path.startsWith(parent.path)
@@ -303,13 +304,18 @@ export default function DocumentAside({onStorageInfo}){
                 isPinnedOpen ? "max-h-[180px]" : "max-h-0"
                     }`}>
                     {personalFolders.map((folder) => (
-                    <div className="flex gap-4 items-center mb-1" key={folder.id} onContextMenu={(e) => handleContextMenu(e, folder)}>
+                    <div className="flex items-center mb-1 justify-between relative" key={folder.id} onContextMenu={(e) => handleContextMenu(e, folder)}>
                         <Link   to={`/document/list/${folder.id}`}
                                 state={{ folderName: folder.name }} // folder.name 전달
-                                className="flex gap-4 items-center mb-1">
-                            <img src="/images/document-folder.png" alt="Folder Icon" />
+                                className="flex gap-4 items-center mb-1 ">
+                            <div>
+                                {folder.sharedUsers?.length > 0 ? (<><img src="/images/folder_shared.svg" className="opacity-60 pt-1 " /></> ): (<>                                
+                                <img src="/images/folder_24dp.svg" alt="Folder Icon"  className="opacity-60 pt-1" />
+                                    </>)}
+                            </div>
                             <p className="opacity-60 pt-1">{folder.name}</p>
                         </Link>
+
                     </div>
                     ))}  
                     {personalFolders.length === 0 && <p className="opacity-60"> 폴더가 없습니다.</p>}
@@ -338,7 +344,7 @@ export default function DocumentAside({onStorageInfo}){
                             <Link   to={`/document/list/${folder.id}`}
                                     state={{ folderName: folder.name }} // folder.name 전달
                                     className="flex gap-4 items-center mb-1">
-                                <img src="/images/document-folder.png" alt="Folder Icon" />
+                                <img src="/images/folder_shared.svg" className="opacity-60 pt-1" />
                                 <p className="opacity-60 pt-1">{folder.name}</p>
                             </Link>
                         </div>

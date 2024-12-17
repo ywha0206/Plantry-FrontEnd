@@ -71,9 +71,7 @@ export default function PageAside() {
   };
 
   useEffect(()=>{
-    if(userId===undefined){
-      return;
-    } else if(userId){
+    if(userId){
       updateUserId(userId)
     }
   },[userId])
