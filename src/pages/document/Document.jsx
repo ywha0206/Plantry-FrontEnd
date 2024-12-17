@@ -127,15 +127,17 @@ export default function Document() {
 
     const sharedFolderDtoList = folderResponse?.shareFolderDtoList || [];
     const filteredSharedFolders = sharedFolderDtoList.filter(
-        (folder) =>
-            !sharedFolderDtoList.some(
-                (parent) =>
-                    folder.path !== parent.path && folder.path.startsWith(parent.path)
-            )
+          (folder) =>
+        folder.ownerId !== user.uid && // 현재 사용자가 소유한 폴더 제외
+        !sharedFolderDtoList.some(
+            (parent) =>
+                folder.path !== parent.path && folder.path.startsWith(parent.path)
+        )
     );
     const personalFolders = folderResponse?.folderDtoList || [];
     const combinedSharedFolders = [...personalFolders, ...filteredSharedFolders];
-    
+    console.log("필터터터",filteredSharedFolders);
+    console.log("personallll",personalFolders);
 
     // driveList 데이터 가져오기
     // const { data: driveListData, isLoading: isDriveListLoading, isError: isDriveListError } = useQuery({

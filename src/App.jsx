@@ -62,6 +62,7 @@ import CancellationReturnWrite from "./components/render/cancellationreturnwrite
 import QNAWrite from "./components/render/qnawrite";
 import ProductServicesWrite from "./components/render/productserviceswrite";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import ValidateLinkPage from "./pages/tmp";
 const MainIndexComponent = lazy(() => import("./components/render/main"));
 
 function App() {
@@ -98,14 +99,18 @@ function App() {
       } // 제외 경로는 검증하지 않음
 
       const tokenExpired = isTokenExpired();
+      const redirectParam = new URLSearchParams(location.search).get("redirect");
+
 
       if (tokenExpired) {
         const refreshToken = await refreshAccessToken();
+
         if (!refreshToken) {
           console.error("액세스 토큰 재발급 실패함. Redirecting to login...");
           alert("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
           logout();
-          navigate("/user/login");
+          const currentPath = location.pathname + location.search;
+          navigate(`/user/login?redirect=${encodeURIComponent(currentPath)}`);
         } else {
           setIsToken(true);
         }
@@ -210,6 +215,8 @@ function App() {
               <Route path="write/services" element={<ProductServicesWrite />} />
             </Route>
           </Route>
+          <Route path="/accept-invitation/:invitationId" element={<ValidateLinkPage />} />
+
 
           {/* 홈 */}
           <Route path="/home" element={<Main />}>
