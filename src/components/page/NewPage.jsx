@@ -149,9 +149,7 @@ export default function NewPage(){
     },[title,isTyping])
 
     useEffect(()=>{
-        if(pageId===undefined){
-            return
-        } else if(pageTitle && !isLoadingTitle && !isErrorTitle){
+        if(pageTitle && !isLoadingTitle && !isErrorTitle){
             setTitle(pageTitle)
             updatePageId(pageId)
         }
