@@ -373,6 +373,7 @@ export default function DocumentAside({onStorageInfo}){
                        order={folderResponse?.folderDtoList?.length}
                        isOpen={drive}
                        onClose={() => setDrive(false)}
+                       user={user}
                        text="드라이브 만들기"
                     />
                 </div>
