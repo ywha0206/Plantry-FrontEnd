@@ -71,8 +71,9 @@ export default function Terms() {
       <div className='login-form'>
         <div className="flex justify-between items-start">
           <p className='text-3xl font-light'>REGISTER</p>
-          <Link to="/user/login">
-            <img src="/images/Logo_font.png" alt="logo" className="w-[110px] h-[35px]" />
+          <Link to="/user/login" className="flex items-center">
+            <img src='/images/plantry_logo.png' className='w-[45px] h-[45px]'></img>
+            <div className='flex items-center font-bold text-[24px] font-purple'>PLANTRY</div>
           </Link>
         </div>
         <div className='inp-box'>
