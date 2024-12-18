@@ -83,6 +83,7 @@ export default function PageAside() {
     }
     if(receiveUsers=='added'){
       queryClient.invalidateQueries(['pageList'])
+      navi("/page")
     }
   },[receiveUsers])
 
