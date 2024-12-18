@@ -51,6 +51,7 @@ const initState = {
   company:"",
   confirmPwd: "",
   companyName:"",
+  role: "",
 }
 
 const cardinit = {
@@ -86,14 +87,14 @@ export default function Register() {
  
   // 각 페이지의 검증 상태를 관리
   const [validation1, setValidation1] = useState({
-    email: true,
-    uid: true,
-    pwd: true,
+    email: false,
+    uid: false,
+    pwd: false,
   });
   const [validation2, setValidation2] = useState({
-    firstName: true,
-    lastName: true,
-    hp: true,
+    firstName: false,
+    lastName: false,
+    hp: false,
   });
   //3페이지는 플랜별로 검증 상태 관리
   const [validationEnterprise, setValidationEnterprise] = useState({
@@ -121,12 +122,14 @@ export default function Register() {
     // 선택된 플랜에 따라 page3success 업데이트
     if (selected === 'Company') {
       setPage3success(validationCompany.company);
+      setUser({role:'WORKER'});
     } else if (selected === 'Standard') {
       setPage3success(
         validationStandard.paymentCardNo &&
         validationStandard.paymentCardExpiration &&
         validationStandard.paymentCardCvc
       );
+      setUser({role:'USER'});
     } else if (selected === 'Enterprise') {
       setPage3success(
         validationEnterprise.paymentCardNo &&
@@ -134,9 +137,11 @@ export default function Register() {
         validationEnterprise.paymentCardExpiration &&
         validationEnterprise.paymentCardCvc
       );
+      setUser({role:'COMPANY'});
       console.log('dfsa', validationEnterprise)
     }else if(selected ==='Basic'){
       setPage3success(true); // 베이직 플랜은 바로 활성화
+      setUser({role:'USER'});
     }else {
       setPage3success(false); // 아무 플랜도 선택하지 않은 경우 비활성화
     }
@@ -717,7 +722,7 @@ export default function Register() {
                 className="signup-input-lg mt-10" ></input>
                 <div className='flex justify-between '>
                   <input type='text' placeholder='상세주소(선택)' name='addr2' value={user.addr2}
-                  onChange={(e) => setUser(prev => ({...prev, [e.target.name]: e.target.value}))}
+                  onChange={(e) => setUser(prev => ({...prev, "addr2": e.target.value}))}
                   className="signup-input-md mr-1 mt-10" ></input>
                   <select name="country" className="signup-input-md mt-10" onChange={ChangeHandler}>
                     <option name="country" value="NotSelected" selected>선택 안 함</option>
