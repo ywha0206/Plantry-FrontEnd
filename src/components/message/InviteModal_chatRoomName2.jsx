@@ -10,6 +10,7 @@ export default function InviteModal_chatRoomName2({
   selectedRoomId,
   setRoomName,
   roomName,
+  roomInfo,
   setRoomInfo,
   setRoomData,
   setIsRoomNameAlertOpen,
@@ -21,8 +22,8 @@ export default function InviteModal_chatRoomName2({
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    if (roomName.trim() === "") {
-      alert("변경할 이름을 입력해주세요.");
+    if (roomName.trim() === "" || roomName.trim() === roomInfo.chatRoomName) {
+      alert("유효한 이름이 아닙니다.");
       return;
     }
     try {
@@ -32,6 +33,7 @@ export default function InviteModal_chatRoomName2({
       };
       await axiosInstance.patch("/api/message/roomName", data).then((resp) => {
         console.log(resp.data);
+
         setRoomInfo((prevRoomInfo) => ({
           ...prevRoomInfo,
           chatRoomName: resp.data,
@@ -44,6 +46,7 @@ export default function InviteModal_chatRoomName2({
               : room
           )
         );
+        setRoomName("");
       });
     } catch (error) {
       console.error(error);
