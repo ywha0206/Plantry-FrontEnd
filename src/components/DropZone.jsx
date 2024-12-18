@@ -6,6 +6,7 @@ import CustomAlert from './Alert';
 import useStorageStore from '../store/useStorageStore';
 import { Stomp } from '@stomp/stompjs';
 import useWebSocketProgress from '../util/useWebSocketProgress';
+import { FileTextIcon, UploadCloudIcon, XIcon } from 'lucide-react';
 
 
 const MyDropzone = ({ 
@@ -138,53 +139,84 @@ const MyDropzone = ({
 
   return (
     <>
-    <div>
-    <p>WebSocket 연결 상태: {isConnected ? '연결됨' : '연결되지 않음'}</p>
+    <div className="max-w-xl mx-auto p-4">
       {/* 드래그 앤 드롭 영역 */}
       <div
         {...getRootProps()} 
-      className={`
-        flex items-center justify-center p-10 border-2 border-dashed rounded-lg text-center cursor-pointer 
-        ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}
-      `}
-        style={styles.dropzone}
+        className={`
+          relative flex flex-col items-center justify-center 
+          p-10 border-2 border-dashed rounded-2xl 
+          transition-all duration-300 
+          ${isDragActive 
+            ? 'border-purple-500 bg-purple-50 shadow-xl' 
+            : 'border-gray-300 hover:border-purple-300 hover:bg-purple-50/30'
+          }
+        `}
       >
-        <input 
-          {...getInputProps()}    
-        />
-      
-        <p className="text-gray-600">파일을 드래그하거나 클릭하여 업로드하세요.</p>
+        <input {...getInputProps()} />
+        
+        <div className="text-center">
+          <UploadCloudIcon 
+            className={`mx-auto mb-4 ${isDragActive ? 'text-purple-500' : 'text-gray-400'}`} 
+            size={48} 
+            strokeWidth={1.5}
+          />
+          
+          <p className="text-gray-600 mb-2">
+            파일을 여기에 드래그하거나 
+          </p>
+          <p className="text-purple-600 font-semibold cursor-pointer hover:underline">
+            클릭하여 업로드하세요
+          </p>
+        </div>
       </div>
 
-      {/* 업로드 중 메시지 */}
+      {/* 업로드 진행 상태 */}
       {isUploading && (
-        <div className="mt-4 text-center text-blue-600">
-          <p>업로드중..... </p>
+        <div className="mt-4 bg-purple-50 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-purple-600 font-medium">파일 업로드 중</span>
+            <span className="text-gray-600">{uploadProgress.toFixed(0)}%</span>
+          </div>
+          <div className="w-full bg-purple-200 rounded-full h-2.5">
+            <div 
+              className="bg-purple-500 h-2.5 rounded-full" 
+              style={{width: `${uploadProgress}%`}}
+            ></div>
+          </div>
         </div>
       )}
 
       {/* 업로드된 파일 팝업 */}
       {isPopupVisible && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-          style={styles.overlay}
-        >
-          <div className="bg-white rounded-lg shadow-lg p-6 w-[400px]">
-            <h3 className="text-lg font-semibold mb-4">업로드된 파일</h3>
-            <ul>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-800">업로드된 파일</h3>
+              <button 
+                onClick={closePopup} 
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <XIcon size={24} />
+              </button>
+            </div>
+            
+            <div className="max-h-64 overflow-y-auto p-4">
               {uploadedFiles.map((file, index) => (
-                <li key={index} className="flex justify-between border-b py-2">
-                  <span>{file.name}</span>
-                  <span>{(file.size / 1024).toFixed(2)} KB</span>
-                </li>
+                <div 
+                  key={index} 
+                  className="flex items-center justify-between py-3 border-b last:border-b-0"
+                >
+                  <div className="flex items-center space-x-3">
+                    <FileTextIcon className="text-purple-500" size={24} />
+                    <span className="text-gray-700">{file.name}</span>
+                  </div>
+                  <span className="text-gray-500 text-sm">
+                    {(file.size / 1024).toFixed(2)} KB
+                  </span>
+                </div>
               ))}
-            </ul>
-            <button
-              onClick={closePopup}
-              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              닫기
-            </button>
+            </div>
           </div>
         </div>
       )}

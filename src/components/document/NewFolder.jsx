@@ -2,7 +2,7 @@ import axios from "axios";
 import axiosInstance from '@/services/axios.jsx'
 import React, { useEffect, useState } from "react";
 import useUserStore from "../../store/useUserStore";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   X, 
   FolderPlus, 
@@ -13,14 +13,19 @@ import {
   ChevronDown 
 } from "lucide-react";
 import GetAddressModal from "../calendar/GetAddressModal";
+import CustomAlert from "./CustomAlert";
 
 // 날짜 : 2024.11.27
 // 이름 : 하진희
 // 내용 : 드라이브 생성 
 
+const PERMISSIONS = {
+  READING: "읽기",
+  WRITING: "수정",
+  FULL: "모든"
+};
 
-
-export default function NewFolder({ isOpen, onClose ,parentId,user,maxOrder }) {
+export default function NewFolder({ isOpen, onClose ,parentId,user,maxOrder ,triggerAlert}) {
   const [authType, setAuthType] = useState("0"); // 기본값: '나만 사용'
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
@@ -28,7 +33,7 @@ export default function NewFolder({ isOpen, onClose ,parentId,user,maxOrder }) {
     owner: "",
     description: "",
     order: maxOrder,
-    shareUsers : [],
+    sharedUsers: [],
     isShared : 0,
     linkSharing: "0", // 허용안함
     parentId:"",
@@ -49,63 +54,74 @@ export default function NewFolder({ isOpen, onClose ,parentId,user,maxOrder }) {
     SHARE: 8,
   };
   
-const PERMISSIONS = {
-  READING: "읽기",
-  WRITING: "수정",
-  FULL: "모든"
-};
+
 
   const [selectedUsers, setSelectedUsers] = useState([]);
     const [currentEmail, setCurrentEmail] = useState("");
     const [openAddress, setOpenAddress] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [alert,setAlert] =useState(false); 
+    
   
+    const handleInputChange = (e) => {
+      const { name, value } = e.target;
+      setFormData({ ...formData, [name]: value });
+    };
+  
+    const handleRadioChange = (e) => {
+      const value = e.target.value;
+      setAuthType(value);
+      setFormData({ ...formData, isShared: value });
+    };
 
-  
     const handleAddEmail = () => {
-      if (currentEmail.trim() && !formData.shareUsers.some((u) => u.email === currentEmail)) {
+      if (currentEmail.trim() && !formData.sharedUsers.some((u) => u.email === currentEmail)) {
         setFormData((prev) => ({
           ...prev,
-          shareUsers: [...prev.shareUsers, { email: currentEmail }],
+          sharedUsers: [...prev.sharedUsers, { email: currentEmail }],
         }));
         setCurrentEmail("");
       }
     };
+
+    useEffect(() => {
+        // selectedUsers를 SharedUser 형식으로 변환
+        const sharedUsers = selectedUsers.map((u) => ({
+          id: u.id || null,
+          name: u.name || "",
+          email: u.email || "",
+          group: u.group || "",
+          uid: u.uid || "",
+          authority: u.authority || "",
+          permission: PERMISSIONS.READING, // 기본값: 읽기
+          profile: u.profile || "",
+        }));
+      
+        setFormData((prev) => ({
+          ...prev,
+          sharedUsers: sharedUsers,
+        }));
+      }, [selectedUsers]);
+   useEffect(()=>{
+      console.log("selectedUserS!!!",selectedUsers);
+    },[selectedUsers])
+  
   
     const handleRemoveUser = (email) => {
       setFormData((prev) => ({
         ...prev,
-        shareUsers: prev.shareUsers.filter((user) => user.email !== email),
+        sharedUsers: prev.sharedUsers.filter((u) => u.email !== email),
       }));
+    };
+    const cancleSelectedUsersHandler = (e, user) => {
+      setSelectedUsers((prev) => {
+        return prev.filter((selectedUser) => selectedUser.id !== user.id);
+      });
     };
 
 
 
- // 권한 비트 연산 업데이트
- const handlePermissionChange = (permissionValue) => {
-  const permissionBit = permissionMap[permissionValue];
-  setFormData((prev) => {
-    const hasPermission = (prev.permissions & permissionBit) === permissionBit;
 
-    // 이미 선택된 권한이면 제거, 아니면 추가
-    const updatedPermissions = hasPermission
-      ? prev.permissions & ~permissionBit // 제거
-      : prev.permissions | permissionBit; // 추가
-
-    return { ...prev, permissions: updatedPermissions };
-  });
-};
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleRadioChange = (e) => {
-    const value = e.target.value;
-    setAuthType(value); // 라디오 버튼 상태 업데이트
-    setFormData({ ...formData, isShared: value });
-  };
 
   // 컴포넌트가 로드될 때 owner에 currentUser 값을 설정
   useEffect(() => {
@@ -122,31 +138,48 @@ const PERMISSIONS = {
     });
   };
 
-    // 드라이브 마스터 제거
-    const handleRemoveMaster = () => {
-      setFormData({
-        driveMaster: null,
-        masterEmail: null,
-      });
-    };
 
-  const handleAddSharedUser = () => {
-    if (!currentUser.trim() || formData.sharedUsers.length >= 3) return;
-    setFormData({
-      ...formData,
-      sharedUsers: [...formData.sharedUsers, currentUser],
-    });
-    setCurrentUser(""); // 입력 필드 초기화
+  // const handleAddSharedUser = () => {
+  //   if (!currentUser.trim() || formData.sharedUsers.length >= 3) return;
+  //   setFormData({
+  //     ...formData,
+  //     sharedUsers: [...formData.sharedUsers, currentUser],
+  //   });
+  //   setCurrentUser(""); // 입력 필드 초기화
+  // };
+
+  // const handleRemoveSharedUser = (user) => {
+  //   setFormData({
+  //     ...formData,
+  //     sharedUsers: formData.sharedUsers.filter((u) => u !== user),
+  //   });
+  // };
+
+
+  const { mutate, isLoading } = useMutation({
+    mutationFn: async (newDriveData) => {
+      const response = await axiosInstance.post("/api/drive/newFolder", newDriveData);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['folderContents']);
+      onClose();
+    },
+    onError: (error) => {
+      console.error("Error creating folder", error);
+      const errorMessage = error.response?.data || '파일 업로드 중 오류가 발생했습니다. 다시 시도해주세요.';
+      const errorType = error.response?.status === 400 ? 'warning' : 'error';
+      triggerAlert(errorType, '업로드 실패', errorMessage);
+      
+    },
+  });
+
+  const handleSubmit = () => {
+    console.log("최종 제출 ",formData);
+    mutate(formData);
   };
 
-  const handleRemoveSharedUser = (user) => {
-    setFormData({
-      ...formData,
-      sharedUsers: formData.sharedUsers.filter((u) => u !== user),
-    });
-  };
-
-  const handleSubmit = async () => {
+ /*  const handleSubmit = async () => {
     try {
       // Axios로 백엔드 API 호출
       console.log("formData : ",formData);
@@ -159,7 +192,7 @@ const PERMISSIONS = {
     } catch (error) {
       console.error("Error submitting data:", error);
     }
-  };
+  }; */
 
   if (!isOpen) return null;
 
@@ -316,9 +349,9 @@ const PERMISSIONS = {
                     </button>
                   </div>
 
-                  {formData.shareUsers.length > 0 && (
+                  {formData.sharedUsers.length > 0 && (
                     <div className="space-y-3 max-h-[200px] overflow-y-auto">
-                      {formData.shareUsers.map((user, index) => (
+                      {formData.sharedUsers.map((user, index) => (
                         <div 
                           key={index} 
                           className="flex items-center justify-between bg-gray-50 p-3 rounded-xl hover:bg-gray-100 transition-all duration-300"
@@ -357,6 +390,7 @@ const PERMISSIONS = {
             onClick={handleSubmit}
             className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-700 text-white rounded-xl hover:from-purple-700 hover:to-indigo-800 transition-all duration-300 disabled:opacity-50 flex items-center gap-2"
           >
+          생성
           </button>
         </div>
 
@@ -369,7 +403,17 @@ const PERMISSIONS = {
           onClose={() => setOpenAddress(false)}
           selectedUsers={selectedUsers}
           setSelectedUsers={setSelectedUsers}
+          cancleSelectedUsersHandler={cancleSelectedUsersHandler}
         />
+          {alert.isVisible && (
+              <CustomAlert
+                type={alert.type}
+                title={alert.title}
+                message={alert.message}
+                onConfirm={() => setAlert({ isVisible: false })}
+              />
+            )}
     </div>
+    
   );
 }

@@ -27,10 +27,11 @@ export default function NewDrive({ order, isOpen, onClose, user }) {
     owner: "",
     description: "",
     order: order,
-    shareUsers: [],
+    sharedUsers: [],
     isShared: 0,
     status: 1,
     linkSharing: "0",
+    permissions: 7,
   });
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [currentEmail, setCurrentEmail] = useState("");
@@ -49,20 +50,50 @@ export default function NewDrive({ order, isOpen, onClose, user }) {
   };
 
   const handleAddEmail = () => {
-    if (currentEmail.trim() && !formData.shareUsers.some((u) => u.email === currentEmail)) {
+    if (currentEmail.trim() && !formData.sharedUsers.some((u) => u.email === currentEmail)) {
       setFormData((prev) => ({
         ...prev,
-        shareUsers: [...prev.shareUsers, { email: currentEmail }],
+        sharedUsers: [...prev.sharedUsers, { email: currentEmail }],
       }));
       setCurrentEmail("");
     }
   };
 
+  useEffect(() => {
+    // selectedUsers를 SharedUser 형식으로 변환
+    const sharedUsers = selectedUsers.map((u) => ({
+      id: u.id || null,
+      name: u.name || "",
+      email: u.email || "",
+      group: u.group || "",
+      uid: u.uid || "",
+      authority: u.authority || "",
+      permission: PERMISSIONS.READING, // 기본값: 읽기
+      profile: u.profile || "",
+    }));
+  
+    setFormData((prev) => ({
+      ...prev,
+      sharedUsers: sharedUsers,
+    }));
+  }, [selectedUsers]);
+
+  useEffect(()=>{
+    console.log("selectedUserS!!!",selectedUsers);
+  },[selectedUsers])
+
   const handleRemoveUser = (email) => {
     setFormData((prev) => ({
       ...prev,
-      shareUsers: prev.shareUsers.filter((user) => user.email !== email),
+      sharedUsers: prev.sharedUsers.filter((u) => u.email !== email),
     }));
+  };
+
+
+  const cancleSelectedUsersHandler = (e, user) => {
+    setSelectedUsers((prev) => {
+      return prev.filter((selectedUser) => selectedUser.id !== user.id);
+    });
   };
 
   const { mutate, isLoading } = useMutation({
@@ -80,6 +111,7 @@ export default function NewDrive({ order, isOpen, onClose, user }) {
   });
 
   const handleSubmit = () => {
+    console.log("최종 제출 ",formData);
     mutate(formData);
   };
 
@@ -186,26 +218,26 @@ export default function NewDrive({ order, isOpen, onClose, user }) {
                   </button>
 
                   {/* Selected Users List */}
-                  {selectedUsers.length > 0 && (
+                  {selectedUsers?.length > 0 && (
                     <div className="max-h-[250px] overflow-y-auto space-y-3">
-                      {selectedUsers.map((user, index) => (
+                      {selectedUsers?.map((u, index) => (
                         <div 
                           key={index} 
                           className="flex items-center justify-between bg-gray-50 p-4 rounded-xl hover:bg-gray-100 transition-all duration-300"
                         >
                           <div className="flex items-center gap-4">
                             <img
-                              src={user.profile || "/images/admin-profile.png"}
+                              src={u.profile || "/images/admin-profile.png"}
                               alt="User Profile"
                               className="w-12 h-12 rounded-full object-cover border-2 border-purple-100"
                             />
                             <div>
-                              <p className="font-semibold text-gray-800">{user.name || user.email}</p>
-                              <p className="text-sm text-gray-500">{user.email}</p>
+                              <p className="font-semibold text-gray-800">{u.name || u.email}</p>
+                              <p className="text-sm text-gray-500">{u.email}</p>
                             </div>
                           </div>
                           <button 
-                            onClick={() => handleRemoveUser(user.email)}
+                            onClick={() => handleRemoveUser(u.email)}
                             className="text-red-500 hover:text-red-700 hover:scale-110 transition-all"
                           >
                             <Trash2 size={20} />
@@ -238,9 +270,9 @@ export default function NewDrive({ order, isOpen, onClose, user }) {
                     </button>
                   </div>
 
-                  {formData.shareUsers.length > 0 && (
+                  {formData.sharedUsers?.length > 0 && (
                     <div className="space-y-3 max-h-[200px] overflow-y-auto">
-                      {formData.shareUsers.map((user, index) => (
+                      {formData.sharedUsers?.map((u, index) => (
                         <div 
                           key={index} 
                           className="flex items-center justify-between bg-gray-50 p-3 rounded-xl hover:bg-gray-100 transition-all duration-300"
@@ -249,10 +281,10 @@ export default function NewDrive({ order, isOpen, onClose, user }) {
                             <div className="bg-purple-100 p-2 rounded-full">
                               <UserPlus size={16} className="text-purple-600" />
                             </div>
-                            <span className="text-gray-700 font-medium">{user.email}</span>
+                            <span className="text-gray-700 font-medium">{u.email}</span>
                           </div>
                           <button
-                            onClick={() => handleRemoveUser(user.email)}
+                            onClick={() => handleRemoveUser(u.email)}
                             className="text-red-500 hover:text-red-700 hover:scale-110 transition-all"
                           >
                             <Trash2 size={20} />
@@ -300,6 +332,7 @@ export default function NewDrive({ order, isOpen, onClose, user }) {
           onClose={() => setOpenAddress(false)}
           selectedUsers={selectedUsers}
           setSelectedUsers={setSelectedUsers}
+          cancleSelectedUsersHandler={cancleSelectedUsersHandler}
         />
     </div>
   );
