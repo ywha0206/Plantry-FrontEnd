@@ -29,7 +29,7 @@ function ValidateLinkPage() {
 
                 if (status === 'success') {
                     // 성공 시 이동 (redirectPath 예시로 지정)
-                    navigate(`/documentList/${sharedId}`);
+                    navigate(`/document/list/${sharedId}`);
                 } else {
                     console.log("메세세세지",message);
                     // 실패 메시지를 보여줌

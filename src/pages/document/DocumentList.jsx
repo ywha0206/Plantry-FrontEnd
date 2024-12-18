@@ -22,6 +22,14 @@ import { AddProjectModal } from '../../components/project/_Modal';
 import { AddDocumentModal } from '../../components/document/addDocumentModal';
 import DriveShareModal from '../../components/document/documentShareMenu';
 
+
+
+const PERMISSIONS = {
+    READING: "읽기",
+    WRITING: "수정",
+    FULL: "모든"
+  };
+
 export default function DocumentList() {
     const [viewType, setViewType] = useState('box'); // Default to 'box'
     const [isOpen, setIsOpen] = useState(false);
@@ -35,6 +43,7 @@ export default function DocumentList() {
 
     const location = useLocation();
     const user = useUserStore((state) => state.user);
+
     const folderId = decodeURIComponent(location.pathname.split('/').pop());
     const queryClient = useQueryClient();
     const [draggedFolder, setDraggedFolder] = useState(null); // 드래그된 폴더
@@ -888,10 +897,11 @@ const handleCloseFileMenu = () => {
             
 
             <FileUploads isOpen={isOpen} onClose={() => setIsOpen(false)} folderId={folderId} fileMaxOrder={fileMaxOrder} folderMaxOrder={folderMaxOrder} uid={user.uid} triggerAlert={triggerAlert} />
-            <NewFolder isOpen={folder} onClose={() => setFolder(false)} parentId={folderId} user={user}    maxOrder={subFolders.length} // 최대 order 값을 계산해서 전달
+            <NewFolder isOpen={folder} onClose={() => setFolder(false)} parentId={folderId} user={user}    maxOrder={subFolders.length} triggerAlert={triggerAlert}
             />
              {/* ContextMenu 컴포넌트 */}
              <ContextMenu
+                    parentId={parentFolder.id}
                     visible={contextMenu.visible}
                     position={contextMenu.position}
                     onClose={handleCloseMenu}
@@ -904,8 +914,10 @@ const handleCloseFileMenu = () => {
                     onDetailToggle={() => handleDetailToggle(contextMenu.folder)} // 상세 정보 토글 함수 전달
                     downloadHandler={() => zipDownloadHandler(contextMenu.folder)}
                     selectedFolder = {setSelectedFolder}
+                    triggerAlert={triggerAlert}
                 />
               <ContextFileMenu
+                    parentId={parentFolder.id}
                     visible={contextFileMenu.visible}
                     position={contextFileMenu.position}
                     onClose={handleCloseFileMenu}
@@ -916,6 +928,8 @@ const handleCloseFileMenu = () => {
                     path={contextFileMenu.file?.path}
                     onDetailToggle={() => handleDetailFileToggle(contextFileMenu.file)}
                     downloadHandler={downloadHandler}
+                    triggerAlert={triggerAlert}
+
                 />
 
         
