@@ -156,14 +156,21 @@ export default function Login() {
   
     return (
       <div className='login-container'>
-        <div className='login-form'>
-        <div className="flex justify-between items-start">
-              <p className='text-3xl font-light ml-[30px]'>LOGIN</p>
-              <Link to="/user/login">
-                <img src="/images/Logo_font.png" alt="logo" className="w-[110px] h-[35px] mr-[35px]" />
-              </Link>
-          </div>
+        <div className='login-form '>
+        <div className="flex justify-between items-start px-[30px]">
+            <p className='text-3xl font-light '>LOGIN</p>
+            <Link to="/user/login" className="flex items-center">
+              <img src='/images/plantry_logo.png' className='w-[40px] h-[40px]'></img>
+              <div className='flex items-center font-bold text-[22px] font-purple'>PLANTRY</div>
+            </Link>
+        </div>
           <div className='inp-box'>
+
+            <div className='bg-blue-100 rounded-xl px-[30px] py-[10px]'>
+              <p className='text-sm'>로그인으로 PLANTRY를 시작해 보세요!</p>
+              <span className='text-xs'>PLANTRY로 필요한 업무를 더 수월하게 진행해봐요.</span>
+            </div>
+
             <p className='text-xs inp-font bg-white w-[20px] text-center ml-3 relative top-2'>ID</p>
             <input type="text" name='uid' value={uid} onChange={changeHandler} placeholder='아이디를 입력해주세요.'
              onKeyDown={handleKeyDown}
@@ -175,7 +182,7 @@ export default function Login() {
             <div className='find-pwd'>
               <p className='text-sm mt-1' onClick={() => navigate("/user/find")}>Forgot password?</p>
             </div>
-            <button onClick={submitData} className='bg-indigo-500 text-white h-[50px] rounded-lg mt-10'>Sign In</button>
+            <button onClick={submitData} className='bg-indigo-500 text-white h-[50px] rounded-lg '>Sign In</button>
             <button onClick={signUp} className='border border-indigo-500 text-indigo-700 h-[50px] rounded-lg mt-10'>Sign Up</button>
           </div>
           <CustomGubun 
