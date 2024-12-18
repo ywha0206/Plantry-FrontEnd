@@ -178,7 +178,7 @@ export default function GetAddressModal({isOpen, onClose, selectedUsers, setSele
         isOpen={customAlert}
     />
     
-    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col">
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[80vh] max-h-[970px] flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b">
             <h2 className="text-2xl font-bold text-gray-800 flex items-center">
