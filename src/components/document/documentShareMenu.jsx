@@ -138,7 +138,16 @@ const DriveShareModal = ({
     }
     if (sharedMember && Array.isArray(sharedMember)) {
       console.log("Received sharedMember:", sharedMember);
-  
+        // Separate users into sharedUsers and selectedUsers
+    const filteredSharedUsers = sharedMember.filter(user => user.group === "개인");
+    const filteredSelectedUsers = sharedMember.filter(user => user.group !== "개인");
+
+    // Update state
+    setSharedUsers(filteredSharedUsers);
+    setSelectedUsers(filteredSelectedUsers);
+
+    console.log("Filtered sharedUsers:", filteredSharedUsers);
+    console.log("Filtered selectedUsers:", filteredSelectedUsers); 
      
     }
   }, [isModalOpen, sharedDept,sharedMember]);
