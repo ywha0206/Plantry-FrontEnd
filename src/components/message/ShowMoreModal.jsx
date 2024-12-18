@@ -9,8 +9,10 @@ export default function ShowMoreModal({
   showMoreRef,
   uid,
   selectedRoomId,
+  setSelectedRoomId,
   openHandler2,
   changeRoomNameHandler,
+  setRoomData,
 }) {
   const [isOpen, setIsOpen] = useState();
 
@@ -29,6 +31,11 @@ export default function ShowMoreModal({
           console.log("status : ", resp.data);
 
           if (resp.data === "success") {
+            setSelectedRoomId("");
+            localStorage.removeItem("roomId");
+            setRoomData((prevRoomData) =>
+              prevRoomData.filter((room) => room.id !== selectedRoomId)
+            );
             setIsOpen(true);
             setTimeout(() => {
               setIsOpen(false);
