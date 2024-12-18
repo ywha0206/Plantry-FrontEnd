@@ -205,7 +205,8 @@ export default function DocumentList() {
              // 서버의 응답 메시지를 확인
         if (response.status === 200) {
             console.log(response.data); // "Folder updated successfully"
-            alert("폴더 이동 성공!");
+            
+            triggerAlert('folder')
             queryClient.invalidateQueries(['folderContents']);
         } else {
             alert("폴더 이동 실패: " + response.data);
