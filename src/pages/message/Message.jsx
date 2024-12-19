@@ -180,6 +180,7 @@ export default function Message() {
   const frequentHandler = useCallback(
     async (e, room) => {
       e.preventDefault();
+      e.stopPropagation();
       const newFavoriteStatus = room.chatRoomFavorite === 0 ? 1 : 0;
 
       const jsonData = {
@@ -325,11 +326,19 @@ export default function Message() {
       prevRoomData.map((room) => ({
         ...room,
         unreadCount: unreadCounts[room.id] ?? room.unreadCount,
+      }))
+    );
+  }, [unreadCounts]);
+
+  useEffect(() => {
+    setRoomData((prevRoomData) =>
+      prevRoomData.map((room) => ({
+        ...room,
         lastMessage: lastMessages[room.id] ?? room.lastMessage,
         lastTimeStamp: lastTimeStamp[room.id] ?? room.lastTimeStamp,
       }))
     );
-  }, [unreadCounts, lastMessages, lastTimeStamp]);
+  }, [lastMessages, lastTimeStamp]);
 
   const { mutate } = useMutation({
     mutationFn: async (inputText) => {
@@ -627,8 +636,24 @@ export default function Message() {
     }
   }, [messageList]);
 
+  const [userData, setUserData] = useState();
+  const profileURL = "http://3.35.170.26:90/profileImg/";
+
+  useEffect(() => {
+    try {
+      axiosInstance.get(`/api/message/${uid}`).then((resp) => {
+        console.log("유저 정보", resp.data);
+        setUserData(resp.data);
+      });
+      return userData;
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
+
   const processedMessages = processMessages(messageList, uid);
   console.log("roomdata : ", roomData);
+  console.log("messageList : ", messageList);
 
   //================================================================================================
 
@@ -638,7 +663,11 @@ export default function Message() {
         <div className="aside-top">
           <div className="profile">
             <img
-              src="../images/sample_item1.jpg"
+              src={
+                userData?.profileSName
+                  ? `${profileURL}${userData.profileSName}`
+                  : "/images/default-profile.png"
+              }
               alt=""
               onClick={profileHandler}
             />
@@ -918,6 +947,9 @@ export default function Message() {
                                 src="../images/sample_item1.jpg"
                                 alt=""
                               />
+                              <div className="userName">
+                                {message.senderName}
+                              </div>
                             </div>
                           ) : (
                             <div className="profileDiv"></div>
@@ -966,6 +998,7 @@ export default function Message() {
                             src="../images/sample_item1.jpg"
                             alt=""
                           />
+                          <span className="userName">{message.senderName}</span>
                         </div>
                       ) : (
                         <div className="profileDiv"></div>

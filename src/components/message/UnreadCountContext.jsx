@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 /* eslint-disable react/prop-types */
 // src/contexts/UnreadCountContext.js
-import { createContext, useState, useEffect, useCallback, useRef } from "react";
+import { createContext, useState, useEffect, useRef } from "react";
 import { Client } from "@stomp/stompjs";
 import axiosInstance from "../../services/axios";
 import useUserStore from "../../store/useUserStore";
@@ -18,12 +18,10 @@ export const UnreadCountProvider = ({ children }) => {
   const [messageList, setMessageList] = useState([]);
 
   const [isConnected, setIsConnected] = useState(false);
-  const [stompClient, setStompClient] = useState(null);
+  const stompClientRef = useRef(null); // useRef로 변경
 
-  const subscriptionRef = useRef(null);
-  const shouldScrollToBottomRef = useRef(true);
-  const selectedRoomIdRef = useRef(""); // Ref 생성
-  const notificationsSubscriptionRef = useRef(null); // 알림 구독 Ref 추가
+  const selectedRoomIdRef = useRef("");
+  const notificationsSubscriptionRef = useRef(null);
 
   // selectedRoomId가 변경될 때 Ref 업데이트
   useEffect(() => {
@@ -31,21 +29,59 @@ export const UnreadCountProvider = ({ children }) => {
   }, [selectedRoomId]);
 
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-
   const wsUrl = "ws://" + apiBaseUrl.replace("http://", "") + "/ws-chat";
+
   const uid = useUserStore((state) => state.user?.uid);
-  const getWebSocketHeaders = async () => {
-    const accessToken = axiosInstance.defaults.headers.Authorization;
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const authorized = useAuthStore((state) => state.authorized);
+
+  const getWebSocketHeaders = () => {
+    const token = useAuthStore.getState().accessToken;
     return {
-      Authorization: accessToken || "",
+      Authorization: token ? `Bearer ${token}` : "",
     };
   };
+
   useEffect(() => {
-    if (uid === undefined) {
+    console.log(
+      "authorized:",
+      authorized,
+      "uid:",
+      uid,
+      "stompClient:",
+      stompClientRef.current,
+      "isConnected:",
+      isConnected
+    );
+
+    if (!authorized || !uid) {
+      // 로그아웃 상태일 때 구독 해제 및 클라이언트 비활성화
+      if (stompClientRef.current) {
+        if (notificationsSubscriptionRef.current) {
+          notificationsSubscriptionRef.current.unsubscribe();
+          notificationsSubscriptionRef.current = null;
+          console.log("로그아웃 시 구독 해제");
+        }
+        stompClientRef.current.deactivate();
+        stompClientRef.current = null;
+        setIsConnected(false);
+        console.log("로그아웃 시 WebSocket 클라이언트 비활성화");
+      }
       return;
     }
-    const initializeStompClient = async () => {
-      const headers = await getWebSocketHeaders();
+
+    if (stompClientRef.current && isConnected) {
+      // 이미 연결되어 있으면 초기화하지 않음
+      return;
+    }
+
+    const initializeStompClient = () => {
+      const headers = getWebSocketHeaders();
+      if (!headers.Authorization) {
+        console.log("No access token, cannot initialize WebSocket client.");
+        return;
+      }
+
       const client = new Client({
         brokerURL: wsUrl,
         connectHeaders: headers,
@@ -115,79 +151,36 @@ export const UnreadCountProvider = ({ children }) => {
           console.error("STOMP Error:", frame.headers["message"]);
         },
       });
-      // updateSubscriptions(client);
 
       client.activate();
-      setStompClient(client);
+      stompClientRef.current = client;
     };
 
     initializeStompClient();
 
     // 클린업: 컴포넌트 언마운트 시 클라이언트 비활성화
     return () => {
-      if (stompClient) {
-        console.log("1~~~", selectedRoomId);
-        console.log("2~~~", selectedRoomIdRef.current);
-
+      if (stompClientRef.current) {
         // 알림 구독 해제
         if (notificationsSubscriptionRef.current) {
           notificationsSubscriptionRef.current.unsubscribe();
-          console.log("알림 구독 해제");
           notificationsSubscriptionRef.current = null;
+          console.log("알림 구독 해제");
         }
 
         // WebSocket 클라이언트 비활성화
-        stompClient.deactivate();
-        setStompClient(null);
+        stompClientRef.current.deactivate();
+        stompClientRef.current = null;
         setIsConnected(false);
 
         // 상태 초기화
         setSelectedRoomId(null);
+        setRoomData([]);
         selectedRoomIdRef.current = null;
         console.log("WebSocket 클라이언트 비활성화 및 상태 초기화");
       }
     };
-  }, [uid]);
-
-  // 로그아웃 시 STOMP 클라이언트 비활성화
-  useEffect(() => {
-    if (!uid && stompClient) {
-      if (notificationsSubscriptionRef.current) {
-        notificationsSubscriptionRef.current.unsubscribe();
-        notificationsSubscriptionRef.current = null;
-        console.log("로그아웃 시 구독 해제2");
-      }
-      stompClient.deactivate();
-      setStompClient(null);
-      setIsConnected(false);
-      console.log("로그아웃 시 WebSocket 클라이언트 비활성화2");
-    }
-  }, [uid, stompClient]);
-
-  // const updateSubscriptions = useCallback(
-  //   (client) => {
-  //     if (selectedRoomId) {
-  //       if (subscriptionRef.current) {
-  //         subscriptionRef.current.unsubscribe();
-  //       }
-  //       // 새로운 구독 설정
-  //       subscriptionRef.current = client.subscribe(
-  //         `/topic/chat/${selectedRoomId}`,
-  //         (message) => {
-  //           try {
-  //             const response = JSON.parse(message.body);
-  //             setMessageList((prev) => [...prev, response]);
-  //             shouldScrollToBottomRef.current = true;
-  //           } catch (error) {
-  //             console.error("Failed to parse message:", error);
-  //           }
-  //         }
-  //       );
-  //       console.log("현재 구독", subscriptionRef.current);
-  //     }
-  //   },
-  //   [selectedRoomId, setMessageList]
-  // );
+  }, [uid, authorized]); // 의존성 배열: uid, authorized
 
   return (
     <UnreadCountContext.Provider

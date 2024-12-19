@@ -420,8 +420,20 @@
   }
 
   .profileDiv {
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 50px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .userName {
+    width: 40px;
+    font-size: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    word-break: break-all;
+    color: rgb(109, 109, 109);
   }
 
   .message-profile {
