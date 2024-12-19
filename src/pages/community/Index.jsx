@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "@/components/community/CommunitySidebar";
 import "@/pages/community/Community.scss";
-import CommunityCard2 from "@/components/community/CommunityCard2";
+import CommunityCard2 from "../../components/community/CommunityCard2";
 import useUserStore from "../../store/useUserStore";
 import axiosInstance from "@/services/axios";
 
