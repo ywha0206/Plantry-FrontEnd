@@ -4,6 +4,8 @@ import CommunitySidebar from "@/components/community/CommunitySidebar";
 import "@/pages/community/Community.scss";
 import useUserStore from "../../store/useUserStore";
 import axiosInstance from "../../services/axios";
+import DOMPurify from "dompurify";
+import "react-quill/dist/quill.snow.css";
 
 import {
   Heart,
@@ -21,8 +23,11 @@ import {
 
 function CommunityView() {
   const navigate = useNavigate();
-  const { boardType, boardId, postId } = useParams();
+  const { boardId, postId } = useParams();
+  console.log("boardId:", boardId);
+  console.log("postId:", postId);
   const user = useUserStore((state) => state.user);
+  const [boardName, setBoardName] = useState("");
 
   // 상태 관리
   const [post, setPost] = useState(null);
@@ -34,31 +39,51 @@ function CommunityView() {
   const [showCommentEmojiPicker, setShowCommentEmojiPicker] = useState(false);
   const [selectedEmoji, setSelectedEmoji] = useState(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [commentLikes, setCommentLikes] = useState({});
   const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [commentPage, setCommentPage] = useState(1);
   const [commentsPerPage] = useState(10);
   const [replyingTo, setReplyingTo] = useState(null);
+  const [content, setContent] = useState("");
 
   const currentComments = useMemo(() => {
-    const indexOfLastComment = currentPage * commentsPerPage;
+    const indexOfLastComment = commentPage * commentsPerPage;
     const indexOfFirstComment = indexOfLastComment - commentsPerPage;
     return comments.slice(indexOfFirstComment, indexOfLastComment);
-  }, [comments, currentPage, commentsPerPage]);
+  }, [comments, commentPage, commentsPerPage]);
 
   // totalPages도 useMemo로 계산
   const totalPages = useMemo(() => {
     return Math.ceil(comments.length / commentsPerPage);
   }, [comments.length, commentsPerPage]);
 
-  const paginate = (pageNumber) => {
+  const paginateComments = (pageNumber) => {
     if (pageNumber < 1 || pageNumber > totalPages) return;
-    setCurrentPage(pageNumber);
+    setCommentPage(pageNumber);
     const commentsSection = document.querySelector(".comments-section");
     if (commentsSection) {
       commentsSection.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  useEffect(() => {
+    const fetchBoardName = async () => {
+      try {
+        const response = await axiosInstance.get("/api/community/boards");
+        const boards = response.data;
+        const currentBoard = boards.find(
+          (board) => board.boardId === parseInt(boardId)
+        );
+        if (currentBoard) {
+          setBoardName(currentBoard.boardName);
+          localStorage.setItem(`boardName_${boardId}`, currentBoard.boardName);
+        }
+      } catch (error) {
+        console.error("게시판 정보 로드 실패:", error);
+      }
+    };
+
+    fetchBoardName();
+  }, [boardId]);
 
   const emojis = ["👍", "❤️", "😊", "🎉", "👏", "✨", "💫", "🌟"];
 
@@ -67,7 +92,10 @@ function CommunityView() {
       const response = await axiosInstance.get(
         `/api/community/view?postId=${postId}&boardId=${boardId}`
       );
+      console.log("API Response:", response.data); // API 응답 확인
       setPost(response.data);
+
+      setContent(response.data.content);
     } catch (error) {
       setError(error);
       console.error("게시글 조회 실패:", error);
@@ -219,7 +247,11 @@ function CommunityView() {
       loadData();
     }
   }, [boardId, postId]);
-
+  useEffect(() => {
+    if (post) {
+      console.log("Post State:", post); // post 상태가 업데이트될 때 확인
+    }
+  }, [post]);
   if (isLoading) return <div className="loading-spinner">로딩 중...</div>;
   if (error)
     return <div className="error-message">에러 발생: {error.message}</div>;
@@ -276,7 +308,12 @@ function CommunityView() {
         </div>
 
         <div className="post-content">
-          <p>{post?.content}</p>
+          <div
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(post?.content),
+            }}
+          />
+
           {post?.attachments?.length > 0 && (
             <div className="attachments">
               <h4>
@@ -298,26 +335,37 @@ function CommunityView() {
         <div className="view-footer">
           <div className="footer-left">
             <button
-              onClick={() => navigate(`/community/${boardType}/list`)}
+              onClick={() => navigate(`/community/${boardId}/list`)}
               className="list-button"
             >
               목록
             </button>
           </div>
-          {user?.id === post?.writerId && (
+          {user?.uid === post?.uid && (
             <div className="footer-right">
               <button
                 onClick={() =>
-                  navigate(`/community/${boardType}/modify/${postId}`)
+                  navigate(`/community/${boardId}/modify/${postId}`)
                 }
                 className="modify-button"
               >
                 수정
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (window.confirm("게시글을 삭제하시겠습니까?")) {
-                    // 삭제 API 연동
+                    try {
+                      await axiosInstance.delete(
+                        `api/community/posts/${boardId}/view/${postId}`
+                      );
+                      console.log("boardId:", boardId);
+                      console.log("postId:", postId);
+                      alert("게시글이 삭제되었습니다!");
+                      navigate(`/community/${boardId}/list`);
+                    } catch (error) {
+                      console.error("게시글 삭제를 실패:".error);
+                      alert("게시글 삭제를 실패했습니다.");
+                    }
                   }
                 }}
                 className="delete-button"
@@ -338,8 +386,9 @@ function CommunityView() {
               <textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="댓글을 입력하세요. (@로 멤버를 멘션할 수 있어요!)"
+                placeholder="댓글을 입력하세요."
                 required
+                style={{ resize: "none" }}
               />
 
               <button type="button" className="attach-button">
@@ -410,7 +459,10 @@ function CommunityView() {
                       <Heart size={16} />
                       좋아요 ({comment.likesCount})
                     </button>
-                    <button className="reply-button">
+                    <button
+                      onClick={() => setReplyingTo(comment.commentId)}
+                      className="reply-button"
+                    >
                       <MessageCircle size={16} />
                       답글
                     </button>
@@ -423,59 +475,145 @@ function CommunityView() {
                       </button>
                     )}
                   </div>
+
+                  {/* 대댓글 입력 폼 */}
+                  {replyingTo === comment.commentId && (
+                    <form
+                      onSubmit={(e) =>
+                        handleCommentSubmit(e, comment.commentId)
+                      }
+                      className="reply-form"
+                    >
+                      <textarea
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder="답글을 입력하세요."
+                        required
+                      />
+                      <button type="submit" className="send-button">
+                        <Send size={16} />
+                        답글 작성
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setReplyingTo(null)}
+                        className="cancel-button"
+                      >
+                        취소
+                      </button>
+                    </form>
+                  )}
+
+                  {/* 대댓글 재귀적으로 표시 */}
+                  {comment.children && comment.children.length > 0 && (
+                    <div className="replies">
+                      {comment.children.map((child) => (
+                        <div key={child.commentId} className="reply">
+                          <div className="comment-header">
+                            <div className="user-info">
+                              <div className="avatar">
+                                {getInitial(child.writer)}
+                              </div>
+                              <span className="user-name">
+                                {child.writer || "알 수 없음"}
+                              </span>
+                              <span className="comment-date">
+                                {formatDate(child.createdAt)}
+                              </span>
+                            </div>
+                          </div>
+                          <p>{child.content}</p>
+                          <div className="comment-actions">
+                            <button
+                              onClick={() =>
+                                handleCommentLike(
+                                  post.postId,
+                                  child.commentId,
+                                  user.id
+                                )
+                              }
+                              className={`reply-button ${
+                                child.likes > 0 ? "liked" : ""
+                              }`}
+                            >
+                              <Heart size={16} />
+                              좋아요 ({child.likesCount})
+                            </button>
+                            <button
+                              onClick={() => setReplyingTo(child.commentId)}
+                              className="reply-button"
+                            >
+                              <MessageCircle size={16} />
+                              답글
+                            </button>
+                            {user?.id === child.writerId && (
+                              <button
+                                onClick={() =>
+                                  handleCommentDelete(child.commentId)
+                                }
+                                className="delete-button"
+                              >
+                                삭제
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))
             )}
-          </div>
-          {/* 페이지네이션 UI */}
-          <div className="pagination">
-            <button
-              onClick={() => paginate(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="pagination-arrow"
-            >
-              <ChevronLeft size={20} />
-            </button>
+            {/* 페이지네이션 UI */}
+            <div className="pagination">
+              <button
+                onClick={() => paginateComments(commentPage - 1)}
+                disabled={commentPage === 1}
+                className="pagination-arrow"
+              >
+                <ChevronLeft size={20} />
+              </button>
 
-            {[...Array(totalPages)].map((_, index) => {
-              const pageNum = index + 1;
-              // 현재 페이지 주변의 페이지 번호만 표시
-              if (
-                pageNum === 1 ||
-                pageNum === totalPages ||
-                (pageNum >= currentPage - 2 && pageNum <= currentPage + 2)
-              ) {
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => paginate(pageNum)}
-                    className={`pagination-button ${
-                      currentPage === pageNum ? "active" : ""
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              } else if (
-                (pageNum === currentPage - 3 && currentPage > 4) ||
-                (pageNum === currentPage + 3 && currentPage < totalPages - 3)
-              ) {
-                return (
-                  <span key={pageNum} className="pagination-ellipsis">
-                    ...
-                  </span>
-                );
-              }
-              return null;
-            })}
+              {[...Array(totalPages)].map((_, index) => {
+                const pageNum = index + 1;
+                // 현재 페이지 주변의 페이지 번호만 표시
+                if (
+                  pageNum === 1 ||
+                  pageNum === totalPages ||
+                  (pageNum >= commentPage - 2 && pageNum <= commentPage + 2)
+                ) {
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => paginateComments(pageNum)}
+                      className={`pagination-button ${
+                        commentPage === pageNum ? "active" : ""
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                } else if (
+                  (pageNum === commentPage - 3 && commentPage > 4) ||
+                  (pageNum === commentPage + 3 && commentPage < totalPages - 3)
+                ) {
+                  return (
+                    <span key={pageNum} className="pagination-ellipsis">
+                      ...
+                    </span>
+                  );
+                }
+                return null;
+              })}
 
-            <button
-              onClick={() => paginate(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="pagination-arrow"
-            >
-              <ChevronRight size={20} />
-            </button>
+              <button
+                onClick={() => paginateComments(commentPage + 1)}
+                disabled={commentPage === totalPages}
+                className="pagination-arrow"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
