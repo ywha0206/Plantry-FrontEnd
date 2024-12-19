@@ -166,7 +166,7 @@ export default function Login() {
         </div>
           <div className='inp-box'>
 
-            <div className='bg-blue-100 rounded-xl px-[30px] py-[10px]'>
+            <div className='rounded-xl px-[6px] py-[10px]'>
               <p className='text-sm'>로그인으로 PLANTRY를 시작해 보세요!</p>
               <span className='text-xs'>PLANTRY로 필요한 업무를 더 수월하게 진행해봐요.</span>
             </div>
