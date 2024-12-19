@@ -2,7 +2,6 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import "@/pages/community/Community.scss";
 
-
 export default function CommunityCard2({ title, content, boardId }) {
   const navigate = useNavigate();
 
