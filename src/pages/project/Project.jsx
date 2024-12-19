@@ -8,7 +8,6 @@ import  DynamicTask  from "@/components/project/Task";
 import { useEffect, useRef, useState } from "react";
 import Sortable from "sortablejs";
 import axiosInstance from "@/services/axios.jsx";
-import useProjectData from "/src/util/useProjectData.jsx"
 import useProjectStore from "../../util/useProjectData";
 import useUserStore from "../../store/useUserStore";
 
@@ -124,6 +123,12 @@ export default function Project() {
     const updatedComment = { ...comment, taskId: taskId, user: loginUser, user_id: loginUser.uid };
     sendWebSocketMessage(updatedComment,`/app/project/${projectId}/comment/added`);
   };
+  const handleDeleteComment = (comment, taskId) =>{
+    console.log(comment);
+    const updatedComment = { ...comment, taskId: taskId, user: loginUser, user_id: loginUser.uid };
+    sendWebSocketMessage(updatedComment,`/app/project/${projectId}/comment/deleted`);
+  }
+
   const handleTaskUpsert = (task) => {
     const msg = task.id>0 ? 'updated' : 'added';
     const updatedTask = { ...task, projectId: projectId };
@@ -233,11 +238,12 @@ export default function Project() {
                   projectId={data.id}
                   columnIndex={index}
                   columnId={column.id}
-                  onDelete={() => handleDeleteTask(task, column.id)}
                   onAddSubTask={(newSubTask) =>handleAddSubTask(column.id, task.id, newSubTask)}
                   onClickSubTask={handleClickCheckbox}
                   onAddComment={handleAddComment}
-                  onSave={handleTaskUpsert}
+                  onDeleteComment={handleDeleteComment}
+                  onSaveTask={handleTaskUpsert}
+                  onDeleteTask={() => handleDeleteTask(task, column.id)}
                   coworkers={data.coworkers}
                 />
               
