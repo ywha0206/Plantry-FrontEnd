@@ -4,7 +4,13 @@ import CustomAlert from "../Alert";
 
 const profileURL = 'http://3.35.170.26:90/profileImg/';
 const MyProfile = (data) => {
-    const userData = data.userData;
+
+    if(data){
+        return (<>
+        <span>로딩 중입니다...</span>
+        </>);
+    }
+    const userData = data?.userData || { profileImgPath: '', profileMessage: '' };
     console.log("마이프로필 내부 "+JSON.stringify(userData))
     console.log("프로필 이미지 "+userData.profileImgPath)
     const [alertClass, setAlertClass] = useState("");
@@ -103,10 +109,10 @@ const MyProfile = (data) => {
     }
 
     useEffect(() => {
-            if (userData) {
-                setMessage(userData.profileMessage);
-            }
-        }, [userData]);
+        if (userData?.profileMessage) {
+            setMessage(userData?.profileMessage||'');
+        }
+    }, [userData]);
     
     return (
         <>
@@ -120,12 +126,11 @@ const MyProfile = (data) => {
             </div>
             <div className='upload-photo flex items-center'>
                 <div className='w-[200px] h-[200px] bg-white drop-shadow-lg flex items-center justify-center overflow-hidden rounded-full'>
-                    <img
+                <img
                     className='w-full h-full object-cover flex items-center between-center'
-                    src={`${profileURL}${userData.profileImgPath}`}
-                    // src={userData?.profileImgPath ? `${profileURL}${userData.profileImgPath}` : '/images/default-profile.png'}
+                    src={`${profileURL}${userData?.profileImgPath || 'default-profile.png'}`}
                     alt="프로필 이미지" 
-                    />
+                />
                 </div>
                 <div className='ml-[50px] flex flex-col w-[500px]'>
                     <span className='text-xs bg-white relative top-2 text-center w-[80px] text-gray-500 ml-10'>프로필 메세지</span>
