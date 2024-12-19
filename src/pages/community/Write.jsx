@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "@/pages/community/Community.scss";
 import CommunitySidebar from "@/components/community/CommunitySidebar";
 import useUserStore from "../../store/useUserStore";
-import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import "react-quill/dist/quill.snow.css"; // Quill 스타일시트
+import ReactQuill from "react-quill";
+
 import { useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../../services/axios";
 import { useQuery } from "@tanstack/react-query";
@@ -17,17 +18,56 @@ function CommunityWrite() {
   const [files, setFiles] = useState([]);
   const [fileCount, setFileCount] = useState(0);
   const [isPinned, setIsPinned] = useState(false);
-  const [isCommentEnabled, setIsCommentEnabled] = useState(false);
-  const [commentOption, setCommentOption] = useState("모두");
   const [showModal, setShowModal] = useState(false);
   const [selectedBoardId, setSelectedBoardId] = useState("");
+  const [boardName, setBoardName] = useState("");
 
-  const handleModalOpen = () => setShowModal(true);
-  const handleModalClose = () => setShowModal(false);
+  const { data: boards } = useQuery({
+    queryKey: ["boards"],
+    queryFn: async () => {
+      const response = await axiosInstance.get(`/api/community/boards`);
+      return response.data;
+    },
+  });
+
+  useEffect(() => {
+    if (boards && boardId) {
+      const foundBoard = boards.find(
+        (board) => board.boardId === parseInt(boardId)
+      );
+      if (foundBoard) {
+        setBoardName(foundBoard.boardName);
+      }
+    }
+  }, [boards, boardId]);
+
+  // 유형 선택 시 boardName 업데이트
+  const handleBoardChange = (e) => {
+    const newBoardId = e.target.value;
+    setSelectedBoardId(newBoardId);
+
+    const foundBoard = boards.find(
+      (board) => board.boardId === parseInt(newBoardId)
+    );
+    if (foundBoard) {
+      setBoardName(foundBoard.boardName);
+    }
+  };
+
+  const handleModalOpen = () => {
+    console.log("모달 열기 버튼 클릭됨");
+    setShowModal(true);
+  };
+
+  const handleModalClose = () => {
+    console.log("모달 닫기 버튼 클릭됨");
+    setShowModal(false);
+  };
 
   const fetchBoards = async () => {
-    const response = await axiosInstance(`/api/community/write`);
-    console.log("데이터 " + JSON.stringify(response.data));
+    console.log("게시판 목록 데이터 요청 시작");
+    const response = await axiosInstance.get(`/api/community/boards`);
+    console.log("게시판 목록 데이터 응답:", response.data);
     return response.data;
   };
 
@@ -37,29 +77,34 @@ function CommunityWrite() {
   });
 
   if (isLoading) {
+    console.log("게시판 목록 로딩 중...");
     return <div>로딩 중...</div>;
   }
 
   if (isError) {
+    console.error("게시판 목록 로딩 중 에러 발생:", error.message);
     return <div>에러 발생: {error.message}</div>;
   }
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
+    console.log("선택된 파일들:", selectedFiles);
 
-    // 최대 두 개까지만 선택 가능
     if (selectedFiles.length > 2) {
       alert("파일은 최대 두 개까지만 첨부할 수 있습니다.");
+      console.warn("파일 선택 제한 초과: 2개 초과 파일 선택됨");
       return;
     }
 
     setFiles(selectedFiles);
     setFileCount(selectedFiles.length);
+    console.log("파일 상태 업데이트: ", selectedFiles);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("handleSubmit에서 boardId:", boardId);
+    console.log("handleSubmit 함수 호출됨");
+    console.log("선택된 boardId:", selectedBoardId);
 
     if (selectedBoardId) {
       const postData = {
@@ -67,73 +112,53 @@ function CommunityWrite() {
         title: title,
         content: content,
         files: files,
-        commentOption: isCommentEnabled ? commentOption : "댓글 비활성화",
         isPinned,
         fileCount: fileCount,
         favoritePost: false,
         isMandatory: isPinned,
-        writer: currentUser.username, 
+        writer: currentUser.username,
         uid: currentUser?.id,
       };
 
-      console.log("전송 데이터 " + JSON.stringify(postData));
+      console.log("전송할 데이터:", postData);
 
-   
-      const token = localStorage.getItem("token"); 
-      if (token) {
-        try {
-          const response = await axiosInstance.post(
-            `/api/community/write`,
-            postData,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`, 
-              },
-            }
-          );
-          console.log("작성 성공:", response.data);
-
-          alert("글 작성이 완료되었습니다!");
-          navigate(`/community/${selectedBoardId}/list`); 
-        } catch (error) {
-          console.error("작성 실패:", error);
-          alert("글 작성에 실패했습니다. 다시 시도해주세요.");
-        }
-      } else {
-        console.error("JWT 토큰이 없습니다.");
-        alert("로그인 후 다시 시도해주세요.");
+      try {
+        console.log("axios를 이용해 게시글 작성 요청 시작");
+        const response = await axiosInstance.post(
+          `/api/community/write`,
+          postData
+        );
+        console.log("작성 성공:", response.data);
+        alert("글 작성이 완료되었습니다!");
+        navigate(`/community/${boardId}/list`);
+      } catch (error) {
+        console.error("작성 실패:", error);
+        alert("글 작성에 실패했습니다. 다시 시도해주세요.");
       }
     } else {
-      console.error("Board ID is undefined, can't navigate");
+      console.error("Board ID가 설정되지 않았습니다.");
     }
   };
 
   return (
     <div id="community-container">
-
       <CommunitySidebar currentUser={currentUser} boardId={boardId} />
 
-
-      <div className="community-main">
-        <h2>{`${boardId} 작성`}</h2>
+      <div className="community-write">
+        <h2>{boardName ? `${boardName} 작성` : "게시판 작성"}</h2>
         <form onSubmit={handleSubmit}>
-         
           <div className="form-group">
             <label>유형</label>
             <div className="select-pinned-wrapper">
               <select
                 value={selectedBoardId}
-                onChange={(e) => {
-                  setSelectedBoardId(e.target.value);
-                  console.log("Updated selectedBoardId:", e.target.value); 
-                }}
+                onChange={handleBoardChange}
                 required
               >
                 <option value="" disabled>
                   게시판을 선택하세요
                 </option>
-                {data.map((board) => (
+                {boards.map((board) => (
                   <option key={board.boardId} value={board.boardId}>
                     {board.boardName}
                   </option>
@@ -143,7 +168,10 @@ function CommunityWrite() {
                 <input
                   type="checkbox"
                   checked={isPinned}
-                  onChange={(e) => setIsPinned(e.target.checked)}
+                  onChange={(e) => {
+                    setIsPinned(e.target.checked);
+                    console.log("필독 상태 변경:", e.target.checked);
+                  }}
                 />
                 <label>필독 등록</label>
                 <img
@@ -156,51 +184,21 @@ function CommunityWrite() {
             </div>
           </div>
 
-
-          {showModal && (
-            <div className="modal-overlay">
-              <div className="modal-content">
-                <h3>필독 표시</h3>
-                <p>
-                  지정한 기간 동안 게시판 서비스 메인화면에 노출시킬 수
-                  있습니다.
-                </p>
-                <div className="modal-form">
-                  <label htmlFor="datepicker">날짜 선택</label>
-                  <input
-                    type="date"
-                    id="datepicker"
-                    className="date-input"
-                    defaultValue={new Date().toISOString().split("T")[0]}
-                  />
-                  <span>일까지 노출 (최대 30일)</span>
-                </div>
-                <div className="modal-buttons">
-                  <button onClick={handleModalClose} className="cancel-button">
-                    취소
-                  </button>
-                  <button onClick={handleModalClose} className="confirm-button">
-                    확인
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-
           <div className="form-group">
             <label>제목</label>
             <input
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                console.log("제목 입력:", e.target.value);
+              }}
               placeholder="제목을 입력하세요."
               className="title-input"
               required
             />
           </div>
 
-          
           <div className="form-group">
             <div className="file-upload-wrapper">
               <label htmlFor="file-upload" className="file-upload-label">
@@ -221,59 +219,26 @@ function CommunityWrite() {
             </div>
           </div>
 
-         
           <div className="form-group">
             <label>내용</label>
-            <CKEditor
-              editor={ClassicEditor}
-              data={content}
-              onChange={(event, editor) => {
-                const data = editor.getData();
-                setContent(data);
+            <ReactQuill
+              value={content}
+              onChange={(value) => {
+                setContent(value);
+                console.log("내용 입력:", value);
               }}
             />
           </div>
 
-          {/* 댓글 설정 */}
-          <div className="form-group">
-            <label>
-              <input
-                type="checkbox"
-                checked={isCommentEnabled}
-                onChange={(e) => setIsCommentEnabled(e.target.checked)}
-              />
-              댓글 설정
-            </label>
-            {isCommentEnabled && (
-              <div className="radio-group">
-                <label>
-                  <input
-                    type="radio"
-                    name="commentOption"
-                    value="모두"
-                    checked={commentOption === "모두"}
-                    onChange={(e) => setCommentOption(e.target.value)}
-                  />
-                  모두
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="commentOption"
-                    value="작성자 및 관리자"
-                    checked={commentOption === "작성자 및 관리자"}
-                    onChange={(e) => setCommentOption(e.target.value)}
-                  />
-                  작성자 및 관리자
-                </label>
-              </div>
-            )}
-          </div>
-
-          {/* 버튼 그룹 */}
           <div className="button-group">
-            <button type="button" onClick={() => alert("취소했습니다!")}>
-              취소하기
+            <button
+              type="button"
+              onClick={() => {
+                console.log("취소 버튼 클릭");
+                navigate(-1);
+              }}
+            >
+              취소
             </button>
             <button type="submit">작성하기</button>
           </div>
