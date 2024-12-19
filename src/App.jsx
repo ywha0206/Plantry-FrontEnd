@@ -64,7 +64,7 @@ import QNAWrite from "./components/render/qnawrite";
 import ProductServicesWrite from "./components/render/productserviceswrite";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import ValidateLinkPage from "./pages/tmp";
-import AdminFAQ from "./pages/admindashboard/adminfaq"; // Admin FAQ 컴포넌트 추가
+import AdminFAQDashboard from "./pages/admindashboard/adminfaq";
 const MainIndexComponent = lazy(() => import("./components/render/main"));
 
 function App() {
