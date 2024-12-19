@@ -63,6 +63,7 @@ import QNAWrite from "./components/render/qnawrite";
 import ProductServicesWrite from "./components/render/productserviceswrite";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import ValidateLinkPage from "./pages/tmp";
+import AdminFAQ from "./pages/admindashboard/adminfaq"; // Admin FAQ 컴포넌트 추가
 const MainIndexComponent = lazy(() => import("./components/render/main"));
 
 function App() {
@@ -255,6 +256,8 @@ function App() {
             <Route path="attendance" element={<AdminAttendance />} />
             <Route path="outside" element={<AdminOutSide />} />
           </Route>
+
+          <Route path="/admindashboard/adminfaq" element={<AdminFAQ />} />
 
           {/* 커뮤니티 (게시판) */}
           <Route path="/community" element={<Main />}>
