@@ -26,6 +26,8 @@ export default function InviteModal_userSearch(props) {
     queryKey: ["get-allUsers"],
     queryFn: async () => {
       const response = await axiosInstance.get("/api/allUsers");
+      console.log("프로필이미지 어케?", response.data);
+
       return response.data;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes

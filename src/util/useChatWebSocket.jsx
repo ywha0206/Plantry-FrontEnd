@@ -79,7 +79,7 @@ const useChatWebSocket = ({
               setMessageList((prev) => [...prev, response]);
               shouldScrollToBottomRef.current = true;
               // 현재 채팅방에 있을 때만 markAsRead 호출
-              if (selectedRoomId === response.chatRoomId) {
+              if (selectedRoomId === response.roomId) {
                 markAsReadRef.current();
                 console.log("markAsRead 호출");
               }
