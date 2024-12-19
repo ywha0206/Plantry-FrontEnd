@@ -1,30 +1,42 @@
-import axios from "axios";
-import axiosInstance from '@/services/axios.jsx'
 import React, { useEffect, useState } from "react";
-import useUserStore from "../../store/useUserStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { 
+  X, 
+  FolderPlus, 
+  UserPlus, 
+  Trash2, 
+  Share2, 
+  Lock, 
+  ChevronDown 
+} from "lucide-react";
+import axiosInstance from '@/services/axios.jsx';
+import GetAddressModal from "../calendar/GetAddressModal";
+import useUserStore from "../../store/useUserStore";
 
-// 날짜 : 2024.11.27
-// 이름 : 하진희
-// 내용 : 드라이브 생성 
+const PERMISSIONS = {
+  READING: "읽기",
+  WRITING: "수정",
+  FULL: "모든"
+};
 
-
-
-export default function NewDrive({ order,isOpen, onClose }) {
-  const [authType, setAuthType] = useState("0"); // 기본값: '나만 사용'
+export default function NewDrive({ order, isOpen, onClose, user }) {
+  const [authType, setAuthType] = useState("0");
   const queryClient = useQueryClient();
-  const [formData, setFormData] = useState({  name: "",
+  const [formData, setFormData] = useState({
+    name: "",
     owner: "",
     description: "",
     order: order,
-    shareUsers : [],
-    isShared : 0,
+    sharedUsers: [],
+    isShared: 0,
     status: 1,
-    linkSharing: "0", // 허용안함
+    linkSharing: "0",
+    permissions: 7,
   });
-
-  console.log("order!!!",order);
-
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [currentEmail, setCurrentEmail] = useState("");
+  const [openAddress, setOpenAddress] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -33,226 +45,295 @@ export default function NewDrive({ order,isOpen, onClose }) {
 
   const handleRadioChange = (e) => {
     const value = e.target.value;
-    setAuthType(value); // 라디오 버튼 상태 업데이트
+    setAuthType(value);
     setFormData({ ...formData, isShared: value });
   };
 
-  // 컴포넌트가 로드될 때 owner에 currentUser 값을 설정
+  const handleAddEmail = () => {
+    if (currentEmail.trim() && !formData.sharedUsers.some((u) => u.email === currentEmail)) {
+      setFormData((prev) => ({
+        ...prev,
+        sharedUsers: [...prev.sharedUsers, { email: currentEmail }],
+      }));
+      setCurrentEmail("");
+    }
+  };
+
   useEffect(() => {
-    setFormData((prev) => ({
-      ...prev
+    // selectedUsers를 SharedUser 형식으로 변환
+    const sharedUsers = selectedUsers.map((u) => ({
+      id: u.id || null,
+      name: u.name || "",
+      email: u.email || "",
+      group: u.group || "",
+      uid: u.uid || "",
+      authority: u.authority || "",
+      permission: PERMISSIONS.READING, // 기본값: 읽기
+      profile: u.profile || "",
     }));
-  }, []);
+  
+    setFormData((prev) => ({
+      ...prev,
+      sharedUsers: sharedUsers,
+    }));
+  }, [selectedUsers]);
 
-   // 드라이브 마스터 설정 또는 업데이트
-   const handleSelectMaster = () => {
-    if (!user.uid.trim()) return; // 값이 없으면 설정하지 않음
-    setFormData({
-      ...formData,
-      driveMaster: user.uid, // 선택된 이름
-      masterEmail: user.email, // 예시 이메일 생성
+  useEffect(()=>{
+    console.log("selectedUserS!!!",selectedUsers);
+  },[selectedUsers])
+
+  const handleRemoveUser = (email) => {
+    setFormData((prev) => ({
+      ...prev,
+      sharedUsers: prev.sharedUsers.filter((u) => u.email !== email),
+    }));
+  };
+
+
+  const cancleSelectedUsersHandler = (e, user) => {
+    setSelectedUsers((prev) => {
+      return prev.filter((selectedUser) => selectedUser.id !== user.id);
     });
   };
 
-    // 드라이브 마스터 제거
-    const handleRemoveMaster = () => {
-      setFormData({
-        driveMaster: null,
-        masterEmail: null,
-      });
-    };
+  const { mutate, isLoading } = useMutation({
+    mutationFn: async (newDriveData) => {
+      const response = await axiosInstance.post("/api/drive/newDrive", newDriveData);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['driveList'] });
+      onClose();
+    },
+    onError: (error) => {
+      console.error("Error creating drive:", error);
+    },
+  });
 
-  // const handleAddSharedUser = () => {
-  //   if (!user.uid.trim() || formData.sharedUsers.length >= 3) return;
-  //   setFormData({
-  //     ...formData,
-  //     sharedUsers: [...formData.sharedUsers, user.uid],
-  //   });
-  // };
-
-  const handleRemoveSharedUser = (user) => {
-    setFormData({
-      ...formData,
-      sharedUsers: formData.sharedUsers.filter((u) => u !== user),
-    });
-  };
-
-    // Mutation 정의
-    const { mutate, isLoading, isError } = useMutation({
-      mutationFn: async (newDriveData) => {
-        const response = await axiosInstance.post("/api/drive/newDrive", newDriveData);
-        return response.data;
-      },
-      onSuccess: (data) => {
-        console.log("Drive created successfully:", data);
-        queryClient.invalidateQueries({ queryKey: ['driveList'] })
-        onClose();
-      }, 
-      onError: (error) => {
-        console.error("Error creating drive:", error);
-      },
-    });
-
-  const handleSubmit = async () => {
-      mutate(formData);
+  const handleSubmit = () => {
+    console.log("최종 제출 ",formData);
+    mutate(formData);
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 modal-custom-fixed shadow-[0 4px 6px rgba(0, 0, 0, 0.1)]">
-  <div className="bg-white rounded-lg shadow-lg max-w-2xl w-[600px] modal-custom-width">
-    <div className="flex justify-between mb-8 pt-10 px-12  rounded-t-lg">
-      <div></div>
-      <span className="text-2xl">드라이브 만들기</span>
-      <button
-        onClick={onClose}
-        className="text-xl float-right display-block font-bold text-gray-600 hover:text-gray-900"
-      >
-        X
-      </button>
-    </div>
-    <div className=" w-[90%]  px-[20px] py-[30px] bg-white rounded-[12px] text-center my-[20px] mx-auto">
-      <div className="flex gap-8 mb-4 justify-start items-left">
-        <span className="w-20">이름</span>
-        <div>
-          <input
-            className="h-10 w-[350px] border rounded-md p-2 text-xs"
-            placeholder="폴더 이름"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-          ></input>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="relative w-[600px] bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden transform transition-all duration-300 ease-in-out scale-100 opacity-100">
+        {/* Elegant Header */}
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 px-6 py-5 flex items-center justify-between border-b border-gray-100">
+          <div className="flex items-center gap-4">
+            <div className="bg-purple-100 p-3 rounded-full">
+              <FolderPlus className="text-purple-600" size={24} />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 tracking-tight">새 드라이브 생성</h2>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="text-gray-500 hover:text-gray-800 hover:rotate-90 transition-all duration-300 p-2"
+          >
+            <X size={28} strokeWidth={1.5} />
+          </button>
         </div>
-      </div>
-      <div className="flex gap-8 mb-4 justify-start items-center">
-        <span className="w-20">설명</span>
-        <div>
-          <input
-            className="h-10 w-[350px] border rounded-md p-2 text-xs"
-            placeholder="폴더 설명"
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-          ></input>
-        </div>
-      </div>
-      <div className="flex gap-8 mb-4 justify-start items-center">
-        <span className="w-20">공유 범위</span>
-        <div className="text-xs opacity-60 flex gap-4">
-          <label className="flex items-center gap-1">
-            <input
-              type="radio"
-              name="authType"
-              value="0"
-              checked={authType === "0"}
-              onChange={handleRadioChange}
-            />
-            나만 사용
-          </label>
-          <label className="flex items-center gap-1">
-            <input
-              type="radio"
-              name="authType"
-              value="1"
-              checked={authType === "1"}
-              onChange={handleRadioChange}
-            />
-            선택한 구성원
-          </label>
-          <label className="flex items-center gap-1">
-            <input
-              type="radio"
-              name="authType"
-              value="2"
-              checked={authType === "2"}
-              onChange={handleRadioChange}
-            />
-            전체 구성원
-          </label>
-        </div>
-      </div>
-      {/* 드라이브 마스터 및 공유 인원은 '나만 사용'이 아닐 때만 표시 */}
-      {authType !== "0" && (
-        <>
-          {/* <div className="flex gap-8 mb-8 justify-start items-start">
-            <span className="w-20">드라이브 마스터</span>
-            <div className="flex flex-col gap-4">
-              <div className="flex gap-2 justify-between">
+
+        {/* Content */}
+        <div className="p-8 space-y-6">
+          {/* Name Input with Elegant Design */}
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <FolderPlus size={16} className="text-purple-500" />
+              드라이브 이름
+            </label>
+            <div className="relative">
               <input
-                  value={currentUser}
-                  onChange={(e) => setCurrentUser(e.target.value)}
-                  className="h-10 w-[260px] border rounded-md p-2 text-xs"
-                  placeholder="구성원 또는 조직으로 검색"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="드라이브 이름을 입력해주세요"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-200 transition-all duration-300 text-gray-800 placeholder-gray-400"
+              />
+            </div>
+          </div>
+
+          {/* Description Input */}
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <Share2 size={16} className="text-indigo-500" />
+              설명
+            </label>
+            <input
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              placeholder="드라이브에 대한 간단한 설명을 추가해주세요"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-200 transition-all duration-300 text-gray-800 placeholder-gray-400"
+            />
+          </div>
+
+          {/* Sharing Options with Enhanced Design */}
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <Lock size={16} className="text-green-500" />
+              공유 설정
+            </label>
+            <div className="flex gap-4 bg-gray-50 p-2 rounded-xl">
+              <label className="flex-1 relative">
+                <input
+                  type="radio"
+                  value="0"
+                  checked={authType === "0"}
+                  onChange={handleRadioChange}
+                  className="absolute opacity-0 peer"
                 />
-                <button
-                  onClick={handleSelectMaster}
-                  className="border h-10 w-20 rounded-md px-3 text-xs text-gray-400 bg-gray-100"
-                >
-                  주소록
-                </button>
-              </div>
-              {/* {formData.driveMaster && (
-                <div className="masterArea flex gap-2">
-                  <img src="/images/document-folder-profile.png" alt="Profile" />
-                  <div className="flex flex-col justify-between">
-                    <p className="text-xs">{formData.driveMaster}</p>
-                    <p className="text-xs text-gray-400">{formData.masterEmail}</p>
+                <div className="text-center py-2 rounded-lg cursor-pointer transition-all duration-300 peer-checked:bg-white peer-checked:shadow-md peer-checked:text-purple-600">
+                  나만 사용
+                </div>
+              </label>
+              <label className="flex-1 relative">
+                <input
+                  type="radio"
+                  value="1"
+                  checked={authType === "1"}
+                  onChange={handleRadioChange}
+                  className="absolute opacity-0 peer"
+                />
+                <div className="text-center py-2 rounded-lg cursor-pointer transition-all duration-300 peer-checked:bg-white peer-checked:shadow-md peer-checked:text-purple-600">
+                  공유하기
+                </div>
+              </label>
+            </div>
+          </div>
+
+          {/* Sharing Content */}
+          {authType === "1" && (
+            <div className="space-y-4 animate-fade-in">
+              {user?.company ? (
+                <div className="space-y-4">
+                  <button
+                    onClick={() => setOpenAddress(true)}
+                    className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-600 py-3 rounded-xl hover:from-purple-100 hover:to-indigo-100 transition-all duration-300"
+                  >
+                    <UserPlus size={20} />
+                    조직 주소록에서 선택
+                  </button>
+
+                  {/* Selected Users List */}
+                  {selectedUsers?.length > 0 && (
+                    <div className="max-h-[250px] overflow-y-auto space-y-3">
+                      {selectedUsers?.map((u, index) => (
+                        <div 
+                          key={index} 
+                          className="flex items-center justify-between bg-gray-50 p-4 rounded-xl hover:bg-gray-100 transition-all duration-300"
+                        >
+                          <div className="flex items-center gap-4">
+                            <img
+                              src={u.profile || "/images/admin-profile.png"}
+                              alt="User Profile"
+                              className="w-12 h-12 rounded-full object-cover border-2 border-purple-100"
+                            />
+                            <div>
+                              <p className="font-semibold text-gray-800">{u.name || u.email}</p>
+                              <p className="text-sm text-gray-500">{u.email}</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => handleRemoveUser(u.email)}
+                            className="text-red-500 hover:text-red-700 hover:scale-110 transition-all"
+                          >
+                            <Trash2 size={20} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex gap-2">
+                    <div className="relative flex-grow">
+                      <input
+                        type="email"
+                        placeholder="공유할 이메일 주소 입력"
+                        value={currentEmail}
+                        onChange={(e) => setCurrentEmail(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-200 transition-all duration-300 pr-10"
+                      />
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <UserPlus size={20} className="text-gray-400" />
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleAddEmail}
+                      className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-purple-600 hover:to-indigo-700 transition-all duration-300"
+                    >
+                      추가
+                    </button>
                   </div>
-                  <div className="flex items-center">
-                    <select className="outline-none text-xs text-center text-gray-400">
-                      <option>읽기</option>
-                      <option>쓰기</option>
-                      <option selected>모든권한</option>
-                    </select>
-                  </div>
+
+                  {formData.sharedUsers?.length > 0 && (
+                    <div className="space-y-3 max-h-[200px] overflow-y-auto">
+                      {formData.sharedUsers?.map((u, index) => (
+                        <div 
+                          key={index} 
+                          className="flex items-center justify-between bg-gray-50 p-3 rounded-xl hover:bg-gray-100 transition-all duration-300"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="bg-purple-100 p-2 rounded-full">
+                              <UserPlus size={16} className="text-purple-600" />
+                            </div>
+                            <span className="text-gray-700 font-medium">{u.email}</span>
+                          </div>
+                          <button
+                            onClick={() => handleRemoveUser(u.email)}
+                            className="text-red-500 hover:text-red-700 hover:scale-110 transition-all"
+                          >
+                            <Trash2 size={20} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          </div> */}
-          <div className="flex gap-8 mb-8 justify-start items-start">
-            <span className="w-20">공유 인원</span>
-            <div className="flex flex-col gap-4">
-              <div className="flex gap-2">
-                <input
-                  className="h-10 w-[260px] border rounded-md p-2 text-xs"
-                  placeholder="구성원 또는 조직으로 검색"
-                ></input>
-                <button className="border h-10 w-20 rounded-md px-3 text-xs text-gray-400 bg-gray-100">
-                  주소록
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-8 mb-8 justify-start items-center">
-        <span className="w-20 ">링크 공유</span>
-        <div>
-          <select 
-              name="linkSharing"
-              value={formData.linkSharing}
-              onChange={handleInputChange}
-            className="h-10 w-[350px] border-none rounded-md p-2 text-xs outline-none text-center">
-            <option value="1">허용함</option>
-            <option value="0">허용안함</option>
-          </select>
+          )}
         </div>
+
+        {/* Footer Buttons */}
+        <div className="bg-gray-50 px-8 py-6 flex justify-end gap-4 border-t border-gray-100">
+          <button
+            onClick={onClose}
+            className="px-6 py-3 text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-all duration-300"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-700 text-white rounded-xl hover:from-purple-700 hover:to-indigo-800 transition-all duration-300 disabled:opacity-50 flex items-center gap-2"
+          >
+            {isLoading ? (
+              <>
+                <span className="animate-spin">◌</span>
+                생성 중...
+              </>
+            ) : (
+              '드라이브 만들기'
+            )}
+          </button>
+        </div>
+
+        
       </div>
-        </>
-      )}
-      
-      <div className="mb-8 flex justify-end gap-2 mr-[40px] bg-white">
-        <button
-          onClick={onClose}
-          className="bg-gray-100 w-20 h-8 rounded-md text-xs"
-        >
-          취소
-        </button>
-        <button className="bg-[#5d5ddd] white w-20 h-8 rounded-md text-xs" onClick={handleSubmit}>
-          만들기
-        </button>
-      </div>
+              {/* Address Modal */}
+
+      <GetAddressModal
+          isOpen={openAddress}
+          onClose={() => setOpenAddress(false)}
+          selectedUsers={selectedUsers}
+          setSelectedUsers={setSelectedUsers}
+          cancleSelectedUsersHandler={cancleSelectedUsersHandler}
+        />
     </div>
-  </div>
-</div>
   );
 }

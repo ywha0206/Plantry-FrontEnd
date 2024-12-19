@@ -21,8 +21,23 @@ import { useMutation } from "@tanstack/react-query";
 import useUserStore from "../../store/useUserStore";
 import { UnreadCountContext } from "../../components/message/UnreadCountContext";
 import { debounce } from "lodash";
+import InviteModal_chatRoomName2 from "../../components/message/InviteModal_chatRoomName2";
+import CustomAlert from "../../components/Alert";
 
 export default function Message() {
+  const {
+    unreadCounts,
+    setUnreadCounts,
+    lastMessages,
+    setLastMessages,
+    lastTimeStamp,
+    setLastTimeStamp,
+    selectedRoomId,
+    setSelectedRoomId,
+    roomData,
+    setRoomData,
+  } = useContext(UnreadCountContext);
+
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [profile, setProfile] = useState(false);
@@ -31,9 +46,12 @@ export default function Message() {
   const [moreFn, setMoreFn] = useState(false);
   const [file, setFile] = useState(false);
   const [fileInfos, setFileInfos] = useState([]);
-  const [roomData, setRoomData] = useState([]);
   const [roomInfo, setRoomInfo] = useState({});
   const [messageList, setMessageList] = useState([]);
+  const [mode, setMode] = useState("");
+  const [changeRoomName, setChangeRoomName] = useState(false);
+  const [roomName, setRoomName] = useState("");
+  const [isRoomNameAlertOpen, setIsRoomNameAlertOpen] = useState(false);
 
   const uid = useUserStore((state) => state.user.uid);
 
@@ -41,13 +59,21 @@ export default function Message() {
   const profileRef = useRef();
   const inviteRef = useRef();
   const showMoreRef = useRef();
+  const chatRoomNameRef = useRef();
+  const chatRoomNameRef2 = useRef();
 
   const openHandler = () => {
     setIsOpen(true);
+    setMode("create");
+  };
+  const openHandler2 = () => {
+    setIsOpen(true);
+    setMode("invite");
   };
   const closeHandler = () => {
     setIsOpen(false);
     setOption(2);
+    setMode("");
   };
   const profileHandler = () => {
     setProfile(!profile);
@@ -63,20 +89,16 @@ export default function Message() {
     }
   };
 
-  const propsObject = {
-    isOpen,
-    closeHandler,
-    option,
-    optionHandler,
-    inviteRef,
-  };
-
   const searchHandler = () => {
     setSearch(!search);
   };
 
   const moreFnHandler = () => {
     setMoreFn(!moreFn);
+  };
+
+  const changeRoomNameHandler = () => {
+    setChangeRoomName(!changeRoomName);
   };
 
   const fileHandler = (e) => {
@@ -161,13 +183,21 @@ export default function Message() {
       const newFavoriteStatus = room.chatRoomFavorite === 0 ? 1 : 0;
 
       const jsonData = {
-        id: room.id,
-        chatRoomFavorite: newFavoriteStatus,
+        userId: uid,
+        chatRoomId: room.id,
+        isFrequent: newFavoriteStatus,
       };
       try {
         await axiosInstance
           .patch("/api/message/frequentRoom", jsonData)
-          .then((resp) => console.log(resp.data));
+          .then((resp) => {
+            if (resp.data === "failure" && newFavoriteStatus === 1) {
+              alert("즐겨찾기 등록 중 오류가 발생했습니다.");
+            } else if (resp.data === "failure" && newFavoriteStatus === 0) {
+              alert("즐겨찾기 해제 중 오류가 발생했습니다.");
+            }
+            console.log(resp.data);
+          });
 
         setRoomData((prevRooms) =>
           prevRooms.map((r) =>
@@ -208,7 +238,7 @@ export default function Message() {
 
               return {
                 ...room,
-                unreadCount: unreadResponse.data.count,
+                unreadCount: unreadResponse.data.count || 0,
                 lastMessage: unreadResponse.data.content,
                 lastTimeStamp: unreadResponse.data.timeStamp,
               };
@@ -242,9 +272,18 @@ export default function Message() {
 
   useEffect(() => {
     const roomId = localStorage.getItem("roomId");
-    if (!roomId) return;
+    if (!roomId) {
+      return;
+    }
     setSelectedRoomId(roomId);
   }, []);
+
+  const [roomNameModal, setRoomNameModal] = useState(false);
+
+  const roomNameHandler = () => {
+    setRoomNameModal(!roomNameModal);
+  };
+  console.log("uid!!!!! : ", uid);
 
   //==========================================▼웹소켓 연결과 채팅 전송===================================================
 
@@ -264,18 +303,24 @@ export default function Message() {
   const systemMessageRef = useRef(null);
   const scrollToSystemRef = useRef(false);
 
-  const {
-    unreadCounts,
-    setUnreadCounts,
-    lastMessages,
-    setLastMessages,
-    lastTimeStamp,
-    setLastTimeStamp,
+  const propsObject = {
+    isOpen,
+    closeHandler,
+    option,
+    optionHandler,
+    inviteRef,
+    mode,
+    setMode,
+    uid,
     selectedRoomId,
-    setSelectedRoomId,
-  } = useContext(UnreadCountContext);
+    roomNameHandler,
+    roomNameModal,
+    chatRoomNameRef,
+  };
 
   useEffect(() => {
+    console.log("Updated unreadCounts:", unreadCounts);
+
     setRoomData((prevRoomData) =>
       prevRoomData.map((room) => ({
         ...room,
@@ -351,7 +396,7 @@ export default function Message() {
   };
 
   // 사용자가 채팅방을 읽었다고 표시
-  const markAsRead = async () => {
+  const markAsRead = useCallback(async () => {
     if (!selectedRoomId || !uid) return;
     try {
       const data = {
@@ -364,10 +409,11 @@ export default function Message() {
           room.id === selectedRoomId ? { ...room, unreadCount: 0 } : room
         )
       );
+      console.log("마크야 실행되었니?");
     } catch (error) {
       console.error("읽음 상태 업데이트 실패:", error);
     }
-  };
+  });
 
   const {
     stompClient,
@@ -388,9 +434,15 @@ export default function Message() {
   });
 
   const [members, setMembers] = useState();
+  const isFirstRender = useRef(true);
 
   // 초기 로드 및 채팅방 변경 시 메시지 로드
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     if (selectedRoomId) {
       console.log("Selected Room ID changed:", selectedRoomId);
       // 메시지 목록 초기화
@@ -576,6 +628,7 @@ export default function Message() {
   }, [messageList]);
 
   const processedMessages = processMessages(messageList, uid);
+  console.log("roomdata : ", roomData);
 
   //================================================================================================
 
@@ -748,21 +801,54 @@ export default function Message() {
                   onClick={searchHandler}
                 />
               )}
-
-              {moreFn == true ? (
-                <ShowMoreModal
-                  moreFnHandler={moreFnHandler}
-                  showMoreRef={showMoreRef}
-                  uid={uid}
+              {changeRoomName && (
+                <InviteModal_chatRoomName2
+                  chatRoomNameRef2={chatRoomNameRef2}
+                  changeRoomNameHandler={changeRoomNameHandler}
                   selectedRoomId={selectedRoomId}
+                  roomName={roomName}
+                  setRoomName={setRoomName}
+                  roomInfo={roomInfo}
+                  setRoomInfo={setRoomInfo}
+                  setRoomData={setRoomData}
+                  setIsRoomNameAlertOpen={setIsRoomNameAlertOpen}
+                />
+              )}
+              {isRoomNameAlertOpen == true ? (
+                <CustomAlert
+                  type={"success"}
+                  message={"대화방 이름이 변경되었습니다."}
+                  isOpen={isRoomNameAlertOpen}
                 />
               ) : null}
-              <img
-                className="searchImg"
-                src="../images/More.png "
-                alt=""
-                onClick={moreFnHandler}
-              />
+              {moreFn == true ? (
+                <>
+                  <ShowMoreModal
+                    moreFnHandler={moreFnHandler}
+                    showMoreRef={showMoreRef}
+                    inviteRef={inviteRef}
+                    uid={uid}
+                    selectedRoomId={selectedRoomId}
+                    setSelectedRoomId={setSelectedRoomId}
+                    openHandler2={openHandler2}
+                    changeRoomNameHandler={changeRoomNameHandler}
+                    setRoomData={setRoomData}
+                  />
+                  <img
+                    className="searchImg"
+                    src="../images/More.png "
+                    alt=""
+                    onClick={moreFnHandler}
+                  />
+                </>
+              ) : (
+                <img
+                  className="searchImg"
+                  src="../images/More.png "
+                  alt=""
+                  onClick={moreFnHandler}
+                />
+              )}
             </div>
           </div>
           <div
@@ -776,6 +862,19 @@ export default function Message() {
             )}
             {messageList && messageList.length > 0
               ? processedMessages.map((message) => {
+                  // Sender가 "System"인 경우 별도로 렌더링
+                  if (message.sender === "System") {
+                    return (
+                      <div
+                        key={`system-${message.id}`}
+                        className="system-message"
+                      >
+                        {message.content}
+                      </div>
+                    );
+                  }
+
+                  // 기존의 status === 2인 경우 처리
                   if (message.status === 2) {
                     return (
                       <React.Fragment key={`fragment-${message.id}`}>
@@ -827,6 +926,8 @@ export default function Message() {
                       </React.Fragment>
                     );
                   }
+
+                  // 일반 메시지 렌더링
                   return (
                     <div
                       className={
@@ -874,6 +975,7 @@ export default function Message() {
                 })
               : null}
           </div>
+
           <div className="send-message">
             <div className="input_fileIcon">
               <input
@@ -943,6 +1045,9 @@ export default function Message() {
           <span>대화방을 생성하거나 선택하여 대화를 시작해보세요.</span>
         </div>
       )}
+      {roomNameModal ? (
+        <ShowMoreModal roomNameHandler={roomNameHandler} />
+      ) : null}
     </div>
   );
 }
@@ -976,11 +1081,15 @@ const processMessages = (messages, currentuid) => {
       isLast = !sameSender || minuteChanged;
     }
 
+    // className 설정: sender가 "System"이면 "system-message", 아니면 빈 문자열
+    const className = message.sender === "System" ? "system-message" : "";
+
     return {
       ...message,
       isFirst,
       isLast,
       isOwnMessage: message.sender === currentuid,
+      className, // 새로 추가된 속성
     };
   });
 };

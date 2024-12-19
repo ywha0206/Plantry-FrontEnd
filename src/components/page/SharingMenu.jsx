@@ -75,7 +75,7 @@ const SharingMenu = ({ sharingUsers, setSharingUsers }) => {
 
     <ul className="user-list">
       {sharingUsers.map((user, index) => (
-        <li key={index} className="user-item">
+        <li key={user.id+index} className="user-item">
           <img
             className="user-profile"
             src="/images/dumy-profile.png"

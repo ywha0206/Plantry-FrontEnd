@@ -25,8 +25,9 @@ export default function Find() {
               <p className='text-3xl font-extralight'>FIND YOUR</p>
               <p className='text-3xl ml-[60px] font-extralight'>ACCOUNT</p>
             </div>
-            <Link to="/user/login">
-                <img src="/images/Logo_font.png" alt="logo" className="w-[110px] h-[35px]" />
+            <Link to="/user/login" className="flex items-center ml-[20px]">
+              <img src='/images/plantry_logo.png' className='w-[45px] h-[45px]'></img>
+              <div className='flex items-center font-bold text-[24px] font-purple'>PLANTRY</div>
             </Link>
           </div>
           <div className='inp-box'>

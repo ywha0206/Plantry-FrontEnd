@@ -37,21 +37,22 @@ validateRules.paymentCardExpiration = (paymentCardExpiration) => {
 };
 
 const initState = {
-  uid:"",
-  pwd:"",
-  email:"",
-  firstName:"",
-  lastName:"",
+  uid: "",
+  pwd: "",
+  email: "",
+  firstName: "",
+  lastName: "",
   name: "",
-  hp:"",
-  country:"NotSelected",
-  addr1:"",
-  addr2:"",
-  grade:"",
-  company:"",
+  hp: "",
+  country: "NotSelected",
+  addr1: "",
+  addr2: "",
+  grade: "",
+  company: "",
   confirmPwd: "",
-  companyName:"",
-}
+  companyName: "",
+  role: "",
+};
 
 const cardinit = {
   paymentCardNo:"",
@@ -86,14 +87,14 @@ export default function Register() {
  
   // 각 페이지의 검증 상태를 관리
   const [validation1, setValidation1] = useState({
-    email: true,
-    uid: true,
-    pwd: true,
+    email: false,
+    uid: false,
+    pwd: false,
   });
   const [validation2, setValidation2] = useState({
-    firstName: true,
-    lastName: true,
-    hp: true,
+    firstName: false,
+    lastName: false,
+    hp: false,
   });
   //3페이지는 플랜별로 검증 상태 관리
   const [validationEnterprise, setValidationEnterprise] = useState({
@@ -121,12 +122,14 @@ export default function Register() {
     // 선택된 플랜에 따라 page3success 업데이트
     if (selected === 'Company') {
       setPage3success(validationCompany.company);
+      setUser((prevUser) => ({ ...prevUser, role:'WORKER' }));
     } else if (selected === 'Standard') {
       setPage3success(
         validationStandard.paymentCardNo &&
         validationStandard.paymentCardExpiration &&
         validationStandard.paymentCardCvc
       );
+      setUser((prevUser) => ({ ...prevUser, role:'USER' }));
     } else if (selected === 'Enterprise') {
       setPage3success(
         validationEnterprise.paymentCardNo &&
@@ -134,17 +137,19 @@ export default function Register() {
         validationEnterprise.paymentCardExpiration &&
         validationEnterprise.paymentCardCvc
       );
+      setUser((prevUser) => ({ ...prevUser, role:'COMPANY' }));
       console.log('dfsa', validationEnterprise)
     }else if(selected ==='Basic'){
       setPage3success(true); // 베이직 플랜은 바로 활성화
+      setUser((prevUser) => ({ ...prevUser, role:'USER' }));
     }else {
       setPage3success(false); // 아무 플랜도 선택하지 않은 경우 비활성화
     }
   }, [
     selected,
     validationCompany,
-    validationStandard,
     validationEnterprise,
+    validationStandard
   ]);
   
   const CardHandler = (e) => {
@@ -196,6 +201,7 @@ export default function Register() {
       setCount(count + 1);
       setStatusMessage({ message: ``, type: '' });
     }else{
+      console.log("페이지 1 유효성검사 "+JSON.stringify(validation1))
       setAlert({
         message: '입력된 정보를 다시 확인해주세요.',
         type: 'warning',
@@ -220,31 +226,11 @@ export default function Register() {
     }
   }
   
-  const ChangeHandler = (e) => {
+  const PaymentChangeHandler = (e) =>{
     const {name, value} = e.target;
-     
-    setUser({...user, [e.target.name]: e.target.value});
     setPayment({...payment, [e.target.name]: e.target.value});
 
-    if (name === 'hp') {
-      let formattedValue = value.replace(/[^0-9]/g, ''); // 숫자만 남김
-  
-      // 010으로 시작하는 경우: 3자리-4자리-4자리
-      if (formattedValue.startsWith('010') && formattedValue.length > 3) {
-        formattedValue = `${formattedValue.slice(0, 3)}-${formattedValue.slice(3, 7)}${formattedValue.length > 7 ? '-' + formattedValue.slice(7, 11) : ''}`;
-      }else if (formattedValue.startsWith('011') && formattedValue.length > 3) {
-        formattedValue = `${formattedValue.slice(0, 3)}-${formattedValue.slice(3, 6)}${formattedValue.length > 6 ? '-' + formattedValue.slice(6, 10) : ''}`;
-      }
-      if (
-        (formattedValue.startsWith('010') && formattedValue.length === 13) || // 010-XXXX-XXXX
-        (formattedValue.startsWith('011') && formattedValue.length === 12)   // 011-XXX-XXXX
-      ) {
-        debounce(debouncedValidateField(name, formattedValue),300);
-      }
-      setUser((prevUser) => ({ ...prevUser, hp: formattedValue }));
-      return; 
-    }
- 
+    
     // 만료일 필드일 경우 MM/YY 형식으로 자동 변환
     if (name === 'paymentCardExpiration') {
       let formattedValue = value.replace(/[^0-9]/g, ''); // 숫자만 남김
@@ -267,32 +253,11 @@ export default function Register() {
       return;
     }
 
-    if(name === 'confirmPwd'){
-      if (value !== user.pwd) {
-        setStatusMessage({ message: `비밀번호가 일치하지 않습니다.`, type: 'error' });
-        setValidation1((prev) => ({ ...prev, pwd: false }));
-      } else {
-        setStatusMessage({ message: `비밀번호가 일치합니다.`, type: 'success' });
-        setValidation1((prev) => ({ ...prev, pwd: true }));
-      }
-      return;
-    }
-
     if(name ==='paymentCardNick' || name === 'paymentCardCvc'){
       setPayment({...payment, [name]: value});
     }
-    if(name==='companyName'){
-      setValidationEnterprise((prev) => ({ ...prev, companyName: true}));
-      setValidationStandard((prev) => ({ ...prev, companyName: true}));
-    }
     
-    // 유효성 검사 규칙이 없는 필드면 메시지 없이 바로 통과
-    if (!validateRules[name]) {
-      setStatusMessage({ message: ``, type: '' });
-      setUser({...user, [e.target.name]: e.target.value});
-      return;
-    }
-
+    
     if(name==='paymentCardCvc'&&value.length >= 3){
       if( !validateRules[name]?.(value)){
         setStatusMessage({ message: `유효하지 않은 형식입니다.`, type: 'error' });
@@ -305,26 +270,82 @@ export default function Register() {
       }
       return;
     }
-   
-    if(!validateRules[name]?.(value)){
-      setStatusMessage({ message: `유효하지 않은 형식입니다.`, type: 'error' });
-      return;
-    }else{
-      setStatusMessage({ message: ``, type: '' });
-      setValidation2((prev) => ({ ...prev, [name]: true }));
-      setValidationEnterprise((prev) => ({ ...prev, [name]: true}));
-      setValidationStandard((prev) => ({ ...prev, [name]: true}));
-      setValidationCompany((prev) => ({ ...prev, [name]: true}));
-    }
-     
-
-    if(name === 'uid'){
-      debounce(debouncedValidateField(name, value),300);
-      return;
-    }
-    
 
   }
+
+    const ChangeHandler = (e) => {
+        const { name, value } = e.target;
+        console.log("체인지 핸들러 1", name, value);
+        console.log("체인지 핸들러 1-2",user);
+
+        // 공통적으로 업데이트
+        setUser((prevUser) => ({ ...prevUser, [name]: value }));
+
+        if (name === "hp") {
+            let formattedValue = value.replace(/[^0-9]/g, ""); // 숫자만 남김
+
+            // 010으로 시작하는 경우: 3자리-4자리-4자리
+            if (formattedValue.startsWith("010") && formattedValue.length > 3) {
+                formattedValue = `${formattedValue.slice(0, 3)}-${formattedValue.slice(3, 7)}${
+                    formattedValue.length > 7 ? "-" + formattedValue.slice(7, 11) : ""
+                }`;
+            } else if (formattedValue.startsWith("011") && formattedValue.length > 3) {
+                formattedValue = `${formattedValue.slice(0, 3)}-${formattedValue.slice(3, 6)}${
+                    formattedValue.length > 6 ? "-" + formattedValue.slice(6, 10) : ""
+                }`;
+            }
+
+            // 유효성 검사
+            if (
+                (formattedValue.startsWith("010") && formattedValue.length === 13) || // 010-XXXX-XXXX
+                (formattedValue.startsWith("011") && formattedValue.length === 12) // 011-XXX-XXXX
+            ) {
+                debounce(() => debouncedValidateField(name, formattedValue), 300)();
+            }
+
+            setUser((prevUser) => ({ ...prevUser, hp: formattedValue }));
+            return;
+        }
+
+        if (name === "confirmPwd") {
+            if (value !== user.pwd) {
+                setStatusMessage({ message: `비밀번호가 일치하지 않습니다.`, type: "error" });
+                setValidation1((prev) => ({ ...prev, pwd: false }));
+            } else {
+                setStatusMessage({ message: `비밀번호가 일치합니다.`, type: "success" });
+                setValidation1((prev) => ({ ...prev, pwd: true }));
+            }
+            return;
+        }
+   
+        if(user.companyName !== null){
+          setValidationEnterprise((prev) => ({ ...prev, companyName : true }))
+        }
+
+        if (!validateRules[name]) {
+            // 유효성 검사 규칙이 없는 필드면 바로 통과
+            setStatusMessage({ message: ``, type: "" });
+            return;
+        }
+
+        if (!validateRules[name]?.(value)) {
+            setStatusMessage({ message: `유효하지 않은 형식입니다.`, type: "error" });
+            return;
+        } else {
+            setStatusMessage({ message: ``, type: "" });
+            // 검증 결과를 상태에 반영
+            if (["firstName", "lastName", "hp"].includes(name)) {
+                setValidation2((prev) => ({ ...prev, [name]: true }));
+            }
+        }
+
+        if(name === 'uid'){
+          debounce(() => debouncedValidateField(name, value), 300)();
+          return;
+        }
+
+        console.log("체인지 핸들러 2 유저", user); // 상태 확인
+    };
 
   function nameChange (field){
     if(field=='uid'){
@@ -339,33 +360,40 @@ export default function Register() {
   const debouncedValidateField = async (field, value) => {
     const changedName = nameChange(field);
     const data = { type: field, value: value };
-  
+
     try {
-      const response = await axios.post(
-        `${baseURL}/api/auth/validation`,
-        data,
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-      console.log(response.data);
-  
-      if (response.data === 'available') {
-        setStatusMessage({ message: ` 사용할 수 있는 ${changedName} 입니다.`, type: 'success' });
-        field === 'uid'
-          ? setValidation1((prev) => ({ ...prev, uid: true }))
-          : setValidation2((prev) => ({ ...prev, hp: true }));
-        return true;
-      } else {
-        setStatusMessage({ message: ` 이미 사용 중인 ${changedName} 입니다.`, type: 'error' });
-        field === 'uid'
-          ? setValidation1((prev) => ({ ...prev, uid: false }))
-          : setValidation2((prev) => ({ ...prev, hp: false }));
-        return false;
-      }
+        const response = await axios.post(
+            `${baseURL}/api/auth/validation`,
+            data,
+            { headers: { "Content-Type": "application/json" } }
+        );
+
+        if (response.data === "available") {
+            setStatusMessage({ message: ` 사용할 수 있는 ${changedName} 입니다.`, type: "success" });
+            if (field === "uid") {
+                setValidation1((prev) => ({ ...prev, uid: true }));
+            } else if (field === "hp") {
+                setValidation2((prev) => ({ ...prev, hp: true }));
+            }else{
+              setValidation1((prev) => ({ ...prev, email: true }));
+              return true;
+            }
+        } else {
+            setStatusMessage({ message: ` 이미 사용 중인 ${changedName} 입니다.`, type: "error" });
+            if (field === "uid") {
+                setValidation1((prev) => ({ ...prev, uid: false }));
+            } else if (field === "hp") {
+                setValidation2((prev) => ({ ...prev, hp: false }));
+            }else{
+              setValidation1((prev) => ({ ...prev, email: false }));
+              return false;
+            }
+        }
     } catch {
-      setStatusMessage({ message: `확인 중 서버 오류가 발생했습니다.`, type: 'error' });
-      return false;
+        setStatusMessage({ message: `확인 중 서버 오류가 발생했습니다.`, type: "error" });
+        return false;
     }
-  };
+};
 
   const handleEmailChange = async (e) => {
     const { name, value } = e.target;
@@ -484,7 +512,6 @@ export default function Register() {
     );
   };
 
-  
   const submitHandler = async (event) => {
     event.preventDefault();
     
@@ -497,6 +524,7 @@ export default function Register() {
       })
       return;
     }
+
     if(!page3success){
       setAlert({
         message: '입력된 정보를 다시 확인해주세요.',
@@ -532,7 +560,7 @@ export default function Register() {
           // navigate('/user/login'); // 성공 시 로그인 페이지로 이동
         } else if (resp.data === 'not found company') {
           setAlert({
-            message: '1올바른 회사코드를 입력해주십시오.',
+            message: '올바른 회사코드를 입력해주십시오.',
             type: 'error',
             isOpen: true,
             onClose: false,
@@ -598,8 +626,13 @@ export default function Register() {
             />
             <div className="flex justify-between items-start">
               <p className='text-3xl font-light'>REGISTER</p>
-              <Link to="/user/login">
-                <img src="/images/Logo_font.png" alt="logo" className="w-[110px] h-[35px]" />
+              <Link to="/user/login" className='flex items-center'>
+                {/* <img src="/images/logo_center(purple).png" alt="logo" className="w-[45px]" />
+                <span className="ml-2 text-2xl font-extrabold text-[#333366] hover:text-indigo-500 transition-colors duration-300">
+                  PLANTRY
+                </span> */}
+                <img src='/images/plantry_logo.png' className='w-[45px] h-[45px]'></img>
+                <div className='flex items-center font-bold text-[24px] font-purple'>PLANTRY</div>
               </Link>
             </div>
             <div className='flex justify-between mt-[30px]'>
@@ -717,7 +750,7 @@ export default function Register() {
                 className="signup-input-lg mt-10" ></input>
                 <div className='flex justify-between '>
                   <input type='text' placeholder='상세주소(선택)' name='addr2' value={user.addr2}
-                  onChange={(e) => setUser(prev => ({...prev, [e.target.name]: e.target.value}))}
+                  onChange={(e) => setUser(prev => ({...prev, "addr2": e.target.value}))}
                   className="signup-input-md mr-1 mt-10" ></input>
                   <select name="country" className="signup-input-md mt-10" onChange={ChangeHandler}>
                     <option name="country" value="NotSelected" selected>선택 안 함</option>
@@ -879,6 +912,21 @@ export default function Register() {
                       name='companyName' value={user.companyName} 
                       onChange={ChangeHandler}
                       className="signup-input-lg mt-10" ></input>
+                      <select name='cardCompany' 
+                      onChange={(event) => setPayment({ ...payment, cardCompany: event.target.value })} 
+                      className="w-full input-lg mt-10 h-[50px]">
+                          <option name='cardCompany' value="신한">신한</option>
+                          <option name='cardCompany' value="국민">국민</option>
+                          <option name='cardCompany' value="현대">현대</option>
+                          <option name='cardCompany' value="카카오뱅크">카카오뱅크</option>
+                          <option name='cardCompany' value="우리">우리</option>
+                          <option name='cardCompany' value="NH농협">NH농협</option>
+                          <option name='cardCompany' value="하나">하나</option>
+                          <option name='cardCompany' value="롯데">롯데</option>
+                          <option name='cardCompany' value="삼성">삼성</option>
+                          <option name='cardCompany' value="IBK기업은행">IBK기업은행</option>
+                          <option name='cardCompany' value="BC">BC</option>
+                      </select> 
                       <div className='signup-input-lg mt-10 flex items-center text-gray-500'>
                         <input type='text' placeholder='카드번호 입력' className="w-1/4 text-center ml-2" maxLength={4}
                         name='cardNum1' value={card.cardNum1} onChange={CardHandler}
@@ -895,13 +943,13 @@ export default function Register() {
                       </div>
                       <div className='flex justify-between mt-10'>
                         <input type='text' placeholder='카드 별명'
-                        name='paymentCardNick' value={payment.paymentCardNick} onChange={ChangeHandler}
+                        name='paymentCardNick' value={payment.paymentCardNick} onChange={PaymentChangeHandler}
                         className="card-inp1 mr-1 text-gray-600" ></input>
                         <input type='text' placeholder='MM/YY'
-                        name='paymentCardExpiration' value={payment.paymentCardExpiration} onChange={ChangeHandler}
+                        name='paymentCardExpiration' value={payment.paymentCardExpiration} onChange={PaymentChangeHandler}
                         className="card-inp2 mr-1 text-gray-600" maxLength={5} ></input>
                         <input type='text' placeholder='cvc'
-                        name='paymentCardCvc' value={payment.paymentCardCvc} onChange={ChangeHandler}
+                        name='paymentCardCvc' value={payment.paymentCardCvc} onChange={PaymentChangeHandler}
                         className="card-inp2 mr-1 text-gray-600 no-spin" maxLength={3}  ></input>
                       </div>
                     </>
@@ -910,6 +958,21 @@ export default function Register() {
                     selected === 'Standard' && 
                     <>
                     <p className='text-sm custom-mt-30'>결제 정보를 입력해주세요.</p>
+                    <select name='cardCompany' 
+                    onChange={(event) => setPayment({ ...payment, cardCompany: event.target.value })} 
+                    className="w-full input-lg mt-10 h-[50px]">
+                      <option name='cardCompany' value="신한">신한</option>
+                      <option name='cardCompany' value="국민">국민</option>
+                      <option name='cardCompany' value="현대">현대</option>
+                      <option name='cardCompany' value="카카오뱅크">카카오뱅크</option>
+                      <option name='cardCompany' value="우리">우리</option>
+                      <option name='cardCompany' value="NH농협">NH농협</option>
+                      <option name='cardCompany' value="하나">하나</option>
+                      <option name='cardCompany' value="롯데">롯데</option>
+                      <option name='cardCompany' value="삼성">삼성</option>
+                      <option name='cardCompany' value="IBK기업은행">IBK기업은행</option>
+                      <option name='cardCompany' value="BC">BC</option>
+                    </select>
                     <div className='signup-input-lg mt-10 flex items-center text-gray-500'>
                         <input type='text' placeholder='카드번호 입력' className="w-1/4 text-center ml-2" maxLength={4}
                         name='cardNum1' value={card.cardNum1} onChange={CardHandler}
@@ -926,13 +989,13 @@ export default function Register() {
                       </div>
                       <div className='flex justify-between mt-10'>
                         <input type='text' placeholder='카드 별명'
-                        name='paymentCardNick' value={payment.paymentCardNick} onChange={ChangeHandler}
+                        name='paymentCardNick' value={payment.paymentCardNick} onChange={PaymentChangeHandler}
                         className="card-inp1 mr-1 text-gray-600" ></input>
                         <input type='text' placeholder='MM/YY'
-                        name='paymentCardExpiration' value={payment.paymentCardExpiration} onChange={ChangeHandler}
+                        name='paymentCardExpiration' value={payment.paymentCardExpiration} onChange={PaymentChangeHandler}
                         className="card-inp2 mr-1 text-gray-600" maxLength={5} ></input>
                         <input type='text' placeholder='cvc'
-                        name='paymentCardCvc' value={payment.paymentCardCvc} onChange={ChangeHandler}
+                        name='paymentCardCvc' value={payment.paymentCardCvc} onChange={PaymentChangeHandler}
                         className="card-inp2 mr-1 text-gray-600" maxLength={3}  ></input>
                       </div>
                     </>

@@ -1,8 +1,7 @@
-
 import React, { useEffect, useState } from "react";
 import "@/pages/community/Community.scss";
 import { CustomSearch } from "@/components/Search";
-import CommunityCard from "@/components/community/CommunityCard";
+import communityCard2 from "@/components/community/communityCard2";
 
 export default function Community() {
   const [selectOption, setSelectOption] = useState(0);
@@ -196,18 +195,17 @@ export default function Community() {
 
       <div className="flex flex-col justify-evenly w-full">
         <div className="flex flex-row justify-evenly w-full">
-          <CommunityCard />
-          <CommunityCard />
-          <CommunityCard />
+          <communityCard2 />
+          <communityCard2 />
+          <communityCard2 />
         </div>
 
         <div className="flex flex-row justify-evenly w-full">
-          <CommunityCard />
-          <CommunityCard />
-          <CommunityCard />
+          <communityCard2 />
+          <communityCard2 />
+          <communityCard2 />
         </div>
       </div>
     </div>
   );
 }
-

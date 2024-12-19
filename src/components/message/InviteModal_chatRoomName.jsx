@@ -2,6 +2,7 @@ import { useState } from "react";
 import axiosInstance from "../../services/axios";
 import CustomAlert from "../Alert";
 import { useAuthStore } from "../../store/useAuthStore";
+import useOnClickOutSide from "./useOnClickOutSide";
 
 /* eslint-disable react/prop-types */
 export default function InviteModal_chatRoomName({
@@ -9,12 +10,15 @@ export default function InviteModal_chatRoomName({
   selectedUsers,
   selectedUserUids,
   closeHandler,
+  mode,
+  chatRoomNameRef,
 }) {
-  const selectedUsersName = selectedUsers.map((user) => user.name);
   const [roomName, setRoomName] = useState("");
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const decodeAccessToken = useAuthStore((state) => state.decodeAccessToken);
   const payload = decodeAccessToken();
+
+  useOnClickOutSide(chatRoomNameRef, roomNameHandler);
 
   const valueHandler = (e) => {
     e.preventDefault();
@@ -32,33 +36,43 @@ export default function InviteModal_chatRoomName({
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    const formdata = new FormData();
-    formdata.append("members", selectedUserUids);
-    formdata.append("leader", payload.sub);
-    if (roomName === "") {
-      formdata.append("chatRoomName", selectedUsersName);
-    } else {
-      formdata.append("chatRoomName", roomName);
-    }
-    for (let pair of formdata.entries()) {
-      console.log(pair[0] + ": " + pair[1]);
-    }
-    try {
-      await axiosInstance.post("/api/message/room", formdata, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      closeAlertHandler();
-      setTimeout(() => {
-        roomNameHandler();
-        closeHandler();
-      }, 1500);
-    } catch (error) {
-      console.error(error);
+    if (mode === "create") {
+      const formdata = new FormData();
+      formdata.append(
+        "members",
+        selectedUsers.map((user) => user.uid)
+      );
+      formdata.append("leader", payload.sub);
+      if (roomName === "") {
+        formdata.append(
+          "chatRoomName",
+          selectedUsers.map((user) => user.name)
+        );
+      } else {
+        formdata.append("chatRoomName", roomName);
+      }
+      for (let pair of formdata.entries()) {
+        console.log(pair[0] + ": " + pair[1]);
+      }
+      try {
+        await axiosInstance
+          .post("/api/message/room", formdata, {
+            headers: { "Content-Type": "multipart/form-data" },
+          })
+          .then((resp) => console.log(resp.data));
+        closeAlertHandler();
+        setTimeout(() => {
+          roomNameHandler();
+          closeHandler();
+        }, 1500);
+      } catch (error) {
+        console.error(error);
+      }
     }
   };
 
   return (
-    <div className="chatRoomName-Modal">
+    <div className="chatRoomName-Modal" ref={chatRoomNameRef}>
       <div className="chatRoom-container">
         <img
           src="/images/closeBtn.png"
@@ -70,13 +84,15 @@ export default function InviteModal_chatRoomName({
         <div className="chatRoomName">
           <input
             type="text"
-            placeholder={selectedUsersName}
+            placeholder={selectedUsers.map((user) => user.name)}
             autoFocus
             name="roomName"
             value={roomName}
             onChange={valueHandler}
           />
-          <span>미입력 시 구성원들의 이름으로 자동 지정됩니다.</span>
+          {mode === "create" && (
+            <span>미입력 시 구성원들의 이름으로 자동 지정됩니다.</span>
+          )}
         </div>
         <button className="submitBtn" onClick={submitHandler}>
           설정 완료
