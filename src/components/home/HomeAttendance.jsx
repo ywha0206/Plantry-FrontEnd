@@ -90,7 +90,7 @@ const HomeAttendance = () => {
             setAlert({message: `${resp.data} \n 퇴근완료! `,type: 'success',isOpen: true, onClose: false,})
           }catch(err){
             console.log("에러 "+JSON.stringify(err.response.data))
-            setAlert({message: `${err.response.data}`,type: 'warning',isOpen: true,onClose: false,})
+            setAlert({message:  JSON.stringify(err.response.data),type: 'warning',isOpen: true,onClose: false,})
           }
         }else{
           return;

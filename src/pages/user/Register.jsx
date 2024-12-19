@@ -59,6 +59,7 @@ const cardinit = {
   paymentCardNick:"",
   paymentCardExpiration:"",
   paymentCardCvc:"",
+  activeStatus:0,
 }
 // ===================================================================================
 export default function Register() {
@@ -87,14 +88,14 @@ export default function Register() {
  
   // 각 페이지의 검증 상태를 관리
   const [validation1, setValidation1] = useState({
-    email: false,
-    uid: false,
-    pwd: false,
+    email: true,
+    uid: true,
+    pwd: true,
   });
   const [validation2, setValidation2] = useState({
-    firstName: false,
-    lastName: false,
-    hp: false,
+    firstName: true,
+    lastName: true,
+    hp: true,
   });
   //3페이지는 플랜별로 검증 상태 관리
   const [validationEnterprise, setValidationEnterprise] = useState({
@@ -108,7 +109,14 @@ export default function Register() {
   const [validationCompany, setValidationCompany] = 
   useState({company: false})
 
-  
+  const handleCheckboxChange = (e) => {
+    const isChecked = e.target.checked; // 체크 여부 확인
+    setPayment((prev) => ({
+      ...prev,
+      activeStatus: isChecked ? 1 : 0, 
+    }));
+  };
+
   useEffect(() => {
     if(validation1.email && validation1.uid && validation1.pwd){
       setPage1success(true);
@@ -469,7 +477,7 @@ export default function Register() {
   const handlePlanSelection = (planName,value) => {
     setSelected(planName); // 선택된 플랜 이름 설정
     setUser((prevUser) => ({ ...prevUser, grade: value, company: '', companyName: ''}));
-    setPayment((prev)=>({ ...prev,  paymentCardNick: '', paymentCardNo: '', paymentCardExpiration: '',  paymentCardCvc:'' }))
+    setPayment((prev)=>({ ...prev,  paymentCardNick: '', paymentCardNo: '', paymentCardExpiration: '',  paymentCardCvc:'', activeStatus: 0, globalPayment: '' }))
     setCard((prev) => ({...prev, cardNum1: '', cardNum2: '', cardNum3: '', cardNum4: '',}));
     resetValidation(setValidationEnterprise, validationEnterprise);
     resetValidation(setValidationStandard, validationStandard);
@@ -514,6 +522,7 @@ export default function Register() {
 
   const submitHandler = async (event) => {
     event.preventDefault();
+    console.log('전송될 데이터:', JSON.stringify({ user, payment }));
     
     if(user.grade===null||user.grade ===''){
       setAlert({
@@ -534,7 +543,6 @@ export default function Register() {
       })
       return;
     }
-    console.log('전송될 데이터:', JSON.stringify({ user, payment }));
 
     try {
       const resp = await axios.post(
@@ -912,21 +920,31 @@ export default function Register() {
                       name='companyName' value={user.companyName} 
                       onChange={ChangeHandler}
                       className="signup-input-lg mt-10" ></input>
-                      <select name='cardCompany' 
-                      onChange={(event) => setPayment({ ...payment, cardCompany: event.target.value })} 
-                      className="w-full input-lg mt-10 h-[50px]">
-                          <option name='cardCompany' value="신한">신한</option>
-                          <option name='cardCompany' value="국민">국민</option>
-                          <option name='cardCompany' value="현대">현대</option>
-                          <option name='cardCompany' value="카카오뱅크">카카오뱅크</option>
-                          <option name='cardCompany' value="우리">우리</option>
-                          <option name='cardCompany' value="NH농협">NH농협</option>
-                          <option name='cardCompany' value="하나">하나</option>
-                          <option name='cardCompany' value="롯데">롯데</option>
-                          <option name='cardCompany' value="삼성">삼성</option>
-                          <option name='cardCompany' value="IBK기업은행">IBK기업은행</option>
-                          <option name='cardCompany' value="BC">BC</option>
-                      </select> 
+                      <div className='grid grid-cols-2 gap-2 mt-10'>
+                        <select name='cardCompany' 
+                        onChange={(event) => setPayment({ ...payment, cardCompany: event.target.value })} 
+                        className="w-full input-lg h-[50px]">
+                            <option name='cardCompany' value="신한">신한</option>
+                            <option name='cardCompany' value="국민">국민</option>
+                            <option name='cardCompany' value="현대">현대</option>
+                            <option name='cardCompany' value="카카오뱅크">카카오뱅크</option>
+                            <option name='cardCompany' value="우리">우리</option>
+                            <option name='cardCompany' value="NH농협">NH농협</option>
+                            <option name='cardCompany' value="하나">하나</option>
+                            <option name='cardCompany' value="롯데">롯데</option>
+                            <option name='cardCompany' value="삼성">삼성</option>
+                            <option name='cardCompany' value="IBK기업은행">IBK기업은행</option>
+                            <option name='cardCompany' value="BC">BC</option>
+                        </select> 
+                        <select className="input-lg" name="globalPayment" 
+                        onChange={(event) => setPayment({ ...payment, globalPayment: event.target.value })} 
+                        >
+                          <option defaultChecked value="0">해외겸용</option>
+                          <option name="globalPayment" value="1">MarsterCard</option>
+                          <option name="globalPayment" value="2">VISA</option>
+                          <option name="globalPayment" value="3">AmericanExpress</option>
+                        </select>
+                      </div>
                       <div className='signup-input-lg mt-10 flex items-center text-gray-500'>
                         <input type='text' placeholder='카드번호 입력' className="w-1/4 text-center ml-2" maxLength={4}
                         name='cardNum1' value={card.cardNum1} onChange={CardHandler}
@@ -952,27 +970,45 @@ export default function Register() {
                         name='paymentCardCvc' value={payment.paymentCardCvc} onChange={PaymentChangeHandler}
                         className="card-inp2 mr-1 text-gray-600 no-spin" maxLength={3}  ></input>
                       </div>
+                      <label className='flex items-center mt-10'>
+                        <input type="checkbox" name="activeStatus" onChange={handleCheckboxChange}/>
+                        <span className='text-sm ml-2'>자주 사용하는 카드로 등록하시겠습니까?</span>
+                      </label>
+                      {/* <label className='flex items-center'>
+                        <input type="checkbox" name="autoPayment"/>
+                        <span className='text-sm ml-2'>자동으로 결제하시겠습니까?</span>
+                      </label> */}
                     </>
                   }
                   {
                     selected === 'Standard' && 
                     <>
                     <p className='text-sm custom-mt-30'>결제 정보를 입력해주세요.</p>
-                    <select name='cardCompany' 
-                    onChange={(event) => setPayment({ ...payment, cardCompany: event.target.value })} 
-                    className="w-full input-lg mt-10 h-[50px]">
-                      <option name='cardCompany' value="신한">신한</option>
-                      <option name='cardCompany' value="국민">국민</option>
-                      <option name='cardCompany' value="현대">현대</option>
-                      <option name='cardCompany' value="카카오뱅크">카카오뱅크</option>
-                      <option name='cardCompany' value="우리">우리</option>
-                      <option name='cardCompany' value="NH농협">NH농협</option>
-                      <option name='cardCompany' value="하나">하나</option>
-                      <option name='cardCompany' value="롯데">롯데</option>
-                      <option name='cardCompany' value="삼성">삼성</option>
-                      <option name='cardCompany' value="IBK기업은행">IBK기업은행</option>
-                      <option name='cardCompany' value="BC">BC</option>
-                    </select>
+                    <div className='grid grid-cols-2 gap-2 mt-10'>
+                        <select name='cardCompany' 
+                        onChange={(event) => setPayment({ ...payment, cardCompany: event.target.value })} 
+                        className="w-full input-lg h-[50px]">
+                            <option name='cardCompany' value="신한">신한</option>
+                            <option name='cardCompany' value="국민">국민</option>
+                            <option name='cardCompany' value="현대">현대</option>
+                            <option name='cardCompany' value="카카오뱅크">카카오뱅크</option>
+                            <option name='cardCompany' value="우리">우리</option>
+                            <option name='cardCompany' value="NH농협">NH농협</option>
+                            <option name='cardCompany' value="하나">하나</option>
+                            <option name='cardCompany' value="롯데">롯데</option>
+                            <option name='cardCompany' value="삼성">삼성</option>
+                            <option name='cardCompany' value="IBK기업은행">IBK기업은행</option>
+                            <option name='cardCompany' value="BC">BC</option>
+                        </select> 
+                        <select className="input-lg" name="globalPayment" 
+                        onChange={(event) => setPayment({ ...payment, globalPayment: event.target.value })} 
+                        >
+                          <option defaultChecked value="0">해외겸용</option>
+                          <option name="globalPayment" value="1">MarsterCard</option>
+                          <option name="globalPayment" value="2">VISA</option>
+                          <option name="globalPayment" value="3">AmericanExpress</option>
+                        </select>
+                      </div>
                     <div className='signup-input-lg mt-10 flex items-center text-gray-500'>
                         <input type='text' placeholder='카드번호 입력' className="w-1/4 text-center ml-2" maxLength={4}
                         name='cardNum1' value={card.cardNum1} onChange={CardHandler}
@@ -998,6 +1034,10 @@ export default function Register() {
                         name='paymentCardCvc' value={payment.paymentCardCvc} onChange={PaymentChangeHandler}
                         className="card-inp2 mr-1 text-gray-600" maxLength={3}  ></input>
                       </div>
+                      <label className='flex items-center mt-10'>
+                        <input type="checkbox" name="activeStatus" onChange={handleCheckboxChange}/>
+                        <span className='text-sm ml-2'>자주 사용하는 카드로 등록하시겠습니까?</span>
+                      </label>
                     </>
                   }
                   {statusMessage.message && (

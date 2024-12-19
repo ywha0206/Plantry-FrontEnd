@@ -98,7 +98,7 @@ export default function Terms() {
               </label>
             </div>
           ))}
-          <div className="flex justify-between custom-mt-30">
+          <div className="flex justify-between mt-[30px]">
             <button
               className="btn-prev"
               onClick={() => navigate("/user/login")}

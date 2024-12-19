@@ -88,7 +88,7 @@ export default function MyMain() {
               </h3>
 
               <div className='speech-bubble border py-[20px] px-[40px] flex items-center'>
-                <span>{userData?.profileMessage||''}</span>
+                <span className={`${userData.profileMessage?'':'text-gray-500'}`}>{userData?.profileMessage||'프로필 메세지를 설정해 보세요!'}</span>
               </div>
             </div>
           </div>
