@@ -7,10 +7,23 @@ import { useParams } from "react-router-dom";
 import debounce from "lodash.debounce";
 import usePageSocket from "../../util/usePageSocket";
 import { useQuery } from "@tanstack/react-query";
+import Table from '@editorjs/table';
+import Header from '@editorjs/header';
+import Image from '@editorjs/image';
+// import TextColor from 'editorjs-text-color-plugin';
+import TextColor from "editorjs-color";
+import Warning from '@editorjs/warning';
+import Checklist from '@editorjs/checklist';
+import CodeTool from '@editorjs/code';
+import Delimiter from '@editorjs/delimiter';
+import RawTool from '@editorjs/raw';
+import AttachesTool from '@editorjs/attaches';
+import InlineCode from '@editorjs/inline-code';
+
 
 const EditorContainer = styled.div`
   width: 100%;
-  max-width: 1440px;
+  max-width: 1420px;
   padding: 20px;
 `;
 
@@ -21,9 +34,34 @@ const Editor = () => {
   const { pageId } = useParams();
   const userId = useUserStore((state) => state.user?.uid);
   const [editorData, setEditorData] = useState(null);
+  const [currentRole, setCurrentRole] = useState(null);
 
   const isReceivedData = useRef(false);
   const preventRecursiveSyncRef = useRef(false);
+
+  const {
+    data : usersData,
+    isLoading : isLoadingRole,
+    isError : isErrorRole
+  } = useQuery({
+    queryKey : ['page-user-role',pageId],
+    queryFn : async () => {
+      try {
+        const resp = await axiosInstance.get(`/api/page/role/${pageId}`)
+        return resp.data
+      } catch (err) {
+        return err;
+      }
+    },
+    enabled : !!pageId,
+  })
+
+  useEffect(()=>{
+    if((Array.isArray(usersData)&&usersData.length>0 && !isLoadingRole && !isErrorRole)){
+      const role = (usersData.filter((v)=>v.uid==userId)).map((v)=>v.role).toString();
+      setCurrentRole(role)
+    }
+  },[usersData])
 
   const fetchPageData = async (pageId) => {
     try {
@@ -39,6 +77,8 @@ const Editor = () => {
     queryKey: ['page-data', pageId],
     queryFn: () => fetchPageData(pageId),
     enabled: !!pageId,
+    refetchOnMount : false,
+    refetchOnWindowFocus : false
   });
 
   const saveDataDebounced = useCallback(
@@ -54,25 +94,133 @@ const Editor = () => {
   );
 
   useEffect(() => {
-    if (pageId && data) {
+    if (pageId && data && currentRole != null) {
+      
+
       editorInstance.current = new EditorJS({
         holder: "editorjs",
         data: JSON.parse(data.content) || { blocks: [] },
         autofocus: true,
+        readOnly : currentRole == '1',
         onReady: () => {
           console.log("Editor is ready!");
           updatePageId(pageId);
+        },
+        inlineToolbar:true,
+        tools: {
+          table: Table, // Table tool 추가
+          header: {
+            class: Header,
+            inlineToolbar: true,
+            config: {
+              placeholder: 'Enter a title', // 제목 입력 시 Placeholder 텍스트
+              levels: [1, 2, 3], // 사용자가 선택할 수 있는 제목의 수준 (H1, H2, H3)
+            },
+          },
+          checklist: {
+            class: Checklist,
+            inlineToolbar: true,
+          },
+          TextColor: {
+            class: TextColor, 
+            config: {
+              tag: "SPAN"
+            }
+          },
+          inlineCode: {
+            class: InlineCode,
+            shortcut: 'CMD+SHIFT+M',
+          },
+          delimiter: Delimiter,
+          attaches: {
+            class: AttachesTool,
+            config: {
+              uploader: {
+                // 이미지를 업로드할 때 호출되는 함수
+                uploadByFile: async (file) => {
+                  const formData = new FormData();
+                  formData.append('file', file);
+  
+                  // 서버로 이미지 파일 업로드
+                  try {
+                    const response = await axiosInstance.post(`/api/page/image/${pageId}`, formData, {
+                      headers: {
+                        'Content-Type': 'multipart/form-data',
+                      },
+                    });
+                    return {
+                      success: 1,
+                      file: {
+                        url: "http://3.35.170.26:90/pages/"+response.data, // 서버에서 반환한 이미지 URL
+                      },
+                    };
+                  } catch (error) {
+                    console.error('Image upload failed:', error);
+                    return {
+                      success: 0,
+                      message: 'Failed to upload image',
+                    };
+                  }
+                },
+              },
+            },
+          },
+          raw: RawTool,
+          code: CodeTool,
+          warning: {
+            class: Warning,
+            inlineToolbar: true,
+            shortcut: 'CMD+SHIFT+W',
+            config: {
+              titlePlaceholder: 'Title',
+              messagePlaceholder: 'Message',
+            },
+          },
+          image: {
+            class: Image,
+            inlineToolbar: true,
+            config: {
+              uploader: {
+                // 이미지를 업로드할 때 호출되는 함수
+                uploadByFile: async (file) => {
+                  const formData = new FormData();
+                  formData.append('file', file);
+  
+                  // 서버로 이미지 파일 업로드
+                  try {
+                    const response = await axiosInstance.post(`/api/page/image/${pageId}`, formData, {
+                      headers: {
+                        'Content-Type': 'multipart/form-data',
+                      },
+                    });
+                    return {
+                      success: 1,
+                      file: {
+                        url: "http://3.35.170.26:90/pages/"+response.data, // 서버에서 반환한 이미지 URL
+                      },
+                    };
+                  } catch (error) {
+                    console.error('Image upload failed:', error);
+                    return {
+                      success: 0,
+                      message: 'Failed to upload image',
+                    };
+                  }
+                },
+              },
+            },
+          },
         },
         onChange: async () => {
           if (preventRecursiveSyncRef.current) {
             preventRecursiveSyncRef.current = false;
             return;
           }
-
+          
           const updatedData = await editorInstance.current.save();
           setEditorData(updatedData);
           saveDataDebounced(updatedData);
-
+      
           if (isConnected) {
             sendWebSocketMessage(
               {
@@ -94,7 +242,7 @@ const Editor = () => {
         editorInstance.current = null;
       }
     };
-  }, [pageId, data, saveDataDebounced]);
+  }, [pageId, data, saveDataDebounced , currentRole]);
 
   useEffect(() => {
     if (receiveData && editorInstance.current) {
@@ -124,7 +272,7 @@ const Editor = () => {
 
   return (
     <EditorContainer>
-      <div id="editorjs"></div>
+      <div className="overflow-scroll max-h-[700px] scrollbar-none w-full p-[20px]" id="editorjs"></div>
     </EditorContainer>
   );
 };
