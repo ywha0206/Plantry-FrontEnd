@@ -12,6 +12,7 @@ export const ProjectColumn = ({
   count = 0,
   children,
   index,
+  coworkers=[],
   clearTasks,
   status = "basic",
   onDelete,
@@ -74,6 +75,7 @@ export const ProjectColumn = ({
           columnIndex={index}
           columnId={id}
           onSave={handleTaskUpsert}
+          coworkers={coworkers}
           mode="create"
         />
       ) : (
