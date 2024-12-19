@@ -154,8 +154,8 @@ export default function MyAttendance() {
         </article>
         <article className='attend-arti py-[30px] px-[50px]'>
           <h2>출퇴근현황</h2>
-          <div className='att-search mt-10 py-[13px] px-[30px]'>
-            <div className='flex justify-between items-end'>
+          <div className='att-search flex justify-between mt-10 py-[13px] px-[30px]'>
+            <div className='flex justify-between items-end w-4/6'>
               <div className='flex flex-col'>
                 <h2 className='text-gray-500 ml-10'>Search Filters</h2>
                 <div className='border flex justify-between rounded-lg h-[40px] w-[250px]'>
@@ -181,14 +181,14 @@ export default function MyAttendance() {
                   </div>
                 </div>
               </div>
-              <div className='flex items-end'>
-                <label className='flex items-center mr-[20px] text-sm'><input type="checkbox" className='mr-1'/>초과근무 포함</label>
-                <button onClick={searchHandler} 
-                className='bg-indigo-500 flex justify-around items-center h-[40px] rounded-lg w-[120px] px-5 text-white'>
-                  <span>검색</span>
-                  <img className='' src="/images/white-my-btn-arrow.png" alt="allow" />
-                </button>
-              </div>
+            </div>
+            <div className='flex items-end '>
+              {/* <label className='flex items-center mr-[20px] text-sm'><input type="checkbox" className='mr-1'/>초과근무 포함</label> */}
+              <button onClick={searchHandler} 
+              className='bg-indigo-500 flex justify-around items-center h-[40px] rounded-lg w-[120px] px-5 text-white'>
+                <span>검색</span>
+                <img className='' src="/images/white-my-btn-arrow.png" alt="allow" />
+              </button>
             </div>
           </div>
           <div className='att-graph mt-[20px] p-[10px]'>

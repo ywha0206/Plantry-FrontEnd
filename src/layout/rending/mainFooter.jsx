@@ -62,9 +62,9 @@ export default function MainFooter() {
 
       {/* 하단 카피라이트 */}
       <p className="text-center mt-12 text-gray-400 text-sm">
-        Copyright © 2024, Made with by 
+        Copyright © 2024, Made with by
         <span className="text-black font-medium"> Prantry Technologies </span>
-        Version 0.1.2-SNAPSHOT
+        Version 0.1.5-SNAPSHOT
       </p>
     </footer>
   );
