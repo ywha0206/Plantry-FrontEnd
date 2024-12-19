@@ -4,7 +4,58 @@ import axiosInstance from '@/services/axios.jsx';
 
 
 const useProjectData  = (projectId) => {
-    const [boardData, setBoardData] = useState(null);
+    const [subTasks, setSubTasks] = useState([{
+        id:"",
+        taskId:"",
+        isChecked:false,
+        name:""
+    }],)
+    const [comments, setComments] = useState([{
+        id:"",
+        userId:"",
+        writer:null,
+        taskId:"",
+        content:"",
+        rdate:"",
+    }],)
+    const [tasks, setTasks] = useState([{
+        id:"",
+        columnId:"",
+        title:"",
+        content:"",
+        priority:"",
+        status:"",
+        position:"",
+        duedate:"",
+        subTasks:subTasks||[],
+        comments:comments||[],
+        assign:[],
+    }]);
+    const [columns, setColumns] = useState([{
+        id:"",
+        projectId:"",
+        title:"",
+        color:"",
+        position:"",
+        tasks:tasks||[]
+    }]);
+    const [coworkers, setCoworkers] = useState([{
+        id:"",
+        isOwner:false,
+        canRead:false,
+        canAddTask:false,
+        canUpdateTask:false,
+        canDeleteTask:false,
+        canEditProject:false,
+    }]);
+    const [boardData, setBoardData] = useState({
+        id:1,
+        title:null,
+        type:"",
+        status:"",
+        columns:columns||[],
+        coworkers:coworkers||[],
+    });
     const [isConnected, setIsConnected] = useState(false); // WebSocket 연결 상태
     const [stompClient, setStompClient] = useState(null); // STOMP 클라이언트 인스턴스
 
@@ -41,10 +92,10 @@ const useProjectData  = (projectId) => {
             const client = new Client({
                 brokerURL: wsUrl,
                 connectHeaders: headers,
-                debug: (str) => console.log("WebSocket Debug Log:", str),
+                debug: (str) => console.log("Project Debug Log:", str),
                 reconnectDelay: 5000, // 5초마다 재연결 시도
                 onConnect: () => {
-                    console.log('WebSocket connected');
+                    console.log('Project connected');
                     setIsConnected(true);
 
                     client.subscribe(`/topic/project/${projectId}/update`, (message) => {
@@ -53,7 +104,7 @@ const useProjectData  = (projectId) => {
                     });
                 },
                 onStompError: (frame) => {
-                    console.error('STOMP Error:', frame.headers['message']);
+                    console.error('Project STOMP Error:', frame.headers['message']);
                 },
             });
 
@@ -77,121 +128,112 @@ const useProjectData  = (projectId) => {
                 body: JSON.stringify(message), // 전송할 메시지
             });
         } else {
-            console.error('WebSocket is not connected');
+            console.error('Project is not connected');
         }
     }, [isConnected, stompClient]);  // stompClient와 isConnected만 의존성 배열에 포함
 
 
-
-    // WebSocket 메시지 처리 함수
+    const updateState = (type, stateUpdater, payload) => {
+        stateUpdater((prev) => {
+            switch (type) {
+                case 'ADDED':
+                    return [...prev, payload];
+                case 'UPDATED':
+                    return prev.map((item) => (item.id === payload.id ? { ...item, ...payload } : item));
+                case 'DELETED':
+                    return prev.filter((item) => item.id !== payload.id);
+                default:
+                    return prev;
+            }
+        });
+    };
+    
     const handleBoardEvent = (eventData) => {
         if (!eventData || !eventData.type || !eventData.payload) {
             console.warn('Invalid event data received:', eventData);
             return;
         }
+    
         const { type, payload } = eventData;
     
         switch (type) {
-            case 'TASK_ADDED': {
-                console.log('TASK_ADDED');
-                setBoardData((prevData) => {
-                    const updatedColumns = prevData.columns.map((col) => {
-                        if (col.id !== payload.columnId) return col;
-            
-                        if (!col.tasks.some(task => task.id === payload.id)) {
-                            return { ...col, tasks: [...col.tasks, payload] };
-                        }
-                        return col;
-                    });
-            
-                    return { ...prevData, columns: updatedColumns };
-                });
+            case 'TASK_ADDED':
+                updateState('ADDED', setTasks, payload);
                 break;
-            }
-            case 'SUBTASK_ADDED': {
-                console.log('SUBTASK_ADDED')
-                setBoardData((prevData) => {
-                      const updatedColumns = prevData.columns.map((col) => {
-                        if (col.id !== payload.columnId) return col;
-                  
-                        return {
-                          ...col,
-                          tasks: col.tasks.map((task) => {
-                            if (task.id !== payload.taskId) return task;
-                  
-                            return {
-                              ...task,
-                              subTasks: [
-                                ...(task.subTasks||[]),
-                                { id: payload.id, isChecked: payload.isChecked, name: payload.name },
-                              ],
-                            };
-                          }),
-                        };
-                      });
-                  
-                      return { ...prevData, columns: updatedColumns };
-                    });
+            case 'TASK_UPDATED':
+                updateState('UPDATED', setTasks, payload);
                 break;
-            }
-    
-            case 'TASK_UPDATED': {
-                console.log('TASK_UPDATED')
-                setBoardData((prevData) => {
-                    const updatedColumns = prevData.columns.map((col) => {
-                        if (col.id !== payload.columnId) return col;
-    
-                        const updatedTasks = col.tasks.map((existingTask) =>
-                            existingTask.id === payload.id ? { ...existingTask, ...payload } : existingTask
-                        );
-                        return { ...col, tasks: updatedTasks };
-                    });
-    
-                    return { ...prevData, columns: updatedColumns };
-                });
+            case 'TASK_DELETED':
+                updateState('DELETED', setTasks, { id: payload.taskId });
                 break;
-            }
     
-            case 'TASK_DELETED': {
-                const { taskId, columnIndex } = payload;
-    
-                console.log('TASK_DELETED')
-                setBoardData((prevData) => {
-                    const updatedColumns = prevData.columns.map((col, idx) => {
-                        if (idx !== columnIndex) return col;
-    
-                        const filteredTasks = col.tasks.filter((task) => task.id !== taskId);
-                        return { ...col, tasks: filteredTasks };
-                    });
-    
-                    return { ...prevData, columns: updatedColumns };
-                });
+            case 'COLUMN_ADDED':
+                updateState('ADDED', setColumns, payload);
                 break;
-            }
-            case 'COLUMN_DELETED': {
-                setBoardData((prevData) => {
-                    const updatedColumns = prevData.columns.filter((col) => col.id !== payload);
-                    return { ...prevData, columns: updatedColumns };
-                  });
+            case 'COLUMN_UPDATED':
+                updateState('UPDATED', setColumns, payload);
                 break;
-            }
-            case 'SUBTASK_DELETED': {
-                const { taskId, columnIndex } = payload;
+            case 'COLUMN_DELETED':
+                updateState('DELETED', setColumns, { id: payload.columnId });
+                break;
     
-                console.log('TASK_DELETED')
-                setTask((prevTask) => ({
-                    ...prevTask,
-                    subTasks: prevTask.subTasks.filter((_, i) => i !== index),
-                  }));
-                setBoardData();
+            case 'SUBTASK_ADDED':
+                setTasks((prevTasks) =>
+                    prevTasks.map((task) =>
+                        task.id === payload.taskId
+                            ? {
+                                  ...task,
+                                  subTasks: [...(task.subTasks || []), payload],
+                              }
+                            : task
+                    )
+                );
                 break;
-            }
+            case 'SUBTASK_UPDATED':
+                setTasks((prevTasks) =>
+                    prevTasks.map((task) =>
+                        task.id === payload.taskId
+                            ? {
+                                  ...task,
+                                  subTasks: task.subTasks.map((subTask) =>
+                                      subTask.id === payload.id
+                                          ? { ...subTask, ...payload }
+                                          : subTask
+                                  ),
+                              }
+                            : task
+                    )
+                );
+                break;
+            case 'SUBTASK_DELETED':
+                setTasks((prevTasks) =>
+                    prevTasks.map((task) =>
+                        task.id === payload.taskId
+                            ? {
+                                  ...task,
+                                  subTasks: task.subTasks.filter(
+                                      (subTask) => subTask.id !== payload.id
+                                  ),
+                              }
+                            : task
+                    )
+                );
+                break;
+    
+            case 'COMMENT_ADDED':
+                updateState('ADDED', setComments, payload);
+                break;
+            case 'COMMENT_UPDATED':
+                updateState('UPDATED', setComments, payload);
+                break;
+            case 'COMMENT_DELETED':
+                updateState('DELETED', setComments, { id: payload.commentId });
+                break;
     
             default:
                 console.warn(`Unhandled event type: ${type}`);
         }
     };
-
 
     return {
         boardData, // 화면에 보여줄 데이터

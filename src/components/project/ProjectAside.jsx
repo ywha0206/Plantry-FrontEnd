@@ -65,7 +65,7 @@ function ProjectAside({setProjectId}) {
   };
 
   return (
-    <div className="flex flex-col max-w-full min-h-[100%] w-[270px] grow justify-between items-center p-2.5 bg-white rounded-3xl">
+    <div className="flex flex-col max-w-full min-h-[100%] w-[270px] grow justify-between items-center p-2.5 border rounded-3xl">
       {/* Header Section */}
       <section className="flex flex-col w-full min-h-[479px]">
         <h1 className="text-center text-black p-3">

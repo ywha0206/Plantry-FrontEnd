@@ -73,6 +73,7 @@ const getDateColor = (date) => {
 const DynamicTask = React.memo(
   ({
     projectId,
+    columnId,
     id,
     title,
     content,
@@ -81,10 +82,12 @@ const DynamicTask = React.memo(
     duedate,
     subTasks = [],
     comments = [],
-    associate=[],
+    assign=[],
+    coworkers=[],
     columnIndex,
-    columnId,
     onAddSubTask,
+    onClickSubTask,
+    onAddComment,
     onDelete,
     onSave,
   }) => {
@@ -94,7 +97,7 @@ const DynamicTask = React.memo(
     const [isEditing, setIsEditing] = useState(false);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const {sendWebSocketMessage} = useProjectData(projectId);
-
+    
     // 수정 상태 토글
     const handleEditToggle = () => {
       setIsEditing((prev) => !prev);
@@ -108,12 +111,19 @@ const DynamicTask = React.memo(
     };
 
     const getPriorityColor = () => {
-      if (priority < 2) return "#EC6240";
-      if (priority === 2) return "#F3AF3D";
-      if (priority > 4) return "#00000050";
-      return "#2A63F6";
-      
-    };
+      switch (priority) {
+        case "p0":
+        case "p1":
+          return "#EC6240";
+        case "p2":
+          return "#F3AF3D";
+        case "p3":
+        case "p4":
+          return "#2A63F6";
+        default:
+          return "#00000050";
+      };
+    }
     const statusStyles = {
       1: "circle-unchecked",
       2: "circle-checked-filled",
@@ -136,21 +146,9 @@ const DynamicTask = React.memo(
     const handleAddSubTask = () => {
       if (newSubTask.trim()) {
         onAddSubTask(newSubTask); // 상위로 SubTask 전달
-        const newId = uuidv4();
-
-        // 새로운 하위 목표 추가
-        setNowSubTasks([
-          ...(nowSubTasks||[]),
-          { id: newId, name: newSubTask, isChecked: false },
-        ]);
-        setNewSubTask(""); // 입력 초기화
-        setShowInput(false); // 입력창 닫기
       }
-    };
-
-    // 체크박스 상태 업데이트 함수
-    const handleCheckboxChange = (subTask) => {
-      sendWebSocketMessage(subTask, `/app/project/${projectId}/sub/updated`);
+      setNewSubTask(""); // 입력 초기화
+      setShowInput(false); // 입력창 닫기
     };
 
     const renderedSubTasks = useMemo(() => {
@@ -161,7 +159,7 @@ const DynamicTask = React.memo(
             checked={subTask.isChecked}
             type="checkbox"
             className="screen-reader"
-            onChange={() => handleCheckboxChange(subTask.id)}
+            onChange={() => onClickSubTask(subTask)}
             aria-checked={subTask.isChecked}
           />
           <label
@@ -185,6 +183,7 @@ const DynamicTask = React.memo(
           <DynamicTaskEditor
             mode="edit"
             columnId={columnId}
+            projectId={projectId}
             taskToEdit={{
               id,
               title,
@@ -194,8 +193,9 @@ const DynamicTask = React.memo(
               duedate,
               subTasks: [...nowSubTasks],
               comments,
-              associate,
+              assign,
             }}
+            coworkers={coworkers}
             columnIndex={columnIndex}
             onSave={(updatedTask) => {
               onSave(updatedTask,columnIndex);
@@ -219,20 +219,20 @@ const DynamicTask = React.memo(
                     <div
                       className="w-[20px]"
                       aria-label={`우선순위: ${
-                        priority === 0
+                        priority === "p0"
                           ? "매우 높음"
-                          : priority === 1
+                          : priority === "p1"
                           ? "높음"
-                          : priority === 2
+                          : priority === "p2"
                           ? "보통"
-                          : priority === 3
+                          : priority === "p3"
                           ? "낮음"
-                          : priority === 4
+                          : priority === "p4"
                           ? "매우 낮음"
                           : "지정되지 않음"
                       }`}
                     >
-                      <CustomSVG id={`p${priority}`} color={color} />
+                      <CustomSVG id={priority} color={color} />
                     </div>
                     <div className="text-sm">{title}</div>
                   </div>
@@ -309,16 +309,21 @@ const DynamicTask = React.memo(
                         작업자
                       <div className="relative flex items-center">
                         
-                  {(associate||[]).length>0 && (
-                        associate.map((asso, index) => (
-                          <img key={asso.id} src={asso.img||"/images/document-folder-profile.png"} alt={asso.name}
+                  {((assign || []).map(item => item.user)||[]).length>0 && (
+                        (assign || []).map(item => item.user).map((asso, index) => (
+                          <img key={asso.id} src={asso?.img||"/images/document-folder-profile.png"} alt={asso.name}
                             className="w-8 h-8 rounded-full border-2 border-white -ml-3 first:ml-0"
-                            style={{zIndex: associate.length - index,}}
+                            style={{zIndex: ((assign || []).map(item => item.user)).length - index,}}
                           />
                         ))
                       )||"정해지지 않음"}
                       </div>
                     </section>
+                    {Object.entries(assign).map(([key, value]) => (
+                      <div key={key}>
+                        {key}: {String(value)} {/* value가 boolean일 경우 문자열로 변환 */}
+                      </div>
+                    ))}
                   {/* 마감일 및 코멘트 */}
                   <section
                     className="flex flex-wrap gap-2 mt-1.5 text-sm text-gray-600/60"
@@ -362,7 +367,13 @@ const DynamicTask = React.memo(
                       </article>
                     ))}
                   </section>
-                  <form className="flex items-center justify-between mt-2 gap-2">
+                  <form className="flex items-center justify-between mt-2 gap-2"
+                    onSubmit={(e)=>{
+                      e.preventDefault();
+                      const formData = new FormData(e.target); // 폼 데이터 가져오기
+                      const data = Object.fromEntries(formData.entries()); // 객체로 변환
+                      onAddComment(data, id); // 데이터와 id 전달
+                      }}>
                     <section
                       className="flex items-center flex-1 gap-1.5 px-2.5 py-1 rounded-lg bg-gray-600/5 w-full"
                       aria-label="의견 작성하기"
@@ -372,6 +383,7 @@ const DynamicTask = React.memo(
                         placeholder="의견 작성하기"
                         className="bg-transparent outline-none text-sm"
                         aria-label="의견 입력란"
+                        name="content"
                       />
                     </section>
                     <button className="bg-gray-600/40 rounded-3xl p-[2px] pl-1 pb-1">
@@ -449,14 +461,14 @@ const DynamicTask = React.memo(
                       </div>
                     )}
 
-                    {associate||subTasks || duedate || comments ? (
+                    {assign||subTasks || duedate || comments ? (
                       <div className="flex flex-wrap gap-2 items-start pt-3 w-full text-xs leading-none">
-                        {(associate||[]).length>0 && (
+                        {((assign || []).map(item => item.user)).length>0 && (
                           <div className="relative flex items-center">
-                          {associate.map((asso, index) => (
+                          {(assign || []).map(item => item.user).map((asso, index) => (
                             <img key={asso.id} src={asso.img||"/images/document-folder-profile.png"} alt={asso.name}
                               className="w-6 h-6 rounded-full border-2 border-white -ml-2 first:ml-0"
-                              style={{zIndex: associate.length - index,}}
+                              style={{zIndex: ((assign || []).map(item => item.user)).length - index,}}
                             />
                           ))}
                         </div>
@@ -501,8 +513,6 @@ const DynamicTask = React.memo(
     );
   },
   (prevProps, nextProps) => {
-    // props 변경을 비교하여 리렌더링 여부 결정
-    // true를 반환하면 리렌더링을 건너뜀, false를 반환하면 리렌더링됨
     return (
       prevProps.title === nextProps.title &&
       prevProps.content === nextProps.content &&

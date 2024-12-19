@@ -9,8 +9,82 @@ import ReactDOM from 'react-dom';
 
 function PageOptionsModal({ page, onClose, onDelete }) {
   const [pageNo,setPageNo] = useState(0);
+  const queryClient = useQueryClient();
+  const [user , setUser] = useState(null);
+  const [role , setRole] = useState(null);
+  const [readOnly , setReadOnly] = useState([]);
+  const [roleState, setRoleState] = useState({});
 
+  const {
+    data : usersData,
+    isLoading : isLoadingRole,
+    isError : isErrorRole
+  } = useQuery({
+    queryKey : ['page-user-role',page.id],
+    queryFn : async () => {
+      try {
+        const resp = await axiosInstance.get(`/api/page/role/${page.id}`)
+        return resp.data
+      } catch (err) {
+        return err;
+      }
+    },
+    enabled : pageNo==1
+  })
 
+  useEffect(()=>{
+    if((Array.isArray(usersData)&&usersData.length>0 && !isLoadingRole && !isErrorRole)){
+      setUser(usersData)
+      setReadOnly(usersData.filter((c)=>c.role==1).map((v)=>v.uid))
+    }
+  },[usersData])
+
+  const patchRole = (e, user) => {
+    const newRole = e.target.value;
+
+    setRoleState((prev) => ({
+      ...prev,
+      [user.uid]: newRole,  
+    }));
+
+    if (newRole == 0) {
+      setReadOnly((prev) => prev.filter(uid => uid !== user.uid));
+    } else if (newRole == 1) {
+      setReadOnly((prev) => [...prev, user.uid]);
+    }
+  };
+
+  const patchRoleMutation = useMutation({
+    mutationFn : async () => {
+      try {
+        const resp = await axiosInstance.patch(`/api/page/role/${page.id}?readonly=${readOnly.toString()}`)
+        return resp.data
+      } catch (err) {
+        return err;
+      }
+    },
+    onSuccess : (data) => {
+      alert(data)
+      setPageNo(0);
+    },
+    onError : (err) => {
+
+    }
+  })
+
+  const patchRoleHandler = async () => {
+    try {
+      await patchRoleMutation.mutateAsync();
+    } catch(err) {
+      console.log(err)
+    }
+  }
+
+  useEffect(()=>{
+    if(Array.isArray(readOnly) && readOnly.length>0){
+      console.log(readOnly)
+    }
+  },[readOnly])
 
   return ReactDOM.createPortal(
     <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-[9999]">
@@ -43,12 +117,26 @@ function PageOptionsModal({ page, onClose, onDelete }) {
       }
       {pageNo==1 &&
       <div className="bg-white rounded-lg shadow-lg p-6 w-[300px]">
-         <h3 className="text-lg font-bold mb-4 text-center">{page.title}</h3>
-         <div>
-          <li>user1</li>
-          <li>user2</li>
-          <li>user3</li>
-         </div>
+        <h3 className="text-lg font-bold mb-4 text-center">{page.title}</h3>
+        <div className="flex flex-col gap-[15px]">
+          {(user && Array.isArray(user) && user.length>0) &&
+            user.map((v,i)=>{
+              return(
+                <div key={i} className="flex justify-between">
+                  <li>{v.uid}</li>
+                  <select value={roleState[v.uid] || v.role} onChange={(e)=>patchRole(e,v)} className="text-center border outline-none rounded-md text-[12px] w-[120px] h-[40px]">
+                    <option value={0}>모두허용</option>
+                    <option value={1}>읽기전용</option>
+                  </select>
+                </div>
+              )
+            })
+          }
+        </div>
+        <div className="mt-[30px] flex justify-end gap-[10px]">
+          <button onClick={patchRoleHandler} className="w-[60px] h-[40px] border">수정</button>
+          <button onClick={()=>setPageNo(0)} className="w-[60px] h-[40px] border">취소</button>
+        </div>
       </div>
       }
     </div>,
@@ -79,10 +167,20 @@ export default function PageAside() {
   useEffect(()=>{
     if(receiveUsers=='delete'){
       queryClient.invalidateQueries(['pageList'])
+      queryClient.invalidateQueries(['page-users'])
+      queryClient.invalidateQueries(['page-data'])
       navi("/page")
+      window.location.reload();
     }
     if(receiveUsers=='added'){
       queryClient.invalidateQueries(['pageList'])
+      queryClient.invalidateQueries(['page-users'])
+    }
+    if(receiveUsers=='readonly'){
+      queryClient.invalidateQueries(['page-user-role'])
+    }
+    if(receiveUsers=='all'){
+      queryClient.invalidateQueries(['page-user-role'])
     }
   },[receiveUsers])
 
@@ -115,7 +213,6 @@ export default function PageAside() {
     }
   }
 
-  // Fetching page list using useQuery
   const { data: pageList = [], isLoading, isFetching, isError } = useQuery({
     queryKey: ["pageList"],
     queryFn: async () => {
@@ -235,11 +332,13 @@ export default function PageAside() {
                   <img src="/images/pagesIcon.png" alt="" />
                   <p className="opacity-60 pt-1">{page.title}</p>
                 </Link>
+                {page.leader==userId &&
                 <img
                   onClick={() => openModalHandler(page)}
                   className="w-[16px] h-[16px] opacity-60 cursor-pointer hover:opacity-100"
                   src="/images/calendar-setting.png"
                 />
+                }
               </div>
             ))}
           </section>

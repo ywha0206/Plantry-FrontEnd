@@ -55,9 +55,11 @@ export default function InviteModal_chatRoomName({
         console.log(pair[0] + ": " + pair[1]);
       }
       try {
-        await axiosInstance.post("/api/message/room", formdata, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await axiosInstance
+          .post("/api/message/room", formdata, {
+            headers: { "Content-Type": "multipart/form-data" },
+          })
+          .then((resp) => console.log(resp.data));
         closeAlertHandler();
         setTimeout(() => {
           roomNameHandler();

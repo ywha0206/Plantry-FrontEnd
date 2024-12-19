@@ -6,10 +6,11 @@ import { AddProjectModal } from "@/components/project/_Modal";
 import { ProjectColumn } from "@/components/project/Column";
 import  DynamicTask  from "@/components/project/Task";
 import { useEffect, useRef, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
 import Sortable from "sortablejs";
 import axiosInstance from "@/services/axios.jsx";
 import useProjectData from "/src/util/useProjectData.jsx"
+import useProjectStore from "../../util/useProjectData";
+import useUserStore from "../../store/useUserStore";
 
 
 export default function Project() {
@@ -21,14 +22,11 @@ export default function Project() {
   const [isNewColumnAdded, setIsNewColumnAdded] = useState(false);
   const [isEditTitle, setIsEditTitle] = useState(false);
   const [projectId, setProjectId] = useState(1);
-  const {boardData, sendWebSocketMessage} = useProjectData(projectId);
+  const {boardData, sendWebSocketMessage} = useProjectStore(projectId);
   const columnsRef = useRef(null); 
+  const loginUser = useUserStore((state) => state.user)
 
-  const handleAddColumn = () => {
-    if (!isNewColumnAdded) {
-      setIsNewColumnAdded(true);
-    }
-  };
+  
   const handleEditTitle = () => {
   setIsEditTitle(!isEditTitle);
   };
@@ -116,30 +114,45 @@ export default function Project() {
       ),
     }));
   };
-
-  const handleTaskUpsert = (task) => {
-    try {
-      const msg = task.id>0 ? 'updated' : 'added';
-      console.log("task.id : " + task.id)
-      sendWebSocketMessage(task,`/app/project/${projectId}/task/${msg}`);
-    } catch (err) {
-      console.error(err);
+  const handleAddColumn = () => {
+    if (!isNewColumnAdded) {
+      setIsNewColumnAdded(true);
     }
+  };
+  const handleAddComment = (comment, taskId) => {
+    console.log(comment);
+    const updatedComment = { ...comment, taskId: taskId, user: loginUser, user_id: loginUser.uid };
+    sendWebSocketMessage(updatedComment,`/app/project/${projectId}/comment/added`);
+  };
+  const handleTaskUpsert = (task) => {
+    const msg = task.id>0 ? 'updated' : 'added';
+    const updatedTask = { ...task, projectId: projectId };
+    sendWebSocketMessage(updatedTask ,`/app/project/${projectId}/task/${msg}`);
   };
 
   const handleDeleteCol = (column) => {
     sendWebSocketMessage(column,`/app/project/${projectId}/column/deleted`);
   };
 
-  const handleDeleteTask = (task) => {
-    sendWebSocketMessage(task,`/app/project/${projectId}/task/deleted`);
+  const handleDeleteTask = (task, columnId) => {
+    const updatedTask = { ...task, projectId: projectId,columnId: columnId };
+    sendWebSocketMessage(updatedTask,`/app/project/${projectId}/task/deleted`);
   };
 
-  const handleAddSubTask = (subTask) => {
-    if (!subTask.name.trim()) return; // 빈 입력 방지
+  const handleAddSubTask = (columnId, taskId, newSubTask) => {
+    const subTask = {
+      isChecked : false,
+      name : newSubTask,
+      taskId: taskId,
+      columnId: columnId,
+      projectId: projectId,
+    }
     sendWebSocketMessage(subTask,`/app/project/${projectId}/sub/added`);
   };
-  
+  // 체크박스 상태 업데이트 함수
+  const handleClickCheckbox = (subTask) => {
+    sendWebSocketMessage(subTask, `/app/project/${projectId}/sub/updated`);
+  };
 
   return (
     <div id="project-container" className="flex min-h-full">
@@ -208,6 +221,7 @@ export default function Project() {
             key={column.id}
             {...column}
             index={index}
+            coworkers={data.coworkers}
             clearTasks={() => clearTasks(column.id)}
             onDelete={() => handleDeleteCol(column.id)}
             handleTaskUpsert={handleTaskUpsert}
@@ -216,11 +230,15 @@ export default function Project() {
                 <DynamicTask
                   key={task.id}
                   {...task}
+                  projectId={data.id}
                   columnIndex={index}
                   columnId={column.id}
-                  onDelete={() => handleDeleteTask(task.id,index)}
-                  onAddSubTask={(newSubTask) =>handleAddSubTask(index, task.id, newSubTask)}
+                  onDelete={() => handleDeleteTask(task, column.id)}
+                  onAddSubTask={(newSubTask) =>handleAddSubTask(column.id, task.id, newSubTask)}
+                  onClickSubTask={handleClickCheckbox}
+                  onAddComment={handleAddComment}
                   onSave={handleTaskUpsert}
+                  coworkers={data.coworkers}
                 />
               
             )}
