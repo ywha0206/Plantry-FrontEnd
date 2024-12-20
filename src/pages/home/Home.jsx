@@ -8,6 +8,7 @@ import HomeCalendar from '../../components/home/HomeCalendar';
 import HomeAttendance from '../../components/home/HomeAttendance';
 import HomeSchedule from '../../components/home/HomeSchedule';
 import HomeProject from '../../components/home/HomeProject';
+import HomeNotice from '../../components/home/HomeNotice';
 
 const profileURL = 'http://3.35.170.26:90/profileImg/';
 
@@ -75,30 +76,8 @@ export default function Home() {
           </article>
         </section>
         <section className='home-index-bot'>
-          <div className='home-bot border'>
-            <h2 className='text-2xl mb-10'>Notice</h2>
-            <div className='border rounded-lg flex flex-col py-2 px-5 mt-1'>
-              <div className='flex justify-between'>
-                <p>이번 달 대체공휴일 공지</p>
-                <span className='text-gray-400 font-extralight'>2024.11.18</span>
-              </div>
-              <p className='text-right'>전체공지</p>
-            </div>
-            <div className='border rounded-lg flex flex-col py-2 px-5 mt-1'>
-              <div className='flex justify-between'>
-                <p>이번 달 대체공휴일 공지</p>
-                <span className='text-gray-400 font-extralight'>2024.11.18</span>
-              </div>
-              <p className='text-right'>전체공지</p>
-            </div>
-            <div className='border rounded-lg flex flex-col py-2 px-5 mt-1'>
-              <div className='flex justify-between'>
-                <p>이번 달 대체공휴일 공지</p>
-                <span className='text-gray-400 font-extralight'>2024.11.18</span>
-              </div>
-              <p className='text-right'>전체공지</p>
-            </div>
-            <button className='btn-home float-right mt-[20px]'>전체보기<img className='ml-2' src="/images/home-my-btn-arrow.png" alt="allow" /></button>
+          <div className='home-bot border' >
+          <HomeNotice/>
           </div>
           <div className='home-bot border'>
             <HomeSchedule/>

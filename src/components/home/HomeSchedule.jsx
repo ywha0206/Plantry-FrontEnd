@@ -53,7 +53,7 @@ const HomeSchedule = () => {
                 <h2 className='text-2xl mb-1'>Schedule</h2>
                 <Link to={"/calendar"}className='flex justify-between items-center text-gray-600 border border-gray-400 rounded-lg px-3 h-[28px]'>
                     <span>일정 보기</span>
-                    <img className='ml-2 w-[20px] h-[20px] relative bottom-[1px]' src="/images/ArrowForward.png" alt="allow" />
+                    <img className='ml-2 w-[20px] h-[20px]' src="/images/ArrowForward.png" alt="allow" />
                 </Link>
             </div>
             {(scheduleLoading || nextLoading) ? (
