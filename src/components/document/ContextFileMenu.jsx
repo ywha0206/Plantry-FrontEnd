@@ -17,7 +17,9 @@ export default function ContextFileMenu({
     path,
     onDetailToggle,
     downloadHandler,
-    type
+    type,
+    parentId,
+    triggerAlert
 }) {
     const contextFileMenuRef = useRef(null);
     const renameModalRef = useRef(null); // RenameModal의 레퍼런스
@@ -174,17 +176,18 @@ export default function ContextFileMenu({
         try {
             // 실제 삭제 API 호출
            const response =  await axiosInstance.delete(`/api/drive/file/delete/${fileId}`,
-            { params: { path } } // 쿼리 매개변수로 path 전달
+            { params: { path, parentId } } // 쿼리 매개변수로 path 전달
            );
            if (response.status === 200) {
             queryClient.invalidateQueries(['folderContents']); // Replace with the relevant query key
-            alert('휴지통으로 이동  성공');
-          } else {
-            console.error('삭제 실패:', error);
-            alert('폴더 삭제에 실패했습니다. 다시 시도해주세요.');
-          }
+            triggerAlert('info','파일 삭제 성공','휴지통으로 이동  성공');
+
+          } 
         } catch (error) {
             console.error('폴더 삭제 중 오류 발생:', error);
+            const errorMessage = error.response?.data || '파일 업로드 중 오류가 발생했습니다. 다시 시도해주세요.';
+            const errorType = error.response?.status === 400 ? 'warning' : 'error';
+            triggerAlert(errorType,'파일 삭제 실패',errorMessage);
 
         }
     };

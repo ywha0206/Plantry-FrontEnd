@@ -7,6 +7,9 @@ import clsx from "clsx";
 import { MenuItem } from "./_CustomDropdown";
 import axiosInstance from "@/services/axios.jsx";
 import useProjectData from "../../util/useProjectData";
+import useUserStore from "../../store/useUserStore";
+
+const PROFILE_URI = "http://3.35.170.26:90/profileImg/"
 
 const getFormattedDueDate = (duedate) => {
 
@@ -73,6 +76,7 @@ const getDateColor = (date) => {
 const DynamicTask = React.memo(
   ({
     projectId,
+    columnId,
     id,
     title,
     content,
@@ -81,12 +85,15 @@ const DynamicTask = React.memo(
     duedate,
     subTasks = [],
     comments = [],
-    associate=[],
+    assign=[],
+    coworkers=[],
     columnIndex,
-    columnId,
     onAddSubTask,
-    onDelete,
-    onSave,
+    onClickSubTask,
+    onAddComment,
+    onDeleteComment,
+    onDeleteTask,
+    onSaveTask,
   }) => {
     const [showInput, setShowInput] = useState(false); // 입력창 표시 상태
     const [newSubTask, setNewSubTask] = useState(""); // 새로운 하위 목표 값
@@ -94,6 +101,7 @@ const DynamicTask = React.memo(
     const [isEditing, setIsEditing] = useState(false);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const {sendWebSocketMessage} = useProjectData(projectId);
+    const loginUser = useUserStore((state) => state.user)
 
     // 수정 상태 토글
     const handleEditToggle = () => {
@@ -108,12 +116,19 @@ const DynamicTask = React.memo(
     };
 
     const getPriorityColor = () => {
-      if (priority < 2) return "#EC6240";
-      if (priority === 2) return "#F3AF3D";
-      if (priority > 4) return "#00000050";
-      return "#2A63F6";
-      
-    };
+      switch (priority) {
+        case "p0":
+        case "p1":
+          return "#EC6240";
+        case "p2":
+          return "#F3AF3D";
+        case "p3":
+        case "p4":
+          return "#2A63F6";
+        default:
+          return "#00000050";
+      };
+    }
     const statusStyles = {
       1: "circle-unchecked",
       2: "circle-checked-filled",
@@ -136,21 +151,9 @@ const DynamicTask = React.memo(
     const handleAddSubTask = () => {
       if (newSubTask.trim()) {
         onAddSubTask(newSubTask); // 상위로 SubTask 전달
-        const newId = uuidv4();
-
-        // 새로운 하위 목표 추가
-        setNowSubTasks([
-          ...(nowSubTasks||[]),
-          { id: newId, name: newSubTask, isChecked: false },
-        ]);
-        setNewSubTask(""); // 입력 초기화
-        setShowInput(false); // 입력창 닫기
       }
-    };
-
-    // 체크박스 상태 업데이트 함수
-    const handleCheckboxChange = (subTask) => {
-      sendWebSocketMessage(subTask, `/app/project/${projectId}/sub/updated`);
+      setNewSubTask(""); // 입력 초기화
+      setShowInput(false); // 입력창 닫기
     };
 
     const renderedSubTasks = useMemo(() => {
@@ -161,7 +164,7 @@ const DynamicTask = React.memo(
             checked={subTask.isChecked}
             type="checkbox"
             className="screen-reader"
-            onChange={() => handleCheckboxChange(subTask.id)}
+            onChange={() => onClickSubTask(subTask)}
             aria-checked={subTask.isChecked}
           />
           <label
@@ -185,6 +188,7 @@ const DynamicTask = React.memo(
           <DynamicTaskEditor
             mode="edit"
             columnId={columnId}
+            projectId={projectId}
             taskToEdit={{
               id,
               title,
@@ -194,11 +198,12 @@ const DynamicTask = React.memo(
               duedate,
               subTasks: [...nowSubTasks],
               comments,
-              associate,
+              assign,
             }}
+            coworkers={coworkers}
             columnIndex={columnIndex}
             onSave={(updatedTask) => {
-              onSave(updatedTask,columnIndex);
+              onSaveTask(updatedTask,columnIndex);
               setIsEditing(false);
             }}
             onClose={handleEditToggle}
@@ -219,20 +224,20 @@ const DynamicTask = React.memo(
                     <div
                       className="w-[20px]"
                       aria-label={`우선순위: ${
-                        priority === 0
+                        priority === "p0"
                           ? "매우 높음"
-                          : priority === 1
+                          : priority === "p1"
                           ? "높음"
-                          : priority === 2
+                          : priority === "p2"
                           ? "보통"
-                          : priority === 3
+                          : priority === "p3"
                           ? "낮음"
-                          : priority === 4
+                          : priority === "p4"
                           ? "매우 낮음"
                           : "지정되지 않음"
                       }`}
                     >
-                      <CustomSVG id={`p${priority}`} color={color} />
+                      <CustomSVG id={priority} color={color} />
                     </div>
                     <div className="text-sm">{title}</div>
                   </div>
@@ -309,11 +314,11 @@ const DynamicTask = React.memo(
                         작업자
                       <div className="relative flex items-center">
                         
-                  {(associate||[]).length>0 && (
-                        associate.map((asso, index) => (
-                          <img key={asso.id} src={asso.img||"/images/document-folder-profile.png"} alt={asso.name}
+                  {((assign || []).map(item => item.user)||[]).length>0 && (
+                        (assign || []).map(item => item.user).map((asso, index) => (
+                          <img key={asso.id} src={PROFILE_URI+asso.profileImgPath||"/images/document-folder-profile.png"} alt={asso.name}
                             className="w-8 h-8 rounded-full border-2 border-white -ml-3 first:ml-0"
-                            style={{zIndex: associate.length - index,}}
+                            style={{zIndex: ((assign || []).map(item => item.user)).length - index,}}
                           />
                         ))
                       )||"정해지지 않음"}
@@ -350,19 +355,26 @@ const DynamicTask = React.memo(
                         aria-labelledby={`의견-${comment.id}`}
                       >
                         <img
-                          src="https://cdn.builder.io/api/v1/image/assets/TEMP/5005caf306e020a63875ae89317ed34981ec083804afbfa938c3ea7760d10078"
+                          src={PROFILE_URI+comment.user.profileImgPath}
                           alt="댓글 사용자 프로필 이미지"
                           className="w-5 h-5 rounded-full"
                         />
                         <div className="flex-1">
-                          <span className="text-gray-600">{comment.user_id}</span>
+                          <span className="text-gray-600">{comment.writer}</span> 
                           <time className="text-gray-600 text-xs"> {getFormattedRdate(comment.rdate)}</time>
+                          {comment.user_id ===loginUser.uid&& <button className="text-xs float-right mt-1" onClick={()=>onDeleteComment(comment,id)}>삭제</button>}
                           <p>{comment.content}</p>
                         </div>
                       </article>
                     ))}
                   </section>
-                  <form className="flex items-center justify-between mt-2 gap-2">
+                  <form className="flex items-center justify-between mt-2 gap-2"
+                    onSubmit={(e)=>{
+                      e.preventDefault();
+                      const formData = new FormData(e.target); // 폼 데이터 가져오기
+                      const data = Object.fromEntries(formData.entries()); // 객체로 변환
+                      onAddComment(data, id); // 데이터와 id 전달
+                      }}>
                     <section
                       className="flex items-center flex-1 gap-1.5 px-2.5 py-1 rounded-lg bg-gray-600/5 w-full"
                       aria-label="의견 작성하기"
@@ -372,6 +384,7 @@ const DynamicTask = React.memo(
                         placeholder="의견 작성하기"
                         className="bg-transparent outline-none text-sm"
                         aria-label="의견 입력란"
+                        name="content"
                       />
                     </section>
                     <button className="bg-gray-600/40 rounded-3xl p-[2px] pl-1 pb-1">
@@ -397,7 +410,7 @@ const DynamicTask = React.memo(
                     <MenuItem
                       className=""
                       border={'1 px-6 py-1 rounded-lg border-slate-500/50'}
-                      onClick={onDelete}
+                      onClick={onDeleteTask}
                       confirm={true}
                       tooltip={'삭제 후엔 되돌릴 수 없습니다. 정말로 삭제하시겠습니까?'}
                       aria-label="작업 삭제"
@@ -449,14 +462,14 @@ const DynamicTask = React.memo(
                       </div>
                     )}
 
-                    {associate||subTasks || duedate || comments ? (
+                    {assign||subTasks || duedate || comments ? (
                       <div className="flex flex-wrap gap-2 items-start pt-3 w-full text-xs leading-none">
-                        {(associate||[]).length>0 && (
+                        {((assign || []).map(item => item.user)).length>0 && (
                           <div className="relative flex items-center">
-                          {associate.map((asso, index) => (
-                            <img key={asso.id} src={asso.img||"/images/document-folder-profile.png"} alt={asso.name}
+                          {(assign || []).map(item => item.user).map((asso, index) => (
+                            <img key={asso.id} src={PROFILE_URI+asso.profileImgPath||"/images/document-folder-profile.png"} alt={asso.name}
                               className="w-6 h-6 rounded-full border-2 border-white -ml-2 first:ml-0"
-                              style={{zIndex: associate.length - index,}}
+                              style={{zIndex: ((assign || []).map(item => item.user)).length - index,}}
                             />
                           ))}
                         </div>
@@ -501,8 +514,6 @@ const DynamicTask = React.memo(
     );
   },
   (prevProps, nextProps) => {
-    // props 변경을 비교하여 리렌더링 여부 결정
-    // true를 반환하면 리렌더링을 건너뜀, false를 반환하면 리렌더링됨
     return (
       prevProps.title === nextProps.title &&
       prevProps.content === nextProps.content &&

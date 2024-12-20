@@ -9,8 +9,23 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FaTrash, FaDownload, FaEdit, FaStar, FaShareAlt, FaBarcode } from 'react-icons/fa';
 import ContextMenu from "./ContextMenu";
 import useStorageStore from "../../store/useStorageStore";
+import useOnClickOutSide from "@/components/message/useOnClickOutSide";
+import { Trash2, TrashIcon } from "lucide-react";
+import CustomAlert from "./CustomAlert";
 
 
+const customAlertInitData = {
+    visible: false,
+    type: "info",
+    title: "",
+    message: "",
+    subMessage: "" , 
+    onConfirm: "", 
+    onCancel: "", 
+    confirmText: '확인', 
+    cancelText: '취소',
+    showCancel: false
+}
 
 export default function DocumentAside({onStorageInfo}){
    
@@ -35,10 +50,16 @@ export default function DocumentAside({onStorageInfo}){
     const [trashAlert,setTrashAlert] = useState(false);
     const handleCloseTrashAlert = () => setTrashAlert(false);
     const user = useUserStore((state)=>state.user);
+    const trashSettingRef = useRef();
+    const [isCustomAlert, setIsCustomAlert] = useState({ customAlertInitData});
 
+    const customAlertCancelHandler = ()=>{
+        setIsCustomAlert(customAlertInitData);
+        setTrashAlert(false);
+    }
 
   // React Query를 사용하여 폴더 데이터 가져오기
-    const { data: folderResponse = { folderDtoList: [], uid: "" }, isLoading, isError } = useQuery({
+    const { data: folderResponse = { folderDtoList: [],shareFolderDtoList:[], uid: "" }, isLoading, isError } = useQuery({
         queryKey: ["driveList", location.pathname],
         queryFn: async () => {
             const response = await axiosInstance.get("/api/drive/folders");
@@ -46,6 +67,7 @@ export default function DocumentAside({onStorageInfo}){
         },
         staleTime: 300000, // 데이터 신선 유지 시간 (5분)+
     });
+
 
     const { data: size , isDataLoading, isDataError } = useQuery({
         queryKey: ["driveSize", user.uid],
@@ -70,10 +92,20 @@ export default function DocumentAside({onStorageInfo}){
 
     console.log("Current user:", user.grade);
     // 폴더 필터링 (공유 및 개인)
-    const sharedFolders = folderResponse?.folderDtoList?.filter((folder) => folder.isShared === 1) || [];
-    const personalFolders = folderResponse?.folderDtoList?.filter((folder) => folder.isShared === 0) || [];
-    const setStorageInfo = useStorageStore((state) => state.setStorageInfo);
+    const sharedFolderDtoList = folderResponse?.shareFolderDtoList || [];
+    const filteredSharedFolders = sharedFolderDtoList.filter(
+        (folder) =>
+            folder.ownerId !== user.uid && // 현재 사용자가 소유한 폴더 제외
+            !sharedFolderDtoList.some(
+                (parent) =>
+                    folder.path !== parent.path && folder.path.startsWith(parent.path)
+            )
+    );
 
+    const personalFolders = folderResponse?.folderDtoList || [];
+
+    const setStorageInfo = useStorageStore((state) => state.setStorageInfo);
+    const totalSize = filteredSharedFolders.length+ personalFolders.length;
  
     const userGrade = user?.grade || 1;    // 기본값 1
     let maxSize = 0;
@@ -138,6 +170,12 @@ export default function DocumentAside({onStorageInfo}){
         setContextMenu({ visible: false, position: { top: 0, left: 0 }, folder: null });
     };
 
+    const trashHandler= () =>{
+        setTrashAlert(false)
+    }
+
+    useOnClickOutSide(trashSettingRef, trashHandler);
+
 
     const handleMenuAction = (action) => {
         console.log(`${action} clicked for folder:`, contextMenu.folder);
@@ -164,6 +202,71 @@ export default function DocumentAside({onStorageInfo}){
             alert('삭제 중 오류가 발생했습니다.');
         }
     };
+
+    const handleclean = async ()=> {
+
+        try{
+            const response = await axiosInstance.delete('/api/drive/cleanAll');
+
+            if(response.status === 200){
+                queryClient.invalidateQueries(['trash']);
+                setIsCustomAlert({
+                    visible:true,
+                    type: "info",
+                    title: "휴지통 비우기 완료",
+                    message: "",
+                    subMessage: "" , 
+                    onConfirm: customAlertCancelHandler, 
+                    onCancel: customAlertCancelHandler, 
+                    showCancel: false,       
+                })
+            }else if (response.status === 417) { // 변경된 부분
+                setIsCustomAlert({
+                    visible:true,
+                    type: "info",
+                    title: "휴지통이 비어있습니다.",
+                    message: "",
+                    subMessage: "" , 
+                    onConfirm: customAlertCancelHandler, 
+                    onCancel: customAlertCancelHandler, 
+                    showCancel: false,       
+                })
+
+            }
+
+        }catch(error){
+            console.error('삭제중 오류 발생',error);
+            setIsCustomAlert({
+                visible:true,
+                type: "info",
+                title: "휴지통 비우기 실패",
+                message: "삭제 중 오류가 발생했습니다.",
+                subMessage: "" , 
+                onConfirm: customAlertCancelHandler, 
+                showCancel: false,       
+
+            })
+        }
+    }
+
+    const AllCleanHandler=()=>{
+        console.log("휴지통 비우기 되나?");
+        setIsCustomAlert({
+                visible:true,
+                type: "warning",
+                title: "휴지통을 비우시겠습니까?",
+                message: "다시 복원할 수 없습니다.",
+                subMessage: "" , 
+                onConfirm: handleclean, 
+                onCancel: customAlertCancelHandler, 
+                confirmText: '확인', 
+                cancelText: '취소',
+                showCancel: true
+        })
+
+
+
+    }
 
    
 
@@ -229,7 +332,7 @@ export default function DocumentAside({onStorageInfo}){
     return(<>
     
     <aside className='document-aside1 overflow-scroll flex flex-col scrollbar-none'>
-                <section className='flex justify-center mb-8'><Link to="/document" className='text-lg'>문서 (6)</Link></section>
+                <section className='flex justify-center mb-8'><Link to="/document" className='text-lg'>드라이브 ({totalSize})</Link></section>
                 <section className='flex justify-center mb-8 w-26'>
                     <select className='outline-none border rounded-l-md opacity-80 h-11 w-24 text-center text-sm'>
                         <option>참여자</option>
@@ -257,16 +360,50 @@ export default function DocumentAside({onStorageInfo}){
                         >
                              <p>최근문서</p>
                         </Link>
-                    </div><div className='flex gap-4 items-center opacity-60 mb-[10px]'>
+                    </div>
+                    <div className='flex gap-4 items-center opacity-60 relative mb-[10px]'>
                         <img  className='w-6 h-6' src='/images/trash.png'></img>
                         <Link  to={'/document/trash'}
                                 state={{ folderName: "휴지통" }} // folder.name 전달 
                         >
                              <p>휴지통</p>
                         </Link>
-                        <img src="/images/setting.png"  className="w-[20px] ml-[90px] cursor-pointer" alt="" 
-                            onClick={() => setTrashAlert(true)} // 상태 변경
-                            />
+                      
+                            <img 
+                                src="/images/setting.png" 
+                                className="w-[20px] ml-[90px] cursor-pointer " alt="" 
+                                onClick={() => {
+                                    console.log("휴지통 설정 클릭");
+                                    setTrashAlert(true);
+                                  }}                            />
+                            {trashAlert && (
+                                    <div
+                                        className="bg-white-100 opacity-100 rounded-xl shadow-md p-4 absolute  z-[999]"
+                                        style={{
+                                            
+                                            backgroundColor:"white",
+                                            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+                                            padding: "10px",
+                                            borderRadius: "4px",
+                                        }}
+                                    >
+                                        <div className="space-y-4">
+                                            <div
+                                                ref={trashSettingRef}  
+                                                onClick={AllCleanHandler}
+                                                className="flex items-center justify-between rounded-lg p-1 cursor-pointer transition-all duration-300 hover:bg-gray-200 hover:shadow-lg"
+                                            >
+                                                <div className="flex items-center space-x-4">
+                                                    <div className={`p-3 rounded-lg bg-opacity-20`}>
+                                                        <TrashIcon className={`w-5 h-5`} />
+                                                    </div>
+                                                    <span className="font-semibold">휴지통 비우기</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}   
+                        
                     </div>
 
                 </section>
@@ -274,7 +411,7 @@ export default function DocumentAside({onStorageInfo}){
 
                 <section className='flex justify-between items-center p-4 mb-2'>
                     <div>
-                        <p className='text-2xl font-bold'>나의 드라이브 <span className='text-xs font-normal opacity-60'>(  {folders.length})</span></p>
+                        <p className='text-2xl font-bold'>나의 드라이브 <span className='text-xs font-normal opacity-60'>(  {personalFolders.length})</span></p>
                     </div>
                     <div>
                         <img
@@ -293,20 +430,25 @@ export default function DocumentAside({onStorageInfo}){
                 isPinnedOpen ? "max-h-[180px]" : "max-h-0"
                     }`}>
                     {personalFolders.map((folder) => (
-                    <div className="flex gap-4 items-center mb-1" key={folder.id} onContextMenu={(e) => handleContextMenu(e, folder)}>
+                    <div className="flex items-center mb-1 justify-between relative" key={folder.id} onContextMenu={(e) => handleContextMenu(e, folder)}>
                         <Link   to={`/document/list/${folder.id}`}
                                 state={{ folderName: folder.name }} // folder.name 전달
-                                className="flex gap-4 items-center mb-1">
-                            <img src="/images/document-folder.png" alt="Folder Icon" />
+                                className="flex gap-4 items-center mb-1 ">
+                            <div>
+                                {folder.sharedUsers?.length > 0 ? (<><img src="/images/folder_shared.svg" className="opacity-60 pt-1 " /></> ): (<>                                
+                                <img src="/images/folder_24dp.svg" alt="Folder Icon"  className="opacity-60 pt-1" />
+                                    </>)}
+                            </div>
                             <p className="opacity-60 pt-1">{folder.name}</p>
                         </Link>
+
                     </div>
                     ))}  
                     {personalFolders.length === 0 && <p className="opacity-60"> 폴더가 없습니다.</p>}
                 </section>
                 <section className='flex justify-between items-center p-4 mb-2 mt-4'>
                     <div>
-                        <p className='text-2xl font-bold'>공유 드라이브 <span className='text-xs font-normal opacity-60'>({sharedFolders.length})</span></p>
+                        <p className='text-2xl font-bold'>공유 드라이브 <span className='text-xs font-normal opacity-60'>({filteredSharedFolders.length})</span></p>
                     </div>
                     <div>
                     <img
@@ -323,17 +465,17 @@ export default function DocumentAside({onStorageInfo}){
                         className={`mypageArea flex flex-col px-8  overflow-scroll scrollbar-none transition-all duration-300 ${
                             isSharedOpen ? "max-h-[180px] " : "max-h-0"
                         }`}>
-                     {sharedFolders.map((folder) => (
+                     {filteredSharedFolders.map((folder) => (
                         <div className="flex gap-4 items-center mb-1" key={folder.id}  onContextMenu={(e) => handleContextMenu(e, folder)}>
                             <Link   to={`/document/list/${folder.id}`}
                                     state={{ folderName: folder.name }} // folder.name 전달
                                     className="flex gap-4 items-center mb-1">
-                                <img src="/images/document-folder.png" alt="Folder Icon" />
+                                <img src="/images/folder_shared.svg" className="opacity-60 pt-1" />
                                 <p className="opacity-60 pt-1">{folder.name}</p>
                             </Link>
                         </div>
                         ))}  
-                        {sharedFolders.length === 0 && <p className="opacity-60">Shared 폴더가 없습니다.</p>}
+                        {filteredSharedFolders.length === 0 && <p className="opacity-60">Shared 폴더가 없습니다.</p>}
                 </section>
 
                 
@@ -357,6 +499,7 @@ export default function DocumentAside({onStorageInfo}){
                        order={folderResponse?.folderDtoList?.length}
                        isOpen={drive}
                        onClose={() => setDrive(false)}
+                       user={user}
                        text="드라이브 만들기"
                     />
                 </div>
@@ -375,32 +518,19 @@ export default function DocumentAside({onStorageInfo}){
 
                 />
             </aside>
-            {trashAlert && (
-                <div
-                    className="bg-gray-100 rounded-xl shadow-md p-4 absolute z-[999]"
-                    style={{
-                        top: "50px", // 위치 조정
-                        left: "50px", // 위치 조정
-                        background: "#fff",
-                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-                        padding: "10px",
-                        borderRadius: "4px",
-                    }}
-                >
-                    <div className="space-y-4">
-                        <div
-                            onClick={() => console.log("휴지통 비우기 클릭됨")}
-                            className="flex items-center justify-between rounded-lg p-1 cursor-pointer transition-all duration-300 hover:bg-gray-200 hover:shadow-lg"
-                        >
-                            <div className="flex items-center space-x-4">
-                                <div className={`p-3 rounded-lg bg-opacity-20`}>
-                                    <FaBarcode className={`w-5 h-5`} />
-                                </div>
-                                <span className="font-semibold">휴지통 비우기</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
+            {isCustomAlert.visible &&(
+
+                <CustomAlert
+                    type = {isCustomAlert.type} 
+                    title={isCustomAlert.title} 
+                    message={isCustomAlert.message} 
+                    subMessage={isCustomAlert.subMessage} 
+                    onConfirm={isCustomAlert.onConfirm} 
+                    onCancel={isCustomAlert.onCancel} 
+                    showCancel = {isCustomAlert.showCancel}
+                />
             )}
+           
     </>)
 }

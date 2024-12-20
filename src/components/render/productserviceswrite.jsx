@@ -25,36 +25,83 @@ export default function ProductServicesWrite() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    // 유효성 검사
+    if (!formData.productName || !formData.productType || !formData.serviceType || 
+        !formData.purchaseDate || !formData.title || !formData.content || 
+        !formData.email || !formData.name) {
+      alert("모든 필드를 채워주세요.");
+      return;
+    }
+
     try {
-      const response = await fetch('http://localhost:8080/api/send-product-service', {
+      // 날짜 형식 변환 (필요한 경우)
+      const dataToSend = {
+        ...formData,
+        purchaseDate: formData.purchaseDate // YYYY-MM-DD 형식인지 확인
+      };
+
+      console.log('전송할 데이터:', dataToSend); // 디버깅용 로그
+
+      const response = await fetch('http://13.124.94.213:90/api/send-product-service', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Origin': 'http://localhost:8010'
         },
-        body: JSON.stringify(formData)
+        credentials: 'include', // CORS 인증 정보 포함
+        mode: 'cors',
+        body: JSON.stringify(dataToSend)
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        alert(data.message);
-        setFormData({
-          productName: "",
-          productType: "",
-          serviceType: "",
-          purchaseDate: "",
-          title: "",
-          content: "",
-          email: "",
-          name: "",
-        });
-      } else {
-        throw new Error(data.message);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        console.error('서버 응답:', response.status, errorData);
+        throw new Error(errorData?.message || `서버 오류: ${response.status}`);
       }
+
+      const data = await response.json();
+      console.log('서버 응답:', data);
+      
+      // 성공 시 자동 응답 이메일 전송
+      try {
+        const autoReplyResponse = await fetch('http://13.124.94.213:90/api/send-auto-reply', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Origin': 'http://localhost:8010'
+          },
+          credentials: 'include',
+          mode: 'cors',
+          body: JSON.stringify({ email: formData.email })
+        });
+
+        if (!autoReplyResponse.ok) {
+          console.error('자동 응답 이메일 전송 실패');
+        }
+      } catch (autoReplyError) {
+        console.error('자동 응답 이메일 전송 중 오류:', autoReplyError);
+      }
+
+      alert('문의가 성공적으로 전송되었습니다.');
+      
+      // 폼 초기화
+      setFormData({
+        productName: "",
+        productType: "",
+        serviceType: "",
+        purchaseDate: "",
+        title: "",
+        content: "",
+        email: "",
+        name: ""
+      });
+
     } catch (error) {
       console.error('문의 전송 실패:', error);
-      alert('문의 전송에 실패했습니다. 다시 시도해주세요.');
+      alert(`문의 전송에 실패했습니다: ${error.message}`);
     }
   };
 
@@ -116,13 +163,12 @@ export default function ProductServicesWrite() {
                   }`}
                   onClick={() => handleMenuClick(index, menu.path)}
                 >
-                  <img
-                    src={menu.icon}
-                    alt={menu.title}
-                    className={`w-6 h-6 mr-3 ${
-                      activeIndex === index ? "brightness-150" : ""
-                    }`}
-                  />
+                  <span className="text-2xl mr-3">
+                    {index === 0 && "💳"} {/* PAYMENT */}
+                    {index === 1 && "↩️"} {/* CANCELLATION & RETURN */}
+                    {index === 2 && "❓"} {/* QNA */}
+                    {index === 3 && "⚙️"} {/* PRODUCT & SERVICES */}
+                  </span>
                   <span className="text-base font-medium">{menu.title}</span>
                 </li>
               ))}

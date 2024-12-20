@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import "@/pages/community/Community.scss";
 import CommunitySidebar from "@/components/community/CommunitySidebar";
 import useUserStore from "../../store/useUserStore";
@@ -7,12 +7,11 @@ import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "../../services/axios";
 
 function CommunityList() {
+  const location = useLocation();
+  const { boardId, postId } = useParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const { boardId } = useParams();
-  console.log("보드 들어오나보자" + boardId); // boardId 값 확인
-
-  const { boardName } = useParams();
+  const boardName = location.state?.boardName || "게시판";
   const currentUser = useUserStore((state) => state.user);
   const itemsPerPage = 5;
   const navigate = useNavigate();
@@ -24,23 +23,27 @@ function CommunityList() {
     );
     return response.data;
   };
+
+  // useQuery에 boardId를 queryKey에 추가
   const { data, error, isLoading, isError } = useQuery({
-    queryKey: ["posts"],
+    queryKey: ["posts", boardId], // boardId를 추가하여 게시판이 변경될 때마다 새로운 데이터를 가져오도록 함
     queryFn: fetchPosts,
+    enabled: !!boardId, // boardId가 있을 때만 쿼리 실행
   });
 
   if (isLoading) return <div>로딩 중...</div>;
   if (isError) return <div>에러 발생: {error.message}</div>;
+  if (!data) return <div>데이터가 없습니다.</div>;
 
   // 검색 필터링
   const filteredData = data.filter(
     (item) =>
-      item.title && item.title.toLowerCase().includes(searchQuery.toLowerCase()) // null/undefined 체크 후 toLowerCase() 호출
+      item.title && item.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // 페이지네이션 데이터 계산
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const paginatedData = data.slice(
+  const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -48,9 +51,18 @@ function CommunityList() {
   // 페이지네이션 핸들러
   const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
 
+  const handleBoardChange = () => {
+    setCurrentPage(1); // 게시판 변경 시 첫 페이지로 이동
+    setSearchQuery(""); // 검색어 초기화
+  };
+
   return (
     <div id="community-container">
-      <CommunitySidebar currentUser={currentUser} boardId={boardId} />
+      <CommunitySidebar 
+        currentUser={currentUser} 
+        boardId={boardId}
+        onBoardChange={handleBoardChange} // 게시판 변경 시 상태 초기화
+      />
 
       <div className="list-container">
         <div className="list-container2">
@@ -70,7 +82,6 @@ function CommunityList() {
             </div>
           </div>
 
-          {/* 테이블 */}
           <table className="list-table">
             <thead>
               <tr>
@@ -102,9 +113,26 @@ function CommunityList() {
             </tbody>
           </table>
 
-          {/* 하단 버튼 및 페이지네이션 */}
           <div className="list-footer">
-            <button className="delete-button">선택삭제</button>
+            <button
+              onClick={async () => {
+                if (window.confirm("게시글을 삭제하시겠습니까?")) {
+                  try {
+                    await axiosInstance.delete(
+                      `api/community/posts/${boardId}/view/${postId}`
+                    );
+                    alert("게시글이 삭제되었습니다!");
+                    navigate(`/community/${boardId}/list`);
+                  } catch (error) {
+                    console.error("게시글 삭제를 실패:", error);
+                    alert("게시글 삭제를 실패했습니다.");
+                  }
+                }
+              }}
+              className="delete-button"
+            >
+              삭제
+            </button>
             <div className="pagination">
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
@@ -128,8 +156,6 @@ function CommunityList() {
                 다음
               </button>
             </div>
-
-            {/* 글쓰기 버튼 */}
             <button
               className="create-button"
               onClick={() => navigate(`/community/${boardId}/write`)}

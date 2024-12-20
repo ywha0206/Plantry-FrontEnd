@@ -2,8 +2,15 @@
 import { useEffect, useRef, useState } from "react";
 import { CustomSVG } from "./_CustomSVG";
 import useUserStore from "@/store/useUserStore"
+import { createPortal } from "react-dom";
+import useProjectData from "../../util/useProjectData";
+
+function Portal({ children }) {
+  return createPortal(children, document.body);
+}
 
 export function DynamicTaskEditor({
+  projectId,
   mode,
   taskToEdit,
   columnIndex,
@@ -14,6 +21,7 @@ export function DynamicTaskEditor({
   coworkers =[],
 }) {
    
+  const {sendWebSocketMessage} = useProjectData(projectId);
   const loginUser = useUserStore((state) => state.user)
   const [task, setTask] = useState({
     columnId: columnId,
@@ -22,15 +30,16 @@ export function DynamicTaskEditor({
     content: taskToEdit?.content||"",
     priority: taskToEdit?.priority||5,
     duedate: taskToEdit?.duedate||"",
-    tags: taskToEdit?.tags||[],
     subTasks:taskToEdit?.subTasks||[],
     comments:taskToEdit?.comments||[],
     status: taskToEdit?.status||1,
-    associate: taskToEdit?.associate||[],
+    associate: (taskToEdit?.assign || []).map(item => item.user),
   });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isAssoOpen, setIsAssoOpen] = useState(false);
   const textareaRef = useRef(null); // textarea에 대한 ref
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -39,19 +48,19 @@ export function DynamicTaskEditor({
     }
   }, [task.content]); // content가 변경될 때마다 높이를 조정
 
-    // 다른 곳 클릭 시 창 닫기
-    useEffect(() => {
-      const handleClickOutside = (e) => {
-        if (!e.target.closest(".relative")) {
-          setIsDropdownOpen(false);
-          setIsAssoOpen(false);
-        }
-      };
-      document.addEventListener("click", handleClickOutside);
-      return () => {
-        document.removeEventListener("click", handleClickOutside);
-      };
-    }, []);
+  // 다른 곳 클릭 시 창 닫기
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest(".relative")) {
+        setIsDropdownOpen(false);
+        setIsAssoOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -67,24 +76,27 @@ export function DynamicTaskEditor({
   };
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log(task)
     if (task.title.trim() === "") return;
     onSave(task, columnIndex);
     if (mode === "create") setIsAdded(false);
   };
-
-
-  const handleDeleteSubTask = (index) => {
-    setTask((prevTask) => ({
-      ...prevTask,
-      subTasks: prevTask.subTasks.filter((_, i) => i !== index),
-    }));
+  const handleDeleteSubTask = (subTask) => {
+    sendWebSocketMessage(subTask, `/app/project/${projectId}/sub/deleted`);
   };
-
-  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
-  const toggleAsso = () => setIsAssoOpen(!isAssoOpen);
+  const getPosition = (event) =>{
+    const rect = event.currentTarget.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+      });
+  }
+  const toggleDropdown = (e) => {getPosition(e);setIsDropdownOpen(!isDropdownOpen)};
+  const toggleAsso = (e) => {getPosition(e);setIsAssoOpen(!isAssoOpen)};
 
   const handlePrioritySelect = (priority) => {
-    setTask((prevTask) => ({ ...prevTask, priority }));
+    setTask((prevTask) => ({ ...prevTask, priority:priority.id }));
+    console.log(task);
     setIsDropdownOpen(false);
   };
 // 멤버 클릭 핸들러 (토글 방식)
@@ -95,6 +107,7 @@ const handleMemberClick = (member) => {
       ? prev.associate.filter((user) => user.id !== member.id) // 선택 해제
       : [...prev.associate, member]; // 선택 추가
 
+      console.log(updatedCoworkers)
     return {
       ...prev,
       associate: updatedCoworkers,
@@ -110,16 +123,16 @@ const handleDeleteTag = (index) => {
   }));
 };
   const priorities = [
-    { id: "p0", icon: "p0", label: "P0 - 아주 높음" },
-    { id: "p1", icon: "p1", label: "P1 - 높음" },
-    { id: "p2", icon: "p2", label: "P2 - 보통" },
-    { id: "p3", icon: "p3", label: "P3 - 낮음" },
-    { id: "p4", icon: "p4", label: "P4 - 아주 낮음" },
-    { id: "none", label: "None", icon: null },
+    { id: "p0", label: "P0 - 아주 높음" },
+    { id: "p1", label: "P1 - 높음" },
+    { id: "p2", label: "P2 - 보통" },
+    { id: "p3", label: "P3 - 낮음" },
+    { id: "p4", label: "P4 - 아주 낮음" },
+    { id: "none", label: "none" },
   ];
 
   const colClassName =
-    "flex gap-1.5 items-start pt-1.5 mt-1.5 max-w-full tracking-normal leading-none rounded-lg min-h-[26px] text-gray-600 text-opacity-60 w-[231px]";
+    "flex gap-1.5 items-start pt-1.5 mt-1.5 max-w-full tracking-normal leading-none rounded-lg min-h-[26px] text-gray-600/60 w-[231px]";
 
   return (
     <form
@@ -127,13 +140,48 @@ const handleDeleteTag = (index) => {
       className="flex flex-col mt-3 w-full text-sm relative"
       aria-labelledby="new-task-form"
     >
-      <div className="flex gap-2 items-start p-3 pt-2 w-full bg-white rounded-lg border border-solid shadow-sm border-black border-opacity-10">
-        <div className="flex flex-col flex-1 shrink w-full basis-0">
+      <div className="flex gap-2 items-start p-3 pt-2 w-full bg-white rounded-lg border border-solid shadow-sm border-black/10 overflow-visible">
+        <div className="flex flex-col flex-1 shrink w-full basis-0 overflow-visible">
           {/* Task Name */}
+          
           <label htmlFor="taskName" className="sr-only">
             Task Name
           </label>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-1 shrink basis-0 text-sm"
+                onClick={toggleDropdown}
+                aria-haspopup="listbox"
+                aria-expanded={isDropdownOpen}
+                aria-label="Select priority"
+                title="중요도 수정">
+              <CustomSVG
+                  id={
+                    task.priority === "none"
+                      ? "bar-chart"
+                      : task.priority
+                  }
+                />
+                {isDropdownOpen && (
+              <ul
+                className="absolute mt-7 w-36 py-2 bg-white border rounded shadow-md z-30"
+                role="listbox"
+                aria-labelledby="priority-dropdown"
+              >
+                {priorities.map((priority) => (
+                  <li
+                    key={priority.id}
+                    className="flex items-center gap-2 px-3 h-6 text-xs hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handlePrioritySelect(priority)}
+                    role="option"
+                    aria-selected={task.priority === priority.id}
+                  >
+                    <CustomSVG id={priority.id} />
+                    <span>{priority.label}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            </div>
             <input
               autoFocus
               id="taskName"
@@ -142,55 +190,12 @@ const handleDeleteTag = (index) => {
               value={task.title}
               onChange={handleInputChange}
               placeholder="이름을 입력하세요"
-              className="flex flex-col max-w-full tracking-normal leading-6 rounded-lg min-h-[26px] text-gray-600 text-opacity-60 w-[198px]"
+              className="flex flex-col max-w-full tracking-normal leading-6 rounded-lg min-h-[26px] text-gray-800/80 text-sm w-[198px]"
               aria-label="Task name"
             />
             <button onClick={handleClose} aria-label="Close form" type="button">
               <CustomSVG id="close" />
             </button>
-          </div>
-
-          {/* Priority Dropdown */}
-          <div className={colClassName}>
-            <CustomSVG
-              id={
-                priorities[task.priority].label === "None"
-                  ? "bar-chart"
-                  : priorities[task.priority].icon
-              }
-            />
-            <button
-              type="button"
-              className="flex flex-col flex-1 shrink basis-0 text-sm"
-              onClick={toggleDropdown}
-              aria-haspopup="listbox"
-              aria-expanded={isDropdownOpen}
-              aria-label="Select priority"
-            >
-              {priorities[task.priority].label === "None"
-                ? "중요도 선택"
-                : priorities[task.priority].label}
-            </button>
-            {isDropdownOpen && (
-              <ul
-                className="absolute mt-1 w-36 py-2 bg-white border rounded shadow-md z-30"
-                role="listbox"
-                aria-labelledby="priority-dropdown"
-              >
-                {priorities.map((priority, index) => (
-                  <li
-                    key={priority.id}
-                    className="flex items-center gap-2 px-3 h-6 text-xs hover:bg-gray-100 cursor-pointer"
-                    onClick={() => handlePrioritySelect(index)}
-                    role="option"
-                    aria-selected={priorities[task.priority].id === priority.id}
-                  >
-                    <CustomSVG id={priority.icon} />
-                    <span>{priority.label}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
 
           {/* Task Details */}
@@ -202,7 +207,7 @@ const handleDeleteTag = (index) => {
               value={task.content}
               onChange={(e)=>{handleInputChange(e);handleTAChange(e)}}
               placeholder="세부 내용 입력"
-              className="flex flex-col flex-1 shrink basis-0"
+              className="flex flex-col flex-1 shrink basis-0 text-sm"
               ref={textareaRef}
               aria-label="Task contents"
             />
@@ -210,53 +215,58 @@ const handleDeleteTag = (index) => {
           
           {/* 작업자 */}
           <section
-              className="flex flex-wrap items-center space-x-2 gap-2 mt-1.5 text-sm text-black/50"
+              className="relative flex flex-wrap items-center space-x-2 gap-2 mt-1.5 text-sm text-black/50 overflow-visible"
               aria-labelledby="associate"
             >
-                작업자
+                <span onClick={toggleAsso}>작업자</span> 
               <div className="relative flex items-center">
                 {task.associate.map((user, index) => (
                   <span
                     key={user.id}
-                    className="flex items-center flex-shrink-0 gap-[2px] px-2 py-[2px] rounded-2xl bg-indigo-200 bg-opacity-70 text-xs text-indigo-500"
+                    className="flex items-center flex-shrink-0 gap-[2px] px-2 py-[2px] rounded-2xl bg-indigo-200/70 text-xs text-indigo-500"
                   >
                     <img src={user.img} className="h-[24px]" />
                     <span className="">{user.name}</span>
-                    <span className="text-indigo-400">({user.group})</span>
+                    <span className="text-indigo-400">({user?.group})</span>
                     <button onClick={() => handleDeleteTag(index)}>
                       <CustomSVG id="cancel" color="#666CFF" />
                     </button>
                   </span>
                 ))}
-                {isAssoOpen && (
-                    <ul
-                      className="absolute mt-1 w-36 py-2 bg-white border rounded shadow-md z-30"
+                
+              </div>
+              {isAssoOpen && (
+                <Portal>
+                  <ul
+                      className="absolute w-36 py-2 bg-white border rounded shadow-md z-30"
                       role="listbox"
                       aria-labelledby="associate-dropdown"
+                      style={{top: dropdownPosition.top, left: dropdownPosition.left,}}
                     >
                       {coworkers.map((m) => (
                                 <li
                                   key={m?.id}
                                   onClick={() => handleMemberClick(m)}
-                                  className={`rounded-3xl px-3 py-3 flex mt-2 cursor-pointer border border-transparent ${
+                                  className={`rounded-3xl px-3 py-1 flex mt-2 cursor-pointer border border-transparent ${
                                     task.associate.some((asso) => asso.id === m.id)
                                       ? "bg-indigo-100 hover:border-indigo-300"
                                       : "bg-gray-100 hover:border-gray-300"}`}>
                                   <img
                                     src={m?.img}
                                     alt="user-img"
-                                    className="w-[45px] h-[45px]"
+                                    className="w-[12px] h-[12px]"
                                   />
                                   <div className="ml-10 flex flex-col text-left">
-                                    <p className="font-light text-black">
+                                    <span className="font-light text-black text-xs">
                                       {m?.name}{m?.id == loginUser.id&&" (본인)"}
-                                    </p>
+                                    </span>
                                   </div>
                                 </li>
                           ))}
                     </ul>
+                </Portal>
+                    
                   )}
-              </div>
             </section>
           {/* 마감일 */}
           <div className={colClassName+' relative'}>
@@ -307,7 +317,7 @@ const handleDeleteTag = (index) => {
                   {subTask.name}
                 </label>
                 <button
-                    onClick={() => handleDeleteSubTask(index)}
+                    onClick={() => handleDeleteSubTask(subTask)}
                     aria-label="Delete SubTask"
                     className="ml-auto text-sm"
                   >

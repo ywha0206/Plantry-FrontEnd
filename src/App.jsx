@@ -7,6 +7,7 @@ import Login from "@/pages/user/Login.jsx";
 
 import AdminIndex from "./pages/admin/Index";
 import MainIndex from "./pages";
+import AdminFAQ from "./pages/admindashboard/adminfaq.jsx";
 import AdminUser from "./pages/admin/User";
 import AdminProject from "./pages/admin/Project";
 import AdminOutSourcing from "./pages/admin/OutSourcing";
@@ -62,6 +63,8 @@ import CancellationReturnWrite from "./components/render/cancellationreturnwrite
 import QNAWrite from "./components/render/qnawrite";
 import ProductServicesWrite from "./components/render/productserviceswrite";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import ValidateLinkPage from "./pages/tmp";
+import AdminFAQDashboard from "./pages/admindashboard/adminfaq";
 const MainIndexComponent = lazy(() => import("./components/render/main"));
 
 function App() {
@@ -77,6 +80,8 @@ function App() {
   const [customAlertMessage, setCustomAlertMessage] = useState("");
   const [isToken, setIsToken] = useState(false);
   const queryClient = useQueryClient();
+
+  const [selectedRoomId, setSelectedRoomId] = useState("");
 
   // 검증 제외 경로
   const excludedRoutesSet = new Set([
@@ -162,17 +167,17 @@ function App() {
   const postAlarm = useMutation({
     mutationFn: async () => {
       try {
-        const resp = await axiosInstance.post("/api/alarm", receiveMessage[0]);
-        return resp.data;
+        const resp = await axiosInstance.post("/api/alarm",receiveMessage[0])
+        return resp.data
       } catch (err) {
         return err;
       }
     },
-    onSuccess: (data) => {
-      queryClient.fetchQuery(["alarm"]);
-      queryClient.fetchQuery(["alarm-cnt"]);
-    },
-  });
+    onSuccess : (data)=>{
+      queryClient.fetchQuery(['alarm'])
+      queryClient.fetchQuery(['alarm-cnt'])
+    }
+  })
 
   return (
     <div id="app-container m-0 xl2:mx-auto">
@@ -180,7 +185,7 @@ function App() {
         type={customAlertType}
         message={customAlertMessage}
         isOpen={customAlert}
-        onClose={() => setCustomAlert(false)}
+        onClose={()=>setCustomAlert(false)}
       />
       {/* 채팅 관련 웹소켓 전역적 위치에서 연결 */}
       <UnreadCountProvider>
@@ -202,10 +207,7 @@ function App() {
             <Route path="faq" element={<FAQLayout />}>
               <Route index element={<FAQPage />} />
               <Route path="write/payment" element={<PaymentWrite />} />
-              <Route
-                path="write/cancellation"
-                element={<CancellationReturnWrite />}
-              />
+              <Route path="write/cancellation" element={<CancellationReturnWrite />} />
               <Route path="write/qna" element={<QNAWrite />} />
               <Route path="write/services" element={<ProductServicesWrite />} />
             </Route>
@@ -249,13 +251,19 @@ function App() {
             <Route path="outside" element={<AdminOutSide />} />
           </Route>
 
+          <Route path="/admindashboard/adminfaq" element={<AdminFAQ />} />
+
+          
+           {/* 관리자/FAQ */}
+          <Route path="/admindashboard/adminfaq" element={<AdminFAQ />} />
+
           {/* 커뮤니티 (게시판) */}
           <Route path="/community" element={<Main />}>
             <Route index element={<CommunityIndex />} />
             <Route path=":boardId/write" element={<CommunityWrite />} />
             <Route path=":boardId/list" element={<CommunityList />} />
             <Route path=":boardId/view/:postId" element={<CommunityView />} />
-            <Route path=":boardId/modify" element={<CommunityModify />} />
+            <Route path=":boardId/modify/:postId" element={<CommunityModify />} />
           </Route>
 
           {/* 프로젝트 */}
@@ -265,7 +273,15 @@ function App() {
 
           {/* 메신저 */}
           <Route path="/message" element={<Main />}>
-            <Route index element={<Message />} />
+            <Route
+              index
+              element={
+                <Message
+                  selectedRoomId={selectedRoomId}
+                  setSelectedRoomId={setSelectedRoomId}
+                />
+              }
+            />
           </Route>
 
           {/* 문서작업 */}

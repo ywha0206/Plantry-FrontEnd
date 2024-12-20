@@ -76,7 +76,7 @@ export default function MyMain() {
               <div className='w-[200px] h-[200px] bg-white drop-shadow-lg flex items-center justify-center overflow-hidden rounded-full'>
                 <img
                   className='w-full h-full object-cover flex items-center between-center'
-                  src={userData?.profileImgPath ? `${profileURL}${userData.profileImgPath}` : '/images/default-profile.png'}
+                  src={userData?.profileImgPath ? `${profileURL}${userData.profileImgPath}` : `${profileURL}default-profile.png`}
                   alt="프로필 이미지" 
                 />
               </div>
@@ -88,7 +88,9 @@ export default function MyMain() {
               </h3>
 
               <div className='speech-bubble border py-[20px] px-[40px] flex items-center'>
-                <span>{userData?.profileMessage||''}</span>
+                <span className={`${userData?.profileMessage ? '' : 'text-gray-500'}`}>
+                    {userData?.profileMessage || '프로필 메시지를 설정해 보세요!'}
+                </span>
               </div>
             </div>
           </div>

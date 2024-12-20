@@ -6,6 +6,7 @@ import { CustomSVG } from "./_CustomSVG";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import axiosInstance from "@/services/axios.jsx";
 import templates from "./templates.json";
+import { PROFILE_URI } from "../../api/_URI";
 
 export const TemplateSelection = ({isOpen,onClose,onSelectTemplate}) => {
   if (!isOpen) return null;
@@ -57,6 +58,7 @@ export const AddProjectModal = ({
 }) => {
   if (!isOpen) return null;
 
+  const ProfileURI = PROFILE_URI;
   const loginUser = useUserStore((state) => state.user)
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState(loginUser.groupId);
@@ -210,7 +212,7 @@ export const AddProjectModal = ({
       const updatedCoworkers = isSelected
         ? prev.coworkers.filter((user) => user.id !== member.id) // 선택 해제
         : [...prev.coworkers, member]; // 선택 추가
-  
+      
       return {
         ...prev,
         coworkers: updatedCoworkers,
@@ -279,7 +281,7 @@ export const AddProjectModal = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="relative bg-white rounded-lg shadow-lg max-w-3xl modal-custom-width">
+      <div className="relative bg-white rounded-lg shadow-lg max-w-3xl modal-custom-width px-5">
         <div className="absolute top-5 right-5 rounded-t-xl">
           <button
             onClick={() => onClose(false)}
@@ -337,7 +339,7 @@ export const AddProjectModal = ({
                         key={user.id}
                         className="flex items-center flex-shrink-0 gap-[2px] px-2 py-[2px] rounded-2xl bg-indigo-200 bg-opacity-70 text-xs text-indigo-500"
                       >
-                        <img src={user.img} className="h-[24px]" />
+                        <img src={`${ProfileURI}${user.profileImgPath}`} className="h-[24px]" />
                         <span className="">{user.name}</span>
                         <span className="text-indigo-400">({user.group})</span>
                         <button onClick={() => handleDeleteTag(index)}>

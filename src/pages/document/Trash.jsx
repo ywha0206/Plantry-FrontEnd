@@ -31,6 +31,7 @@ export default function Trash() {
     const [isDetailVisible, setIsDetailVisible] = useState(false); // 상세 정보 표시 상태 추가
     const [selectedFolder, setSelectedFolder] = useState(null); // 선택된 폴더 정보 상태 추가
     const [selectedFile, setSelectedFile] = useState(null); // 선택된 폴더 정보 상태 추가
+   
 
     const handleDetailToggle = (folder) => {
         console.log("handleDetailToggle",folder)

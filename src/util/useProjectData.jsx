@@ -4,7 +4,14 @@ import axiosInstance from '@/services/axios.jsx';
 
 
 const useProjectData  = (projectId) => {
-    const [boardData, setBoardData] = useState(null);
+    const [project, setProject] = useState({
+        id: 1,
+        title: "",
+        type: "",
+        status: "",
+        columns:[],
+        coworkers:[]
+    });
     const [isConnected, setIsConnected] = useState(false); // WebSocket 연결 상태
     const [stompClient, setStompClient] = useState(null); // STOMP 클라이언트 인스턴스
 
@@ -13,7 +20,7 @@ const useProjectData  = (projectId) => {
         const fetchBoardData = async () => {
             try {
                 const response = await axiosInstance.get(`/api/project/${projectId}`);
-                setBoardData(response.data); // 받은 데이터로 boardData 설정
+                setProject(response.data); // 받은 데이터로 boardData 설정
             } catch (error) {
                 console.error('Error fetching board data:', error);
             }
@@ -41,10 +48,10 @@ const useProjectData  = (projectId) => {
             const client = new Client({
                 brokerURL: wsUrl,
                 connectHeaders: headers,
-                debug: (str) => console.log("WebSocket Debug Log:", str),
+                debug: (str) => console.log("Project Debug Log:", str),
                 reconnectDelay: 5000, // 5초마다 재연결 시도
                 onConnect: () => {
-                    console.log('WebSocket connected');
+                    console.log('Project connected');
                     setIsConnected(true);
 
                     client.subscribe(`/topic/project/${projectId}/update`, (message) => {
@@ -53,7 +60,7 @@ const useProjectData  = (projectId) => {
                     });
                 },
                 onStompError: (frame) => {
-                    console.error('STOMP Error:', frame.headers['message']);
+                    console.error('Project STOMP Error:', frame.headers['message']);
                 },
             });
 
@@ -77,124 +84,168 @@ const useProjectData  = (projectId) => {
                 body: JSON.stringify(message), // 전송할 메시지
             });
         } else {
-            console.error('WebSocket is not connected');
+            console.error('Project is not connected');
         }
     }, [isConnected, stompClient]);  // stompClient와 isConnected만 의존성 배열에 포함
 
 
-
-    // WebSocket 메시지 처리 함수
     const handleBoardEvent = (eventData) => {
         if (!eventData || !eventData.type || !eventData.payload) {
             console.warn('Invalid event data received:', eventData);
             return;
         }
+    
         const { type, payload } = eventData;
     
         switch (type) {
-            case 'TASK_ADDED': {
-                console.log('TASK_ADDED');
-                setBoardData((prevData) => {
-                    const updatedColumns = prevData.columns.map((col) => {
-                        if (col.id !== payload.columnId) return col;
-            
-                        if (!col.tasks.some(task => task.id === payload.id)) {
-                            return { ...col, tasks: [...col.tasks, payload] };
-                        }
-                        return col;
-                    });
-            
-                    return { ...prevData, columns: updatedColumns };
-                });
+            case 'TASK_ADDED':
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => 
+                        column.id === payload.ColumnId
+                            ? { ...column, tasks: [...column.tasks, payload] }
+                            : column
+                    )
+                }));
                 break;
-            }
-            case 'SUBTASK_ADDED': {
-                console.log('SUBTASK_ADDED')
-                setBoardData((prevData) => {
-                      const updatedColumns = prevData.columns.map((col) => {
-                        if (col.id !== payload.columnId) return col;
-                  
-                        return {
-                          ...col,
-                          tasks: col.tasks.map((task) => {
-                            if (task.id !== payload.taskId) return task;
-                  
-                            return {
-                              ...task,
-                              subTasks: [
-                                ...(task.subTasks||[]),
-                                { id: payload.id, isChecked: payload.isChecked, name: payload.name },
-                              ],
-                            };
-                          }),
-                        };
-                      });
-                  
-                      return { ...prevData, columns: updatedColumns };
-                    });
+    
+            case 'TASK_UPDATED':
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => ({
+                        ...column,
+                        tasks: column.tasks.map(task => 
+                            task.id === payload.id ? payload : task
+                        )
+                    }))
+                }));
                 break;
-            }
     
-            case 'TASK_UPDATED': {
-                console.log('TASK_UPDATED')
-                setBoardData((prevData) => {
-                    const updatedColumns = prevData.columns.map((col) => {
-                        if (col.id !== payload.columnId) return col;
-    
-                        const updatedTasks = col.tasks.map((existingTask) =>
-                            existingTask.id === payload.id ? { ...existingTask, ...payload } : existingTask
-                        );
-                        return { ...col, tasks: updatedTasks };
-                    });
-    
-                    return { ...prevData, columns: updatedColumns };
-                });
+            case 'TASK_DELETED':
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => ({
+                        ...column,
+                        tasks: column.tasks.filter(task => task.id !== payload.id)
+                    }))
+                }));
                 break;
-            }
     
-            case 'TASK_DELETED': {
-                const { taskId, columnIndex } = payload;
-    
-                console.log('TASK_DELETED')
-                setBoardData((prevData) => {
-                    const updatedColumns = prevData.columns.map((col, idx) => {
-                        if (idx !== columnIndex) return col;
-    
-                        const filteredTasks = col.tasks.filter((task) => task.id !== taskId);
-                        return { ...col, tasks: filteredTasks };
-                    });
-    
-                    return { ...prevData, columns: updatedColumns };
-                });
+            case 'COLUMN_ADDED':
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: [...prevProject.columns, { ...payload, tasks: [] }]
+                }));
                 break;
-            }
-            case 'COLUMN_DELETED': {
-                setBoardData((prevData) => {
-                    const updatedColumns = prevData.columns.filter((col) => col.id !== payload);
-                    return { ...prevData, columns: updatedColumns };
-                  });
-                break;
-            }
-            case 'SUBTASK_DELETED': {
-                const { taskId, columnIndex } = payload;
     
-                console.log('TASK_DELETED')
-                setTask((prevTask) => ({
-                    ...prevTask,
-                    subTasks: prevTask.subTasks.filter((_, i) => i !== index),
-                  }));
-                setBoardData();
+            case 'COLUMN_UPDATED':
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => 
+                        column.id === payload.id ? { ...column, ...payload } : column
+                    )
+                }));
                 break;
-            }
+    
+            case 'COLUMN_DELETED':
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.filter(column => column.id !== payload.id)
+                }));
+                break;
+    
+            case 'SUBTASK_ADDED':
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => ({
+                        ...column,
+                        tasks: column.tasks.map(task => 
+                            task.id === payload.taskId
+                                ? { ...task, subTasks: [...task.subTasks, payload] }
+                                : task
+                        )
+                    }))
+                }));
+                break;
+    
+            case 'SUBTASK_UPDATED':
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => ({
+                        ...column,
+                        tasks: column.tasks.map(task => ({
+                            ...task,
+                            subTasks: task.subTasks.map(subtask => 
+                                subtask.id === payload.id ? payload : subtask
+                            )
+                        }))
+                    }))
+                }));
+                break;
+    
+            case 'SUBTASK_DELETED':
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => ({
+                        ...column,
+                        tasks: column.tasks.map(task => ({
+                            ...task,
+                            subTasks: task.subTasks.filter(subtask => subtask.id !== payload.id)
+                        }))
+                    }))
+                }));
+                break;
+    
+            case 'COMMENT_ADDED':
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => ({
+                        ...column,
+                        tasks: column.tasks.map(task => 
+                            task.id === payload.taskId
+                                ? { ...task, comments: [...task.comments, payload] }
+                                : task
+                        )
+                    }))
+                }));
+                break;
+    
+            case 'COMMENT_UPDATED':
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => ({
+                        ...column,
+                        tasks: column.tasks.map(task => ({
+                            ...task,
+                            comments: task.comments.map(comment => 
+                                comment.id === payload.id ? payload : comment
+                            )
+                        }))
+                    }))
+                }));
+                break;
+    
+            case 'COMMENT_DELETED':
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => ({
+                        ...column,
+                        tasks: column.tasks.map(task => ({
+                            ...task,
+                            comments: task.comments.filter(comment => comment.id !== payload.id)
+                        }))
+                    }))
+                }));
+                break;
     
             default:
                 console.warn(`Unhandled event type: ${type}`);
         }
     };
-
+    
 
     return {
-        boardData, // 화면에 보여줄 데이터
+        project,
         sendWebSocketMessage
     };
 };

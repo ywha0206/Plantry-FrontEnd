@@ -281,7 +281,6 @@
     display: flex;
     flex-direction: column;
     border: 1px solid gainsboro;
-    border-left: none !important;
     border-top-right-radius: 20px;
     border-bottom-right-radius: 20px;
     background-color: #f9f8f9;
@@ -365,9 +364,11 @@
   .searchBox {
     display: flex;
     align-items: center;
+    height: 30px;
     border: 1px solid gainsboro;
     border-radius: 8px;
     padding: 5px 5px 5px 8px;
+    box-sizing: border-box;
     &:focus-within {
       border: 1px solid #7e7edf;
       box-shadow: 1px 1px 5px 1px gainsboro;
@@ -419,8 +420,20 @@
   }
 
   .profileDiv {
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 50px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .userName {
+    width: 40px;
+    font-size: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    word-break: break-all;
+    color: rgb(109, 109, 109);
   }
 
   .message-profile {
@@ -981,6 +994,14 @@
     }
   }
 
+  .originMember {
+    background-color: #cccceb;
+    &:hover {
+      cursor: default;
+      background-color: #d1d1ee;
+    }
+  }
+
   .selected-User {
     display: flex;
     width: 100%;
@@ -1037,7 +1058,8 @@
 
 //============================================▼채팅방 이름 입력 모달============================================
 
-.chatRoomName-Modal {
+.chatRoomName-Modal,
+.chatRoomName-Modal2 {
   position: absolute;
   background-color: white;
   border-radius: 8px;
@@ -1046,7 +1068,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 3;
+  z-index: 5;
 
   .chatRoom-container {
     width: 100%;
@@ -1108,7 +1130,7 @@
 .viewMore {
   width: 180px;
   position: absolute;
-  top: 88px;
+  top: 78px;
   right: 20px;
   display: flex;
   flex-direction: column;

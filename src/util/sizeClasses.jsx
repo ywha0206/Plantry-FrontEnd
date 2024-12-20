@@ -47,10 +47,16 @@ export const gubunClasses = {
 }
 
 export const alertStyles = {
-    success: 'bg-green-100 text-green-700 border-green-500',
-    error: 'bg-red-100 text-red-700 border-red-500',
-    info: 'bg-blue-100 text-blue-700 border-blue-500',
-    warning: 'bg-yellow-100 text-yellow-700 border-yellow-500',
-    basic: 'bg-gray-100 text-white-700 border-white-500 z-10',
-    message: 'bg-blue-100 text-white-700 border-blue-500'
+    success: 'bg-green-500',
+    error: 'bg-red-500',
+    info: 'bg-blue-400',
+    warning: 'bg-yellow-400',
+    basic: 'bg-gray-500',
+    message: 'bg-blue-500'
+    // success: 'bg-green-100 text-green-700 border-green-500',
+    // error: 'bg-red-100 text-red-700 border-red-500',
+    // info: 'bg-blue-100 text-blue-700 border-blue-500',
+    // warning: 'bg-yellow-100 text-yellow-700 border-yellow-500',
+    // basic: 'bg-gray-100 text-white-700 border-white-500 z-10',
+    // message: 'bg-blue-100 text-white-700 border-blue-500'
 };

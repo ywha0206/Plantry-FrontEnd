@@ -22,6 +22,14 @@ import { AddProjectModal } from '../../components/project/_Modal';
 import { AddDocumentModal } from '../../components/document/addDocumentModal';
 import DriveShareModal from '../../components/document/documentShareMenu';
 
+
+
+const PERMISSIONS = {
+    READING: "읽기",
+    WRITING: "수정",
+    FULL: "모든"
+  };
+
 export default function DocumentList() {
     const [viewType, setViewType] = useState('box'); // Default to 'box'
     const [isOpen, setIsOpen] = useState(false);
@@ -35,6 +43,7 @@ export default function DocumentList() {
 
     const location = useLocation();
     const user = useUserStore((state) => state.user);
+
     const folderId = decodeURIComponent(location.pathname.split('/').pop());
     const queryClient = useQueryClient();
     const [draggedFolder, setDraggedFolder] = useState(null); // 드래그된 폴더
@@ -50,6 +59,12 @@ export default function DocumentList() {
         message: "",
         onConfirm: null, // 기본값은 null
       });
+
+     useEffect(()=>{
+        setSelectedFolder(null);
+        setSelectedFile(null);
+      },[])
+     
     const triggerAlert = (type, title, message) => {
         setAlert({ isVisible: true, type, title, message});
       };
@@ -190,7 +205,8 @@ export default function DocumentList() {
              // 서버의 응답 메시지를 확인
         if (response.status === 200) {
             console.log(response.data); // "Folder updated successfully"
-            alert("폴더 이동 성공!");
+            
+            triggerAlert('folder')
             queryClient.invalidateQueries(['folderContents']);
         } else {
             alert("폴더 이동 실패: " + response.data);
@@ -620,11 +636,10 @@ const handleCloseFileMenu = () => {
         type: 'file', // 파일 타입 추가
     }));
 
-    const sharedUser = (data?.sharedUser);
-    console.log("공유인원!!",sharedUser);
-
     const folderMaxOrder = subFolders.length;
     const fileMaxOrder = files.length;
+
+    
   
 
 
@@ -633,7 +648,7 @@ const handleCloseFileMenu = () => {
     if (isError) return <div>Error loading folder contents.</div>;
 
     return (
-        <DocumentLayout isDetailVisible={isDetailVisible} selectedFolder={selectedFolder} selectedFile={selectedFile} path={location.pathname} parentfolder={location.state?.folderName} uid={data.uid} closeDetailView={closeDetailView}>
+        <DocumentLayout isDetailVisible={isDetailVisible} selectedFolder={selectedFolder} selectedFile={selectedFile} path={location.pathname} parentfolder={location.state?.folderName} shared={selectedFolder?.sharedUsers || selectedFile?.shareDepts }  uid={data.uid} closeDetailView={closeDetailView}>
     
            <div   
                 className={`document-list-container ${isDragging ? 'dragging' : ''}`}
@@ -664,6 +679,9 @@ const handleCloseFileMenu = () => {
                                 alt="Rename"
                                 onClick={() => setEditing(true)}
                             />
+                             {user.uid !== parentFolder?.ownerId && (<>
+                                <span>소유자 : {parentFolder?.ownerId} </span>
+                            </>)}
                             </div>
 
                         </>
@@ -673,7 +691,7 @@ const handleCloseFileMenu = () => {
                          listName="작업자"
                          isShareOpen={isModalOpen}
                          setIsShareOpen={setIsModalOpen}
-                         members={sharedUser}
+                         members={parentFolder?.sharedUsers}
                     >
                         <DriveShareModal
                             isModalOpen={isModalOpen}
@@ -682,11 +700,12 @@ const handleCloseFileMenu = () => {
                             selectedFile={selectedFile}
                             company={user.company}
                             user={user}
+                            ownerId={parentFolder?.ownerId || selectedFolder?.ownerId || selectedFile?.ownerId}
                             id={selectedFolder?.id || parentFolder?.id}
-                            type={selectedFolder?.type || selectedFile?.type}
+                            type={selectedFolder?.type || selectedFile?.type || "folder"}
                             name={selectedFolder?.name || parentFolder?.name} // 선택된 폴더나 파일 이름 전달
-                            sharedMember = {selectedFolder?.sharedUser || selectedFile?.sharedUser || parentFolder?.sharedUser}
-                            sharedDept = {selectedFolder?.sharedDept || selectedFile?.sharedDept || parentFolder?.sharedDept}
+                            sharedMember = {selectedFolder?.sharedUser || selectedFile?.sharedUser || parentFolder?.sharedUsers}
+                            sharedDept = {selectedFolder?.sharedDept || selectedFile?.sharedDept || parentFolder?.shareDepts}
                             >
                         </DriveShareModal>
                     </ShareMember>
@@ -879,10 +898,11 @@ const handleCloseFileMenu = () => {
             
 
             <FileUploads isOpen={isOpen} onClose={() => setIsOpen(false)} folderId={folderId} fileMaxOrder={fileMaxOrder} folderMaxOrder={folderMaxOrder} uid={user.uid} triggerAlert={triggerAlert} />
-            <NewFolder isOpen={folder} onClose={() => setFolder(false)} parentId={folderId}     maxOrder={subFolders.length} // 최대 order 값을 계산해서 전달
+            <NewFolder isOpen={folder} onClose={() => setFolder(false)} parentId={folderId} user={user}    maxOrder={subFolders.length} triggerAlert={triggerAlert}
             />
              {/* ContextMenu 컴포넌트 */}
              <ContextMenu
+                    parentId={parentFolder.id}
                     visible={contextMenu.visible}
                     position={contextMenu.position}
                     onClose={handleCloseMenu}
@@ -895,8 +915,10 @@ const handleCloseFileMenu = () => {
                     onDetailToggle={() => handleDetailToggle(contextMenu.folder)} // 상세 정보 토글 함수 전달
                     downloadHandler={() => zipDownloadHandler(contextMenu.folder)}
                     selectedFolder = {setSelectedFolder}
+                    triggerAlert={triggerAlert}
                 />
               <ContextFileMenu
+                    parentId={parentFolder.id}
                     visible={contextFileMenu.visible}
                     position={contextFileMenu.position}
                     onClose={handleCloseFileMenu}
@@ -907,6 +929,8 @@ const handleCloseFileMenu = () => {
                     path={contextFileMenu.file?.path}
                     onDetailToggle={() => handleDetailFileToggle(contextFileMenu.file)}
                     downloadHandler={downloadHandler}
+                    triggerAlert={triggerAlert}
+
                 />
 
         
@@ -955,18 +979,21 @@ const handleCloseFileMenu = () => {
                         </div>
                     </Modal>
                 )}
-                   <DriveShareModal
-                    isModalOpen={isModalOpen}
-                    setIsModalOpen={setIsModalOpen}
-                    selectedFolder={selectedFolder}
-                    selectedFile={selectedFile}
-                    company={user.company}
-                    user={user}
-                    id={selectedFolder?.id || selectedFile?.id ||  parentFolder?.id}
-                    type={selectedFolder?.type || selectedFile?.type || "folder"}
-                    name={selectedFolder?.name || selectedFile?.name ||parentFolder?.name} // 선택된 폴더나 파일 이름 전달
-                    >
-                    </DriveShareModal>
+                    <DriveShareModal
+                            isModalOpen={isModalOpen}
+                            setIsModalOpen={setIsModalOpen}
+                            selectedFolder={selectedFolder}
+                            selectedFile={selectedFile}
+                            company={user.company}
+                            user={user}
+                            ownerId={parentFolder?.ownerId || selectedFolder?.ownerId || selectedFile?.ownerId}
+                            id={selectedFolder?.id || parentFolder?.id || selectedFile?.id }
+                            type={selectedFolder?.type || selectedFile?.type || "folder"}
+                            name={selectedFolder?.name || parentFolder?.name} // 선택된 폴더나 파일 이름 전달
+                            sharedMember = {selectedFolder?.sharedUser || selectedFile?.sharedUser || parentFolder?.sharedUsers}
+                            sharedDept = {selectedFolder?.sharedDept || selectedFile?.sharedDept || parentFolder?.shareDepts}
+                            >
+                        </DriveShareModal>
 
 
                    

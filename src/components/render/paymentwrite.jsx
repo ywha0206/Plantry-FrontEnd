@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // 페이지 이동을 위한 useNavigate 추가
+import { useNavigate } from "react-router-dom";
 
 export default function PaymentWrite() {
   const [formData, setFormData] = useState({
@@ -12,7 +12,7 @@ export default function PaymentWrite() {
     name: "",
   });
 
-  const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 훅
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,32 +24,74 @@ export default function PaymentWrite() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    // 유효성 검사
+    if (
+      !formData.orderNumber ||
+      !formData.paymentMethod ||
+      !formData.paymentAmount ||
+      !formData.title ||
+      !formData.content ||
+      !formData.email ||
+      !formData.name
+    ) {
+      alert("모든 필드를 채워 주세요.");
+      return;
+    }
+
     try {
-      const response = await fetch('http://localhost:8080/api/send-payment', {
+      // API 요청
+      const response = await fetch('http://13.124.94.213:90/api/send-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Origin': 'http://localhost:8010'
         },
+        mode: 'cors', // CORS 모드 명시적 설정
         body: JSON.stringify(formData)
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        alert(data.message);
-        setFormData({
-          orderNumber: "",
-          paymentMethod: "",
-          paymentAmount: "",
-          title: "",
-          content: "",
-          email: "",
-          name: "",
-        });
-      } else {
-        throw new Error(data.message);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      const data = await response.json();
+      console.log('서버 응답:', data);
+      
+      // 성공 시 자동 응답 이메일 전송
+      try {
+        const autoReplyResponse = await fetch('http://13.124.94.213:90/api/send-auto-reply', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Origin': 'http://localhost:8010'
+          },
+          mode: 'cors',
+          body: JSON.stringify({ email: formData.email })
+        });
+
+        if (!autoReplyResponse.ok) {
+          console.error('자동 응답 이메일 전송 실패');
+        }
+      } catch (autoReplyError) {
+        console.error('자동 응답 이메일 전송 중 오류:', autoReplyError);
+      }
+
+      alert('문의가 성공적으로 전송되었습니다.');
+      
+      // 폼 초기화
+      setFormData({
+        orderNumber: "",
+        paymentMethod: "",
+        paymentAmount: "",
+        title: "",
+        content: "",
+        email: "",
+        name: "",
+      });
+
     } catch (error) {
       console.error('문의 전송 실패:', error);
       alert('문의 전송에 실패했습니다. 다시 시도해주세요.');
@@ -75,7 +117,7 @@ export default function PaymentWrite() {
 
   const handleMenuClick = (index, path) => {
     setActiveIndex(index);
-    navigate(path); // 클릭 시 페이지 이동
+    navigate(path);
   };
 
   return (
@@ -114,13 +156,12 @@ export default function PaymentWrite() {
                   }`}
                   onClick={() => handleMenuClick(index, menu.path)}
                 >
-                  <img
-                    src={menu.icon}
-                    alt={menu.title}
-                    className={`w-6 h-6 mr-3 ${
-                      activeIndex === index ? "brightness-150" : ""
-                    }`}
-                  />
+                  <span className="text-2xl mr-3">
+                    {index === 0 && "💳"} {/* PAYMENT */}
+                    {index === 1 && "↩️"} {/* CANCELLATION & RETURN */}
+                    {index === 2 && "❓"} {/* QNA */}
+                    {index === 3 && "⚙️"} {/* PRODUCT & SERVICES */}
+                  </span>
                   <span className="text-base font-medium">{menu.title}</span>
                 </li>
               ))}
@@ -182,7 +223,7 @@ export default function PaymentWrite() {
                   value={formData.title}
                   onChange={handleChange}
                   className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter your inquiry title"
+                  placeholder="Enter inquiry title"
                   required
                 />
               </div>

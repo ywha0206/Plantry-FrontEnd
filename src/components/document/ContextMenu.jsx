@@ -19,7 +19,9 @@ export default function ContextMenu({
     downloadHandler,
     type,
     onShare,
-    selectedFolder
+    selectedFolder,
+    parentId,
+    triggerAlert
 }) {
     const contextMenuRef = useRef(null);
     const renameModalRef = useRef(null); // RenameModal의 레퍼런스
@@ -31,7 +33,7 @@ export default function ContextMenu({
     const queryClient = useQueryClient(); // Access query client
 
     const [isFavorite, setIsFavorite] = useState(Boolean(isPinned));
-    const [alert,setAlert] = useState();
+    const [alert,setAlert] = useState(null);
     const handleFavoriteToggle = async () => {
         const newFavoriteState = !isFavorite;
         setIsFavorite(newFavoriteState);
@@ -178,24 +180,31 @@ export default function ContextMenu({
         try {
             // 실제 삭제 API 호출
            const response =  await axiosInstance.delete(`/api/drive/folder/delete/${folderId}`,
-            { params: { path } } // 쿼리 매개변수로 path 전달
+            { params: { path , parentId } } // 쿼리 매개변수로 path 전달
            );
            if (response.status === 200) {
             queryClient.invalidateQueries(['folderContents']); // Replace with the relevant query key
-            alert('휴지통으로 이동  성공');
-          } else {
-            console.error('삭제 실패:', error);
-            alert('폴더 삭제에 실패했습니다. 다시 시도해주세요.');
+            setAlert({
+                type: 'info',
+                title: '삭제 성공',
+                message: '휴지통으로 이동했습니다.',
+                onConfirm: () => setAlert(null),
+            });
+          } else{
+            const message = response.data;
+            console.log("message",message);
           }
+          
         } catch (error) {
-            console.error('폴더 삭제 중 오류 발생:', error);
+            const errorMessage = error.response?.data || '파일 업로드 중 오류가 발생했습니다. 다시 시도해주세요.';
+            const errorType = error.response?.status === 400 ? 'warning' : 'error';
+            triggerAlert(errorType,'폴더 삭제 실패',errorMessage);
+           
 
         }
     };
 
-    const closeMenu = () => {
-        setMenuState({ visible: false, position: { top: 0, left: 0 }, activeFolder: null });
-    };
+    
     
 
     const [isRestoreAlert,setIsRestoreAlert] = useState(false);;
@@ -344,14 +353,14 @@ export default function ContextMenu({
             </div>
         </div>
         {alert && (
-                    <CustomAlert
-                        type={alert.type}
-                        title={alert.title}
-                        message={alert.message}
-                        confirmText="확인"
-                        onConfirm={alert.onConfirm}
-                    />
-                    )}
+            <CustomAlert
+                type={alert.type}
+                title={alert.title}
+                message={alert.message}
+                confirmText="확인"
+                onConfirm={alert.onConfirm}
+            />
+            )}
 
         {isAlertOpen  && (
                                 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import "@/pages/community/Community.scss";
-import { Link, useParams, useLocation } from "react-router-dom";
+import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import axiosInstance from "@/services/axios";
 
 export default function CommunitySidebar({
@@ -17,8 +17,8 @@ export default function CommunitySidebar({
 }) {
   const { boardId } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  // State 초기화
   const [boards, setBoards] = useState(initialUserBoards);
   const [departmentBoards, setDepartmentBoards] = useState([]);
   const [favoriteIds, setFavoriteIds] = useState([]);
@@ -27,6 +27,7 @@ export default function CommunitySidebar({
   const [newBoardDescription, setNewBoardDescription] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedBoard, setSelectedBoard] = useState(null);
 
   const [sections, setSections] = useState({
     favorites: true,
@@ -35,21 +36,20 @@ export default function CommunitySidebar({
     myBoards: true,
   });
 
-  // URL 변경 감지 및 처리
   useEffect(() => {
     const currentBoardId = location.pathname.split("/")[2];
     if (currentBoardId) {
-      onBoardChange(currentBoardId);
+      handleBoardChange(currentBoardId);
     }
-  }, [location.pathname, onBoardChange]);
+  }, [location.pathname]);
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!currentUser || !currentUser.id) {
-        console.error("사용자 정보를 로드할 수 없습니다.");
+      if (!currentUser?.id) {
         setError("사용자 정보를 로드할 수 없습니다.");
         return;
       }
+
       try {
         setLoading(true);
         const [
@@ -62,16 +62,8 @@ export default function CommunitySidebar({
           axiosInstance.get(`/api/community/favorites/${currentUser.id}`),
         ]);
 
-        console.log(
-          "User Boards detail:",
-          userBoardsResponse.data.map((board) => ({
-            id: board.boardId,
-            name: board.boardName,
-          }))
-        );
-
-        setBoards(userBoardsResponse?.data || []);
-        console.log("First board ID:", userBoardsResponse?.data?.[0]?.boardId);
+        const boards = userBoardsResponse?.data || [];
+        setBoards(boards);
 
         setDepartmentBoards(
           Array.isArray(departmentBoardsResponse?.data)
@@ -82,6 +74,16 @@ export default function CommunitySidebar({
         setFavoriteIds(
           favoritesResponse?.data?.map((fav) => fav.itemId || fav.boardId) || []
         );
+
+        if (boardId && boards.length > 0) {
+          const currentBoard = boards.find(
+            (board) => board.boardId === parseInt(boardId)
+          );
+          if (currentBoard) {
+            handleBoardChange(boardId, currentBoard);
+            setSelectedBoard(currentBoard);
+          }
+        }
       } catch (err) {
         console.error("데이터 로드 실패:", err);
         setError("데이터를 로드하는 데 실패했습니다.");
@@ -93,6 +95,25 @@ export default function CommunitySidebar({
     fetchData();
   }, [currentUser, boardId]);
 
+  const handleBoardChange = (boardId, boardData = null) => {
+    const board =
+      boardData || boards.find((b) => b.boardId === parseInt(boardId));
+    if (board) {
+      onBoardChange(board.boardId, board.boardName);
+    }
+  };
+
+  const handleBoardClick = (board) => {
+    setSelectedBoard(board);
+    handleBoardChange(board.boardId, board);
+    navigate(`/community/${board.boardId}/list`, {
+      state: {
+        boardData: board,
+        boardName: board.boardName,
+      },
+    });
+  };
+
   const toggleSection = (section) => {
     setSections((prev) => ({
       ...prev,
@@ -103,28 +124,43 @@ export default function CommunitySidebar({
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
 
-  const handleCreateBoard = () => {
+  const handleCreateBoard = async () => {
     if (!newBoardName.trim() || !newBoardDescription.trim()) {
       alert("게시판 이름과 설명을 입력해주세요.");
       return;
     }
 
-    const newBoard = {
-      key: new Date().getTime().toString(),
-      label: newBoardName,
-      description: newBoardDescription,
-    };
+    try {
+      const response = await axiosInstance.post("/api/community/boards", {
+        boardName: newBoardName,
+        description: newBoardDescription,
+        createdBy: currentUser.id,
+      });
 
-    setBoards((prevBoards) => [...prevBoards, newBoard]);
-    onNewUserBoard(newBoard);
-    alert(`새 게시판 "${newBoard.label}"이 생성되었습니다!`);
-    setNewBoardName("");
-    setNewBoardDescription("");
-    handleCloseModal();
+      const newBoard = response.data;
+      setBoards((prevBoards) => [...prevBoards, newBoard]);
+      onNewUserBoard(newBoard);
+      alert(`새 게시판 "${newBoard.boardName}"이 생성되었습니다!`);
+      setNewBoardName("");
+      setNewBoardDescription("");
+      handleCloseModal();
+    } catch (error) {
+      console.error("게시판 생성 실패:", error);
+      alert("게시판 생성에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
-  const handleBoardClick = (board) => {
-    onBoardChange(board.boardId);
+  const handleNewPostClick = () => {
+    if (!selectedBoard) {
+      alert("게시판을 먼저 선택해주세요.");
+      return;
+    }
+    navigate(`/community/${selectedBoard.boardId}/write`, {
+      state: {
+        boardData: selectedBoard,
+        boardName: selectedBoard.boardName,
+      },
+    });
   };
 
   const toggleFavorite = async (boardId) => {
@@ -158,29 +194,23 @@ export default function CommunitySidebar({
     favoriteIds.includes(board.boardId)
   );
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error}</p>;
-
   const renderBoardItem = (board, isFavoriteSection = false) => (
     <div
-      key={board.boardId}
-      className={`flex items-center justify-between px-8 py-1 group ${
-        board.boardId === boardId ? "bg-gray-100" : ""
-      }`}
+      key={board.board_id}
+      className="flex items-center px-8 py-1 cursor-pointer"
+      onClick={() => handleBoardClick(board)}
     >
       <img
         src="/images/document_text.png"
         alt="icon"
         className="w-5 h-5 mr-2"
       />
-      <Link
-        to={`/community/${board.boardId}/list`}
-        state={{ boardData: board }}
-        className="flex-grow hover:underline"
+      <div
+        className="flex-grow hover:underline cursor-pointer"
         onClick={() => handleBoardClick(board)}
       >
         {board.boardName || "이름 없음"}
-      </Link>
+      </div>
       <img
         src={
           favoriteIds.includes(board.boardId)
@@ -193,14 +223,19 @@ export default function CommunitySidebar({
             ? "opacity-100"
             : "opacity-0 group-hover:opacity-100"
         } transition-opacity duration-300`}
-        onClick={() => toggleFavorite(board.boardId)}
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleFavorite(board.boardId);
+        }}
       />
     </div>
   );
 
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
+
   return (
     <aside className="community-aside overflow-scroll flex flex-col scrollbar-none p-4">
-      {/* 상단 메뉴 */}
       <div className="flex justify-around items-center mb-6">
         {[
           { icon: "/images/checkbox.png", label: "최신글" },
@@ -214,7 +249,6 @@ export default function CommunitySidebar({
         ))}
       </div>
 
-      {/* 즐겨찾기 섹션 */}
       <div className="mb-6">
         <div
           className="flex justify-between items-center px-4 py-2 cursor-pointer"
@@ -246,7 +280,6 @@ export default function CommunitySidebar({
           ))}
       </div>
 
-      {/* 전체 게시판 */}
       <div className="mb-6">
         <div
           className="flex justify-between items-center px-4 py-2 cursor-pointer"
@@ -272,7 +305,6 @@ export default function CommunitySidebar({
           ))}
       </div>
 
-      {/* 부서별 게시판 */}
       <div className="mb-6">
         <div
           className="flex justify-between items-center px-4 py-2 cursor-pointer"
@@ -300,9 +332,8 @@ export default function CommunitySidebar({
           ))}
       </div>
 
-      {/* 새 게시글 작성 버튼 */}
-      <Link
-        to={`/community/${boards[0]?.boardId || ""}/write`}
+      <button
+        onClick={handleNewPostClick}
         className="new-user-board-button flex items-center justify-center px-4 py-2 mt-4 space-x-2 w-full min-w-[150px] rounded-md"
       >
         <img
@@ -310,10 +341,11 @@ export default function CommunitySidebar({
           alt="새 게시글"
           className="w-5 h-5 mr-2"
         />
-        새 게시글 작성
-      </Link>
+        {selectedBoard
+          ? `${selectedBoard.boardName}에 새 글 작성`
+          : "게시판을 선택해주세요"}
+      </button>
 
-      {/* 새 게시판 생성 버튼 */}
       <button
         onClick={handleOpenModal}
         className="new-user-board-button flex items-center justify-center px-4 py-2 mt-4 space-x-2 w-full min-w-[150px] rounded-md"
@@ -326,7 +358,6 @@ export default function CommunitySidebar({
         새 게시판 생성
       </button>
 
-      {/* 모달 */}
       {isModalOpen && (
         <div
           className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50"
@@ -336,7 +367,7 @@ export default function CommunitySidebar({
             className="bg-white rounded-lg p-6 w-96"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-semibold mb-4">새게시판 생성</h2>
+            <h2 className="text-lg font-semibold mb-4">새 게시판 생성</h2>
             <div className="mb-4">
               <label className="block font-medium mb-1">게시판 이름</label>
               <input

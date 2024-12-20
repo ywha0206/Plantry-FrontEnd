@@ -7,15 +7,15 @@ import axiosInstance from '@/services/axios.jsx'
 import CustomAlert from '../../components/Alert';
 import useUserStore from '../../store/useUserStore';
 import { PassModal } from '../../components/my/PassModal';
+import DeleteAccount from '../../components/my/DeleteAccount';
+import MySocial from '../../components/my/MySocial';
+import MyProfile from '../../components/my/MyProfile';
 
 const profileURL = 'http://3.35.170.26:90/profileImg/';
 
 export default function MyModify() {
     const navigate = useNavigate();
     const user = useUserStore((state) => state.user);
-    const [deactive , setDeactive] = useState(0);
-    const [file, setFile] = useState(null); // 선택한 파일 상태
-    const [selectedFileName, setSelectedFileName] = useState(""); //선택한 파일의 이름
 
     const [alertClass, setAlertClass] = useState("");
     const [alert, setAlert] = useState({ message: '', type: '', isOpen: false, onClose: false });
@@ -44,39 +44,10 @@ export default function MyModify() {
         });
         setAlertClass(''); // fade-out 클래스 제거
     };
-    
-    const [pass, setPass] = useState(false);
-    const showMoreRef = useRef();
-    const modifyPass = (event) => {
-        event.preventDefault();
-        setPass(true);
-    }
-    const passClose = () => {
-        setPass(false)
-    }
 
-    const getUserAPI = async () => {
-        if (!user?.uid) {
-        throw new Error("유저 정보가 없습니다.");
-        }
-        const resp = await axiosInstance.get('/api/my/user');
-        console.log("유저 데이터 조회 "+JSON.stringify(resp.data));
-        return resp.data;
-    }
-    const { data: userData, isError: userError, isLoading: userLoading } = useQuery({
-        queryKey: [`${user.uid}`],
-        queryFn: getUserAPI,
-        enabled: !!user?.uid,
-    })
-
-    const handleCheckboxChange = (event) => {
-        setDeactive(event.target.checked ? 1 : 0); // 체크 상태에 따라 값 설정
-    };
-    const cancelHandler = (event) => {
-        event.preventDefault();
-        navigate("/my")
-    }
-  
+    const [file, setFile] = useState(null); // 선택한 파일 상태
+    const [selectedFileName, setSelectedFileName] = useState(""); //선택한 파일의 이름
+      
     // 파일 선택 핸들러
     const handleFileChange = (event) => {
         const selectedFile = event.target.files[0];
@@ -119,6 +90,58 @@ export default function MyModify() {
     };
 
     const [message, setMessage] = useState('');
+
+    const handleMessageChange = (e) => {
+        setMessage(e.target.value); // 입력값으로 메시지 상태 업데이트
+    };
+    const updateMessage = async (e) => {
+        e.preventDefault();
+        try{
+            const response = await axiosInstance.post('/api/my/message', message, {
+                headers: {
+                    'Content-Type': 'text/plain', // 문자열을 그대로 전달
+                },
+            });
+            console.log(response.status)
+            if (response.status === 200) {
+                setAlert({ message: '메시지가 성공적으로 업데이트되었습니다.', type: 'success', isOpen: true });
+            }
+        }catch(err){
+            console.log(err.message);
+            setAlert({ message: '메시지 업데이트 중 오류가 발생했습니다.', type: 'error', isOpen: true });
+        }
+    }
+
+    
+    const [pass, setPass] = useState(false);
+    const showMoreRef = useRef();
+    const modifyPass = (event) => {
+        event.preventDefault();
+        setPass(true);
+    }
+    const passClose = () => {
+        setPass(false)
+    }
+
+    const getUserAPI = async () => {
+        if (!user?.uid) {
+        throw new Error("유저 정보가 없습니다.");
+        }
+        const resp = await axiosInstance.get('/api/my/user');
+        console.log("유저 데이터 조회 "+JSON.stringify(resp.data));
+        return resp.data;
+    }
+    const { data: userData, isError: userError, isLoading: userLoading } = useQuery({
+        queryKey: [`${user.uid}`],
+        queryFn: getUserAPI,
+        enabled: !!user?.uid,
+    })
+
+    const cancelHandler = (event) => {
+        event.preventDefault();
+        navigate("/my")
+    }
+   
     const [email, setEmail] = useState({ emailAddr: "", emailDomain: "" });
     const [hp, setHp] = useState({ hp1: "", hp2: "", hp3: "" });
     const [userInfo, setUserInfo] = useState({
@@ -178,9 +201,9 @@ export default function MyModify() {
         if (userData) {
             const [hp1, hp2, hp3] = userData.hp.split("-");
             const [emailAddr, emailDomain] = userData.email.split("@");
+            setMessage(userData?.profileMessage||'');
             setHp({ hp1, hp2, hp3 }); // 전화번호 부분 초기화
             setEmail({emailAddr: emailAddr, emailDomain: `@${emailDomain}`});
-            setMessage(userData.profileMessage);
             setUserInfo({
                 name: userData?.name || "",
                 email: userData?.email || "",
@@ -192,26 +215,6 @@ export default function MyModify() {
         }
     }, [userData]);
     
-    const handleMessageChange = (e) => {
-        setMessage(e.target.value); // 입력값으로 메시지 상태 업데이트
-    };
-    const updateMessage = async (e) => {
-        e.preventDefault();
-        try{
-            const response = await axiosInstance.post('/api/my/message', message, {
-                headers: {
-                    'Content-Type': 'text/plain', // 문자열을 그대로 전달
-                },
-            });
-            console.log(response.status)
-            if (response.status === 200) {
-                setAlert({ message: '메시지가 성공적으로 업데이트되었습니다.', type: 'success', isOpen: true });
-            }
-        }catch(err){
-            console.log(err.message);
-            setAlert({ message: '메시지 업데이트 중 오류가 발생했습니다.', type: 'error', isOpen: true });
-        }
-    }
 
   return <>
     <div id='my-modify-container'>
@@ -232,44 +235,44 @@ export default function MyModify() {
                     <p>데이터를 불러오는 데 실패했습니다.</p>
                 ) : (<>
                     <div className='upload-photo flex items-center'>
-                        <div className='w-[200px] h-[200px] bg-white drop-shadow-lg flex items-center justify-center overflow-hidden rounded-full'>
-                            <img
-                            className='w-full h-full object-cover flex items-center between-center'
-                            src={userData?.profileImgPath ? `${profileURL}${userData.profileImgPath}` : '/images/default-profile.png'}
-                            alt="프로필 이미지" 
-                            />
-                        </div>
-                        <div className='ml-[50px] flex flex-col w-[500px]'>
-                            <span className='text-xs bg-white relative top-2 text-center w-[80px] text-gray-500 ml-10'>프로필 메세지</span>
-                            <div className=' mb-10 h-[60px] flex items-center border border-gray-300 rounded-r-lg rounded-t-lg resize-none'>
-                                <input placeholder='프로필 메세지를 설정해 보세요!'
-                                className=' w-full rounded-lg indent-4'
-                                value={message}
-                                onChange={handleMessageChange}
-                                />
-                                <button onClick={updateMessage}
-                                className='bg-indigo-500 text-white rounded w-[70px] h-[40px] mr-2'>변경</button>
-                            </div>
-                            <div className='flex mt-10'>
-                                <label for="file" className='mr-10'>
-                                    <div  className='rounded-md h-[40px] flex items-center justify-center bg-indigo-500 text-white px-8'>
-                                        프로필 선택
-                                    </div>
-                                </label>
-                                <button onClick={profileUploadHandler}
-                                className='rounded-md h-[40px] flex items-center justify-center border border-indigo-500 text-indigo-700 px-8'
-                                >프로필 등록</button>
-                                {/* <button className='btn-profile border border-red-400 text-red-400'>RESET</button> */}
-                            </div>
-                            <span className='text-sm text-gray-400 font-light mt-1'>
-                                {selectedFileName || "JPG, GIF 혹은 PNG 등록 가능, 10MB 지원"}
-                            </span>
-                            <input type="file" id='file' 
-                                onChange={handleFileChange}
-                                className='hidden-inp'
-                            />
-                        </div>
+                <div className='w-[200px] h-[200px] bg-white drop-shadow-lg flex items-center justify-center overflow-hidden rounded-full'>
+                    <img
+                        className='w-full h-full object-cover flex items-center between-center'
+                        src={`${profileURL}${userData?.profileImgPath || 'default-profile.png'}`}
+                        alt="프로필 이미지" 
+                    />
                     </div>
+                    <div className='ml-[50px] flex flex-col w-[500px]'>
+                        <span className='text-xs bg-white relative top-2 text-center w-[80px] text-gray-500 ml-10'>프로필 메세지</span>
+                        <div className=' mb-10 h-[60px] flex items-center border border-gray-300 rounded-r-lg rounded-t-lg resize-none'>
+                            <input placeholder='프로필 메세지를 설정해 보세요!'
+                            className=' w-full rounded-lg indent-4'
+                            value={message}
+                            onChange={handleMessageChange}
+                            />
+                            <button onClick={updateMessage}
+                            className='bg-indigo-500 text-white rounded w-[70px] h-[40px] mr-2 hover:bg-indigo-600'>변경</button>
+                    </div>
+                    <div className='flex mt-10'>
+                        <label for="file" className='mr-10'>
+                            <div  className='rounded-md h-[40px] flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 text-white px-8'>
+                                프로필 선택
+                            </div>
+                        </label>
+                        <button onClick={profileUploadHandler}
+                        className='rounded-md h-[40px] flex items-center justify-center border border-indigo-500 hover:bg-indigo-50 text-indigo-700 px-8'
+                        >프로필 등록</button>
+                        {/* <button className='btn-profile border border-red-400 text-red-400'>RESET</button> */}
+                    </div>
+                    <span className='text-sm text-gray-400 font-light mt-1'>
+                        {selectedFileName || "JPG, GIF 혹은 PNG 등록 가능, 10MB 지원"}
+                    </span>
+                    <input type="file" id='file' 
+                        onChange={handleFileChange}
+                        className='hidden-inp'
+                    />
+                </div>
+            </div>
                     <table className='w-full'>
                         <tbody>
                             <tr>
@@ -388,75 +391,19 @@ export default function MyModify() {
                         </tbody>
                     </table>
                     <div className='flex float-right mt-[50px]'>
-                        <button onClick={modifyPass} className='btn-profile border border-indigo-500 text-indigo-700 mr-10'>비밀번호 수정</button>
-                        <button onClick={submitHandler} className='btn-profile bg-indigo-500 text-white mr-10'>마이프로필 수정</button>
-                        <button className='btn-profile border text-gray-500' onClick={cancelHandler}>취소</button>
+                        <button onClick={modifyPass} className='btn-profile border border-indigo-500 hover:bg-indigo-50 text-indigo-700 mr-10'>비밀번호 수정</button>
+                        <button onClick={submitHandler} className='btn-profile bg-indigo-500 hover:bg-indigo-600 text-white mr-10'>마이프로필 수정</button>
+                        <button className='btn-profile border text-gray-500 hover:bg-gray-100' onClick={cancelHandler}>취소</button>
                     </div>
                 </>)}
             </form>
         </section>
         <section className='my-modify2'>
             <article className='my-del-account flex flex-col justify-between border'>
-                <h2 className='sub-title text-lg'>Delete Account</h2>
-                <div className='flex flex-col justify-start h-full'>
-                    <label><input type="checkbox" className='mt-[30px] mr-10' onChange={handleCheckboxChange}/> 계정을 비활성화하고 싶습니다.</label>
-                    {deactive===1&& 
-                    <div className='mt-[30px]'>
-                        <span className='text-xs text-center w-[50px] ml-10'>먼저 비밀번호를 확인하셔야 합니다.</span>
-                        <div className='flex items-center '>
-                            <input type="password" className='delete-inp mr-10' />
-                            <button className='btn-delete bg-indigo-500 text-white' >확인</button>
-                        </div>
-                    </div>
-                    }
-                </div>
-                <button className='btn-profile border text-gray-500 w-full'>계정 비활성화</button>
+                <DeleteAccount/>
             </article>
             <article className='my-social border'>
-                <h2 className='sub-title text-lg'>Social Account</h2>
-                <span className='text-sm text-gray-500'>Plantry와 소셜 계정을 연동할 수 있습니다.</span>
-                <ul className='mt-[30px]'>
-                    <li className='flex justify-between items-center border p-2 rounded-lg mt-10'>
-                        <div className='flex'>
-                            <img src="/images/kakao-icon-box.png" alt="icon" className='icon-size-50 rounded-lg mr-10'/>
-                            <div>
-                                <p className='flex'>Kakao Talk <img className='ml-10' src="/images/Link-icon.png" alt="link" /></p>
-                                <span>연결된 계정의 이메일주소</span>
-                            </div>
-                        </div>
-                        <img src="/images/gold_star.png" alt="star" className='icon-size-25 mr-10'/>
-                    </li>
-                    <li className='flex justify-between items-center border p-2 rounded-lg mt-10'>
-                        <div className='flex'>
-                            <img src="/images/google-icon-box.png" alt="icon" className='icon-size-50 rounded-lg mr-10'/>
-                            <div>
-                                <p className='flex'>Google <img className='ml-10' src="/images/LinkOff-icon.png" alt="link" /></p>
-                                <span>연결된 계정의 이메일주소</span>
-                            </div>
-                        </div>
-                        <img src="/images/gray_star.png" alt="star" className='icon-size-25 mr-10'/>
-                    </li>
-                    <li className='flex justify-between items-center border p-2 rounded-lg mt-10'>
-                        <div className='flex'>
-                            <img src="/images/naver-icon-box.png" alt="icon" className='icon-size-50 rounded-lg mr-10'/>
-                            <div>
-                                <p className='flex'>Naver <img className='ml-10' src="/images/LinkOff-icon.png" alt="link" /></p>
-                                <span>연결된 계정의 이메일주소</span>
-                            </div>
-                        </div>
-                        <img src="/images/gray_star.png" alt="star" className='icon-size-25 mr-10'/>
-                    </li>
-                    <li className='flex justify-between items-center border p-2 rounded-lg mt-10'>
-                        <div className='flex'>
-                            <img src="/images/Facebook_icon-box.png" alt="icon" className='icon-size-50 rounded-lg mr-10'/>
-                            <div>
-                                <p className='flex'>Facebook <img className='ml-10' src="/images/LinkOff-icon.png" alt="link" /></p>
-                                <span>연결된 계정의 이메일주소</span>
-                            </div>
-                        </div>
-                        <img src="/images/gray_star.png" alt="star" className='icon-size-25 mr-10'/>
-                    </li>
-                </ul>
+                <MySocial/>
             </article>
             <div className='pass-modal'>
                 <PassModal
