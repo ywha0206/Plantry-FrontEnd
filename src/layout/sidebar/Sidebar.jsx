@@ -189,7 +189,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
               {!isCollapsed && <p>페이지</p>}
             </li>
           </Link>
-          <Link to="/">
+          <Link to="/faq">
             <li>
               <img style={{ opacity: "0.6" }} src="/images/sidebar-cs.png" />
               {!isCollapsed && <p>고객센터</p>}

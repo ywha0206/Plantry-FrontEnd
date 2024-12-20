@@ -64,7 +64,7 @@ export default function MainFooter() {
       <p className="text-center mt-12 text-gray-400 text-sm">
         Copyright © 2024, Made with by
         <span className="text-black font-medium"> Prantry Technologies </span>
-        Version 0.1.5-SNAPSHOT
+        Version 1.0.0-Release
       </p>
     </footer>
   );
