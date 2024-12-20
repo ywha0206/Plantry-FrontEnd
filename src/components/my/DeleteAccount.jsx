@@ -1,8 +1,25 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../../services/axios";
+import CustomAlert from "./CustomAlert";
+import { useAuthStore } from "../../store/useAuthStore";
+import { useNavigate } from "react-router-dom";
+const customAlertInitData = {
+    visible: false,
+    type: "info",
+    title: "",
+    message: "",
+    subMessage: "" , 
+    onConfirm: "", 
+    onCancel: "", 
+    confirmText: '확인', 
+    cancelText: '취소',
+    showCancel: true
+}
 
 const DeleteAccount = () => {
-    
+
+    const navigate = useNavigate();
+    const logout = useAuthStore(state => state.logout);
     const [deactive , setDeactive] = useState(0);
     const handleCheckboxChange = (event) => {
         setDeactive(event.target.checked ? 1 : 0); // 체크 상태에 따라 값 설정
@@ -11,6 +28,10 @@ const DeleteAccount = () => {
     const [successPass, setSuccessPass] = useState(true)
     const [message, setMessage] = useState({message:'', type: ''});
 
+    const [isCustomAlert, setIsCustomAlert] = useState({ customAlertInitData});
+    const customAlertCancelHandler = ()=>{
+        setIsCustomAlert(customAlertInitData);
+    }
 
     const changePass = (e) => {
         setPass(e.target.value)
@@ -43,18 +64,44 @@ const DeleteAccount = () => {
             })
           }
     }
-    const deleteAccountHandler = async (e) => {
+    const deleteAccountHandler = (e) => {
         e.preventDefault();
+        setIsCustomAlert({
+            visible:true,
+            type: "info",
+            title: "계정을 비활성화하시겠습니까?",
+            message: `비활성화시 1년간 비활성화 계정으로 남은 후 자동으로 계정이 삭제됩니다.`,
+            subMessage: '', 
+            onConfirm: deleteHandler, 
+            onCancel: customAlertCancelHandler, 
+            showCancel: true,
+        })
+    }
+
+    const deleteHandler = async () => {
         try{
             const resp = await axiosInstance.get('/api/my/deleteAccount');
             console.log('계정 비활성화 결과 '+resp)
             if(resp.status === 200){
-
-                alert(`비활성화가 완료되었습니다.\n지금까지 PLANTRY를 이용해 주셔서 감사합니다.`)
+                setIsCustomAlert({
+                    visible:true,
+                    type: "info",
+                    title: "비활성화가 완료되었습니다.",
+                    message: `지금까지 PLANTRY를 이용해 주셔서 감사합니다.`,
+                    subMessage: '', 
+                    onConfirm: logoutHandler, 
+                    onCancel: customAlertCancelHandler, 
+                    showCancel: false,
+                })
             }
         }catch(err){
             console.log('비활성화 실패');
         }
+    }
+
+    const logoutHandler = () => {
+        logout();
+        navigate("/")
     }
 
     return(
@@ -85,8 +132,20 @@ const DeleteAccount = () => {
         className={`btn-profile border text-gray-500 w-full ${successPass===false?'hover:bg-gray-100':''}`}
         onClick={deleteAccountHandler}
         disabled={successPass}
-        >계정 비활성화</button>
-    
+        >계정 비활성화
+        </button>
+        {isCustomAlert.visible &&(
+
+        <CustomAlert
+            type = {isCustomAlert.type} 
+            title={isCustomAlert.title} 
+            message={isCustomAlert.message} 
+            subMessage={isCustomAlert.subMessage} 
+            onConfirm={isCustomAlert.onConfirm} 
+            onCancel={isCustomAlert.onCancel} 
+            showCancel = {isCustomAlert.showCancel}
+        />
+        )}
         </>
     )
 }

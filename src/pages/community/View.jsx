@@ -6,6 +6,7 @@ import useUserStore from "../../store/useUserStore";
 import axiosInstance from "../../services/axios";
 import DOMPurify from "dompurify";
 import "react-quill/dist/quill.snow.css";
+import CommentList from "../../components/community/CommentList";
 
 import {
   Heart,
@@ -33,6 +34,8 @@ function CommunityView() {
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
+  const [newReply, setNewReply] = useState("");
+
   const [isLiked, setIsLiked] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showPostEmojiPicker, setShowPostEmojiPicker] = useState(false);
@@ -122,6 +125,23 @@ function CommunityView() {
     }
   };
 
+  const handleCommentEdit = async (commentId, newContent) => {
+    try {
+      await axiosInstance.patch(
+        `/api/community/posts/${postId}/comments/${commentId}`,
+        {
+          content: newContent,
+          userId: user?.id,
+        }
+      );
+
+      fetchComments(); // 댓글 목록 새로고침
+    } catch (error) {
+      console.error("댓글 수정 실패:", error);
+      throw error; // 에러를 상위로 전달
+    }
+  };
+
   // 유틸리티 함수
   const getInitial = (name) => name?.charAt(0) || "?";
 
@@ -155,6 +175,29 @@ function CommunityView() {
       fetchComments();
     } catch (error) {
       console.error("댓글 작성 실패:", error);
+    }
+  };
+
+  const handleReplySubmit = async (e, parentId) => {
+    e.preventDefault();
+    console.log("parentId:", parentId); // 디버깅용 로그
+
+    if (!newReply.trim()) return;
+
+    try {
+      await axiosInstance.post(`/api/community/posts/${postId}/comments`, {
+        content: newReply,
+        postId: postId,
+        userId: user?.id,
+        writer: user?.name,
+        parentId: parentId,
+      });
+
+      setNewReply("");
+      setReplyingTo(null);
+      fetchComments();
+    } catch (error) {
+      console.error("답글 작성 실패:", error);
     }
   };
 
@@ -425,195 +468,71 @@ function CommunityView() {
             </div>
           </form>
 
-          <div className="comment-list">
-            {comments.length === 0 ? (
-              <p className="no-comments">첫 번째 댓글을 작성해보세요!</p>
-            ) : (
-              currentComments.map((comment) => (
-                <div key={comment.commentId} className="comment">
-                  <div className="comment-header">
-                    <div className="user-info">
-                      <div className="avatar">{getInitial(comment.writer)}</div>
-                      <span className="user-name">
-                        {comment.writer || "알 수 없음"}
-                      </span>
-                      <span className="comment-date">
-                        {formatDate(comment.createdAt)}
-                      </span>
-                    </div>
-                  </div>
-                  <p>{comment.content}</p>
-                  <div className="comment-actions">
-                    <button
-                      onClick={() =>
-                        handleCommentLike(
-                          post.postId,
-                          comment.commentId,
-                          user.id
-                        )
-                      }
-                      className={`reply-button ${
-                        comment.likes > 0 ? "liked" : ""
-                      }`}
-                    >
-                      <Heart size={16} />
-                      좋아요 ({comment.likesCount})
-                    </button>
-                    <button
-                      onClick={() => setReplyingTo(comment.commentId)}
-                      className="reply-button"
-                    >
-                      <MessageCircle size={16} />
-                      답글
-                    </button>
-                    {user?.id === comment.writerId && (
-                      <button
-                        onClick={() => handleCommentDelete(comment.commentId)}
-                        className="delete-button"
-                      >
-                        삭제
-                      </button>
-                    )}
-                  </div>
+          <CommentList
+            comments={comments}
+            postId={postId}
+            user={{ ...user, id: user?.uid }} // user의 uid를 id로 매핑
+            handleCommentLike={handleCommentLike}
+            handleCommentDelete={handleCommentDelete}
+            handleReplySubmit={handleReplySubmit}
+            handleCommentEdit={handleCommentEdit} // 추가
+            getInitial={getInitial}
+            formatDate={formatDate}
+            newReply={newReply}
+            setNewReply={setNewReply}
+            replyingTo={replyingTo}
+            setReplyingTo={setReplyingTo}
+          />
 
-                  {/* 대댓글 입력 폼 */}
-                  {replyingTo === comment.commentId && (
-                    <form
-                      onSubmit={(e) =>
-                        handleCommentSubmit(e, comment.commentId)
-                      }
-                      className="reply-form"
-                    >
-                      <textarea
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        placeholder="답글을 입력하세요."
-                        required
-                      />
-                      <button type="submit" className="send-button">
-                        <Send size={16} />
-                        답글 작성
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setReplyingTo(null)}
-                        className="cancel-button"
-                      >
-                        취소
-                      </button>
-                    </form>
-                  )}
+          {/* 페이지네이션 UI */}
+          <div className="pagination">
+            <button
+              onClick={() => paginateComments(commentPage - 1)}
+              disabled={commentPage === 1}
+              className="pagination-arrow"
+            >
+              <ChevronLeft size={20} />
+            </button>
 
-                  {/* 대댓글 재귀적으로 표시 */}
-                  {comment.children && comment.children.length > 0 && (
-                    <div className="replies">
-                      {comment.children.map((child) => (
-                        <div key={child.commentId} className="reply">
-                          <div className="comment-header">
-                            <div className="user-info">
-                              <div className="avatar">
-                                {getInitial(child.writer)}
-                              </div>
-                              <span className="user-name">
-                                {child.writer || "알 수 없음"}
-                              </span>
-                              <span className="comment-date">
-                                {formatDate(child.createdAt)}
-                              </span>
-                            </div>
-                          </div>
-                          <p>{child.content}</p>
-                          <div className="comment-actions">
-                            <button
-                              onClick={() =>
-                                handleCommentLike(
-                                  post.postId,
-                                  child.commentId,
-                                  user.id
-                                )
-                              }
-                              className={`reply-button ${
-                                child.likes > 0 ? "liked" : ""
-                              }`}
-                            >
-                              <Heart size={16} />
-                              좋아요 ({child.likesCount})
-                            </button>
-                            <button
-                              onClick={() => setReplyingTo(child.commentId)}
-                              className="reply-button"
-                            >
-                              <MessageCircle size={16} />
-                              답글
-                            </button>
-                            {user?.id === child.writerId && (
-                              <button
-                                onClick={() =>
-                                  handleCommentDelete(child.commentId)
-                                }
-                                className="delete-button"
-                              >
-                                삭제
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-            {/* 페이지네이션 UI */}
-            <div className="pagination">
-              <button
-                onClick={() => paginateComments(commentPage - 1)}
-                disabled={commentPage === 1}
-                className="pagination-arrow"
-              >
-                <ChevronLeft size={20} />
-              </button>
+            {[...Array(totalPages)].map((_, index) => {
+              const pageNum = index + 1;
+              // 현재 페이지 주변의 페이지 번호만 표시
+              if (
+                pageNum === 1 ||
+                pageNum === totalPages ||
+                (pageNum >= commentPage - 2 && pageNum <= commentPage + 2)
+              ) {
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => paginateComments(pageNum)}
+                    className={`pagination-button ${
+                      commentPage === pageNum ? "active" : ""
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              } else if (
+                (pageNum === commentPage - 3 && commentPage > 4) ||
+                (pageNum === commentPage + 3 && commentPage < totalPages - 3)
+              ) {
+                return (
+                  <span key={pageNum} className="pagination-ellipsis">
+                    ...
+                  </span>
+                );
+              }
+              return null;
+            })}
 
-              {[...Array(totalPages)].map((_, index) => {
-                const pageNum = index + 1;
-                // 현재 페이지 주변의 페이지 번호만 표시
-                if (
-                  pageNum === 1 ||
-                  pageNum === totalPages ||
-                  (pageNum >= commentPage - 2 && pageNum <= commentPage + 2)
-                ) {
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => paginateComments(pageNum)}
-                      className={`pagination-button ${
-                        commentPage === pageNum ? "active" : ""
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                } else if (
-                  (pageNum === commentPage - 3 && commentPage > 4) ||
-                  (pageNum === commentPage + 3 && commentPage < totalPages - 3)
-                ) {
-                  return (
-                    <span key={pageNum} className="pagination-ellipsis">
-                      ...
-                    </span>
-                  );
-                }
-                return null;
-              })}
-
-              <button
-                onClick={() => paginateComments(commentPage + 1)}
-                disabled={commentPage === totalPages}
-                className="pagination-arrow"
-              >
-                <ChevronRight size={20} />
-              </button>
-            </div>
+            <button
+              onClick={() => paginateComments(commentPage + 1)}
+              disabled={commentPage === totalPages}
+              className="pagination-arrow"
+            >
+              <ChevronRight size={20} />
+            </button>
           </div>
         </div>
       </div>
