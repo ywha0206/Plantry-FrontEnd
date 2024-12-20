@@ -4,60 +4,13 @@ import axiosInstance from '@/services/axios.jsx';
 
 
 const useProjectData  = (projectId) => {
-    const [subTasks, setSubTasks] = useState([{
-        id:"",
-        taskId:"",
-        isChecked:false,
-        name:""
-    }],)
-    const [comments, setComments] = useState([{
-        id:"",
-        userId:"",
-        writer:null,
-        user:[],
-        taskId:"",
-        content:"",
-        rdate:"",
-    }],)
-    const [tasks, setTasks] = useState([{
-        id:"",
-        columnId:"",
-        title:"",
-        content:"",
-        priority:"",
-        status:"",
-        position:"",
-        duedate:"",
-        subTasks:subTasks||[],
-        comments:comments||[],
-        assign:[],
-    }]);
-    const [columns, setColumns] = useState([{
-        id:"",
-        projectId:"",
-        title:"",
-        color:"",
-        position:"",
-        tasks:tasks||[]
-    }]);
-    const [coworkers, setCoworkers] = useState([{
-        id:"",
-        name:"",
-        profileImgPath:"",
-        isOwner:false,
-        canRead:false,
-        canAddTask:false,
-        canUpdateTask:false,
-        canDeleteTask:false,
-        canEditProject:false,
-    }]);
-    const [boardData, setBoardData] = useState({
-        id:1,
-        title:null,
-        type:"",
-        status:"",
-        columns:columns||[],
-        coworkers:coworkers||[],
+    const [project, setProject] = useState({
+        id: 1,
+        title: "",
+        type: "",
+        status: "",
+        columns:[],
+        coworkers:[]
     });
     const [isConnected, setIsConnected] = useState(false); // WebSocket 연결 상태
     const [stompClient, setStompClient] = useState(null); // STOMP 클라이언트 인스턴스
@@ -67,7 +20,7 @@ const useProjectData  = (projectId) => {
         const fetchBoardData = async () => {
             try {
                 const response = await axiosInstance.get(`/api/project/${projectId}`);
-                setBoardData(response.data); // 받은 데이터로 boardData 설정
+                setProject(response.data); // 받은 데이터로 boardData 설정
             } catch (error) {
                 console.error('Error fetching board data:', error);
             }
@@ -136,21 +89,6 @@ const useProjectData  = (projectId) => {
     }, [isConnected, stompClient]);  // stompClient와 isConnected만 의존성 배열에 포함
 
 
-    const updateState = (type, stateUpdater, payload) => {
-        stateUpdater((prev) => {
-            switch (type) {
-                case 'ADDED':
-                    return [...prev, payload];
-                case 'UPDATED':
-                    return prev.map((item) => (item.id === payload.id ? { ...item, ...payload } : item));
-                case 'DELETED':
-                    return prev.filter((item) => item.id !== payload.id);
-                default:
-                    return prev;
-            }
-        });
-    };
-    
     const handleBoardEvent = (eventData) => {
         if (!eventData || !eventData.type || !eventData.payload) {
             console.warn('Invalid event data received:', eventData);
@@ -161,85 +99,153 @@ const useProjectData  = (projectId) => {
     
         switch (type) {
             case 'TASK_ADDED':
-                updateState('ADDED', setTasks, payload);
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => 
+                        column.id === payload.ColumnId
+                            ? { ...column, tasks: [...column.tasks, payload] }
+                            : column
+                    )
+                }));
                 break;
+    
             case 'TASK_UPDATED':
-                updateState('UPDATED', setTasks, payload);
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => ({
+                        ...column,
+                        tasks: column.tasks.map(task => 
+                            task.id === payload.id ? payload : task
+                        )
+                    }))
+                }));
                 break;
+    
             case 'TASK_DELETED':
-                updateState('DELETED', setTasks, { id: payload.taskId });
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => ({
+                        ...column,
+                        tasks: column.tasks.filter(task => task.id !== payload.id)
+                    }))
+                }));
                 break;
     
             case 'COLUMN_ADDED':
-                updateState('ADDED', setColumns, payload);
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: [...prevProject.columns, { ...payload, tasks: [] }]
+                }));
                 break;
+    
             case 'COLUMN_UPDATED':
-                updateState('UPDATED', setColumns, payload);
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => 
+                        column.id === payload.id ? { ...column, ...payload } : column
+                    )
+                }));
                 break;
+    
             case 'COLUMN_DELETED':
-                updateState('DELETED', setColumns, { id: payload.columnId });
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.filter(column => column.id !== payload.id)
+                }));
                 break;
     
             case 'SUBTASK_ADDED':
-                setTasks((prevTasks) =>
-                    prevTasks.map((task) =>
-                        task.id === payload.taskId
-                            ? {
-                                  ...task,
-                                  subTasks: [...(task.subTasks || []), payload],
-                              }
-                            : task
-                    )
-                );
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => ({
+                        ...column,
+                        tasks: column.tasks.map(task => 
+                            task.id === payload.taskId
+                                ? { ...task, subTasks: [...task.subTasks, payload] }
+                                : task
+                        )
+                    }))
+                }));
                 break;
+    
             case 'SUBTASK_UPDATED':
-                setTasks((prevTasks) =>
-                    prevTasks.map((task) =>
-                        task.id === payload.taskId
-                            ? {
-                                  ...task,
-                                  subTasks: task.subTasks.map((subTask) =>
-                                      subTask.id === payload.id
-                                          ? { ...subTask, ...payload }
-                                          : subTask
-                                  ),
-                              }
-                            : task
-                    )
-                );
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => ({
+                        ...column,
+                        tasks: column.tasks.map(task => ({
+                            ...task,
+                            subTasks: task.subTasks.map(subtask => 
+                                subtask.id === payload.id ? payload : subtask
+                            )
+                        }))
+                    }))
+                }));
                 break;
+    
             case 'SUBTASK_DELETED':
-                setTasks((prevTasks) =>
-                    prevTasks.map((task) =>
-                        task.id === payload.taskId
-                            ? {
-                                  ...task,
-                                  subTasks: task.subTasks.filter(
-                                      (subTask) => subTask.id !== payload.id
-                                  ),
-                              }
-                            : task
-                    )
-                );
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => ({
+                        ...column,
+                        tasks: column.tasks.map(task => ({
+                            ...task,
+                            subTasks: task.subTasks.filter(subtask => subtask.id !== payload.id)
+                        }))
+                    }))
+                }));
                 break;
     
             case 'COMMENT_ADDED':
-                updateState('ADDED', setComments, payload);
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => ({
+                        ...column,
+                        tasks: column.tasks.map(task => 
+                            task.id === payload.taskId
+                                ? { ...task, comments: [...task.comments, payload] }
+                                : task
+                        )
+                    }))
+                }));
                 break;
+    
             case 'COMMENT_UPDATED':
-                updateState('UPDATED', setComments, payload);
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => ({
+                        ...column,
+                        tasks: column.tasks.map(task => ({
+                            ...task,
+                            comments: task.comments.map(comment => 
+                                comment.id === payload.id ? payload : comment
+                            )
+                        }))
+                    }))
+                }));
                 break;
+    
             case 'COMMENT_DELETED':
-                updateState('DELETED', setComments, { id: payload.commentId });
+                setProject(prevProject => ({
+                    ...prevProject,
+                    columns: prevProject.columns.map(column => ({
+                        ...column,
+                        tasks: column.tasks.map(task => ({
+                            ...task,
+                            comments: task.comments.filter(comment => comment.id !== payload.id)
+                        }))
+                    }))
+                }));
                 break;
     
             default:
                 console.warn(`Unhandled event type: ${type}`);
         }
     };
+    
 
     return {
-        boardData, // 화면에 보여줄 데이터
+        project,
         sendWebSocketMessage
     };
 };
