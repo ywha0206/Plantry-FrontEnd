@@ -35,6 +35,14 @@ export default function ProductServicesWrite() {
     }
 
     try {
+      // 날짜 형식 변환 (필요한 경우)
+      const dataToSend = {
+        ...formData,
+        purchaseDate: formData.purchaseDate // YYYY-MM-DD 형식인지 확인
+      };
+
+      console.log('전송할 데이터:', dataToSend); // 디버깅용 로그
+
       const response = await fetch('http://13.124.94.213:90/api/send-product-service', {
         method: 'POST',
         headers: {
@@ -42,12 +50,15 @@ export default function ProductServicesWrite() {
           'Accept': 'application/json',
           'Origin': 'http://localhost:8010'
         },
+        credentials: 'include', // CORS 인증 정보 포함
         mode: 'cors',
-        body: JSON.stringify(formData)
+        body: JSON.stringify(dataToSend)
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json().catch(() => null);
+        console.error('서버 응답:', response.status, errorData);
+        throw new Error(errorData?.message || `서버 오류: ${response.status}`);
       }
 
       const data = await response.json();
@@ -62,6 +73,7 @@ export default function ProductServicesWrite() {
             'Accept': 'application/json',
             'Origin': 'http://localhost:8010'
           },
+          credentials: 'include',
           mode: 'cors',
           body: JSON.stringify({ email: formData.email })
         });
@@ -84,12 +96,12 @@ export default function ProductServicesWrite() {
         title: "",
         content: "",
         email: "",
-        name: "",
+        name: ""
       });
 
     } catch (error) {
       console.error('문의 전송 실패:', error);
-      alert('문의 전송에 실패했습니다. 다시 시도해주세요.');
+      alert(`문의 전송에 실패했습니다: ${error.message}`);
     }
   };
 
