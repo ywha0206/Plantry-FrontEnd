@@ -19,6 +19,7 @@ import ContextMenu from '../../components/document/ContextMenu';
 import NewFolder from '../../components/document/NewFolder';
 import NewDrive from '../../components/document/NewDrive';
 import DriveShareModal from '../../components/document/documentShareMenu';
+import CustomAlert from '../../components/document/CustomAlert';
 
 
 export default function Document() {
@@ -39,6 +40,20 @@ export default function Document() {
     const [selectedFolder, setSelectedFolder] = useState(null); // 선택된 폴더 정보 상태 추가
     const [isModalOpen, setIsModalOpen] = useState(false);
     const user = useUserStore((state)=> state.user);
+
+      const [alert, setAlert] = useState({
+            isVisible: false,
+            type: "",
+            title: "",
+            message: "",
+            onConfirm: null, // 기본값은 null
+          });
+    const triggerAlert = (type, title, message) => {
+        setAlert({ isVisible: true, type, title, message});
+      };
+    const closeAlert = () => {
+        setAlert({ isVisible: false });
+      };
 
     const handleShare = (type,selected)=>{
         setSelectedFolder(selected); // 폴더 선택 상태 업데이트
@@ -424,6 +439,7 @@ export default function Document() {
             />
              {/* ContextMenu 컴포넌트 */}
              <ContextMenu
+                    parentId={null}
                     visible={contextMenu.visible}
                     position={contextMenu.position}
                     onClose={handleCloseMenu}
@@ -435,8 +451,9 @@ export default function Document() {
                     onShare={handleShare}
                     onDetailToggle={() => handleDetailToggle(contextMenu.folder)} // 상세 정보 토글 함수 전달
                     selectedFolder = {setSelectedFolder}
+                    triggerAlert={triggerAlert}
 
-                />
+                />                
                  <DriveShareModal
                     isModalOpen={isModalOpen}
                     setIsModalOpen={setIsModalOpen}
@@ -448,6 +465,16 @@ export default function Document() {
                     name={selectedFolder?.name} // 선택된 폴더나 파일 이름 전달
                     >
                 </DriveShareModal>
+                
+                {alert.isVisible  && (
+                    <CustomAlert
+                        type={alert.type}
+                        title={alert.title}
+                        message={alert.message}
+                        confirmText="확인"
+                        onConfirm={alert.onConfirm || closeAlert}
+                    />
+                    )}
                
             </DocumentLayout>
     )

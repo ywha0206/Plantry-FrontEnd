@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import axiosInstance from '@/services/axios.jsx'
@@ -25,6 +26,7 @@ const HomeNotice = () => {
             <div className="flex items-center justify-between mb-3">
                 <h2 className='text-2xl'>Notice</h2>
                 <Link to={"/community/1/list"}className='flex justify-between items-center text-gray-600 border border-gray-400 rounded-lg px-3 h-[28px]'>
+
                     <span>전체보기</span>
                     <img className='ml-2 w-[20px] h-[20px]' src="/images/ArrowForward.png" alt="allow" />
                 </Link>    
