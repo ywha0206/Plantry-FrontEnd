@@ -263,7 +263,7 @@ function App() {
             <Route path=":boardId/write" element={<CommunityWrite />} />
             <Route path=":boardId/list" element={<CommunityList />} />
             <Route path=":boardId/view/:postId" element={<CommunityView />} />
-            <Route path=":boardId/modify" element={<CommunityModify />} />
+            <Route path=":boardId/modify/:postId" element={<CommunityModify />} />
           </Route>
 
           {/* 프로젝트 */}

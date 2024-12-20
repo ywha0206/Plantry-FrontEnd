@@ -14,6 +14,7 @@ const useProjectData  = (projectId) => {
         id:"",
         userId:"",
         writer:null,
+        user:[],
         taskId:"",
         content:"",
         rdate:"",
@@ -41,6 +42,8 @@ const useProjectData  = (projectId) => {
     }]);
     const [coworkers, setCoworkers] = useState([{
         id:"",
+        name:"",
+        profileImgPath:"",
         isOwner:false,
         canRead:false,
         canAddTask:false,
