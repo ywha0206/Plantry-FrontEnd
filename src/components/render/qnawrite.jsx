@@ -10,7 +10,7 @@ export default function QNAWrite() {
     content: "",
     email: "",
     name: "",
-    attachments: "",
+    attachments: null,
   });
 
   const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 훅
@@ -27,56 +27,80 @@ export default function QNAWrite() {
     e.preventDefault();
 
     // 유효성 검사
-    if (!formData.title || !formData.content || !formData.email || !formData.name) {
-        alert('모든 필드를 채워 주세요.');
-        return;
+    if (!formData.category || !formData.priority || !formData.title || 
+        !formData.content || !formData.email || !formData.name) {
+      alert("모든 필드를 채워주세요.");
+      return;
     }
 
-    // FormData 객체 생성
+    // FormData 객체 생성 (파일 업로드를 위해)
     const formDataToSend = new FormData();
-    formDataToSend.append('title', formData.title);
-    formDataToSend.append('name', formData.name);
-    formDataToSend.append('email', formData.email);
-    formDataToSend.append('category', formData.category);
-    formDataToSend.append('priority', formData.priority);
-    formDataToSend.append('content', formData.content);
     
-    // 파일이 있는 경우에만 추가
+    // 일반 데이터 추가
+    Object.keys(formData).forEach(key => {
+      formDataToSend.append(key, formData[key]);
+    });
+
+    // 파일이 있다면 추가
     if (formData.attachments) {
-        formDataToSend.append('attachments', formData.attachments);
+      formDataToSend.append('attachments', formData.attachments);
     }
 
     try {
-        const response = await axios.post(
-          'http://13.124.94.213:90/api/send-qna',  // 배포된 서버의 URL로 수정
-          formDataToSend,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          }
-        );
-        
-        if (response.status === 200) {
-            alert('귀하의 문의가 접수되었습니다. 빠른 시일 내에 답변 드리겠습니다.');
+      const response = await fetch('http://13.124.94.213:90/api/send-qna', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Origin': 'http://localhost:8010'
+        },
+        mode: 'cors',
+        body: formDataToSend  // FormData 사용
+      });
 
-            // 자동 응답 이메일 전송
-            await axios.post('http://13.124.94.213:90/api/send-auto-reply', { email: formData.email });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
+      }
 
-            // 폼 초기화
-            setFormData({
-                category: "",
-                priority: "",
-                title: "",
-                content: "",
-                email: "",
-                name: "",
-                attachments: "",
-            });
+      const data = await response.json();
+      console.log('서버 응답:', data);
+      
+      // 성공 시 자동 응답 이메일 전송
+      try {
+        const autoReplyResponse = await fetch('http://13.124.94.213:90/api/send-auto-reply', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Origin': 'http://localhost:8010'
+          },
+          mode: 'cors',
+          body: JSON.stringify({ email: formData.email })
+        });
+
+        if (!autoReplyResponse.ok) {
+          console.error('자동 응답 이메일 전송 실패');
         }
+      } catch (autoReplyError) {
+        console.error('자동 응답 이메일 전송 중 오류:', autoReplyError);
+      }
+
+      alert('문의가 성공적으로 전송되었습니다.');
+      
+      // 폼 초기화
+      setFormData({
+        category: "",
+        priority: "",
+        title: "",
+        content: "",
+        email: "",
+        name: "",
+        attachments: null
+      });
+
     } catch (error) {
-        console.error('문의 전송 실패:', error);
-        alert('문��� 전송에 실패했습니다. 다시 시도해주세요.');
+      console.error('문의 전송 실패:', error);
+      alert(`문의 전송에 실패했습니다: ${error.message}`);
     }
   };
 
