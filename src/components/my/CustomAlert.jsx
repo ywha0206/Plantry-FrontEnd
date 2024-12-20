@@ -57,7 +57,7 @@ const CustomAlert = ({
         </div>
         
         <div className="flex border-t border-gray-200">
-          {showCancel && (
+          {(showCancel) ? (
             <>
             <button 
               onClick={onCancel}
@@ -74,15 +74,16 @@ const CustomAlert = ({
               {confirmText}
             </button>
             </>
+          ) : (
+            <button 
+              onClick={onConfirm}
+              className={`${showCancel ? 'w-1/2' : 'w-full'} py-3 text-[#007AFF] font-semibold 
+                        active:bg-gray-100 transition-colors`}
+            >
+              {confirmText}
+            </button>
           )}
           
-            {/* <button 
-              onClick={onConfirm}
-              className={`'w-1/2' py-3 text-[#007AFF] font-semibold 
-                        active:bg-gray-100 transition-colors `}
-            >
-            {confirmText}
-          </button> */}
         </div>
       </motion.div>
     </div>

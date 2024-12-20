@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../../services/axios";
 import CustomAlert from "./CustomAlert";
+import { useAuthStore } from "../../store/useAuthStore";
+import { useNavigate } from "react-router-dom";
 const customAlertInitData = {
     visible: false,
     type: "info",
@@ -15,7 +17,9 @@ const customAlertInitData = {
 }
 
 const DeleteAccount = () => {
-    
+
+    const navigate = useNavigate();
+    const logout = useAuthStore(state => state.logout);
     const [deactive , setDeactive] = useState(0);
     const handleCheckboxChange = (event) => {
         setDeactive(event.target.checked ? 1 : 0); // 체크 상태에 따라 값 설정
@@ -70,7 +74,7 @@ const DeleteAccount = () => {
             subMessage: '', 
             onConfirm: deleteHandler, 
             onCancel: customAlertCancelHandler, 
-            showCancel: false,
+            showCancel: true,
         })
     }
 
@@ -85,16 +89,19 @@ const DeleteAccount = () => {
                     title: "비활성화가 완료되었습니다.",
                     message: `지금까지 PLANTRY를 이용해 주셔서 감사합니다.`,
                     subMessage: '', 
-                    onConfirm: customAlertCancelHandler, 
+                    onConfirm: logoutHandler, 
                     onCancel: customAlertCancelHandler, 
                     showCancel: false,
                 })
-                // alert(`비활성화가 완료되었습니다.\n지금까지 PLANTRY를 이용해 주셔서 감사합니다.`)
-
             }
         }catch(err){
             console.log('비활성화 실패');
         }
+    }
+
+    const logoutHandler = () => {
+        logout();
+        navigate("/")
     }
 
     return(
