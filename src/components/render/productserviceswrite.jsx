@@ -34,7 +34,7 @@ export default function ProductServicesWrite() {
 
     // 환경에 맞게 API URL을 설정
     const apiUrl = process.env.NODE_ENV === 'test'
-      ? 'http://test-server-url/api/send-product-service'  // 테스트 서버 URL
+      ? 'http://test-server-url/api/send-product-service'  // 테스트 서��� URL
       : process.env.NODE_ENV === 'production'
       ? 'http://13.124.94.213:90/api/send-product-service'  // 배포된 서버 URL
       : 'http://localhost:8080/api/send-product-service';  // 로컬 서버 URL
@@ -140,13 +140,12 @@ export default function ProductServicesWrite() {
                   }`}
                   onClick={() => handleMenuClick(index, menu.path)}
                 >
-                  <img
-                    src={menu.icon}
-                    alt={menu.title}
-                    className={`w-6 h-6 mr-3 ${
-                      activeIndex === index ? "brightness-150" : ""
-                    }`}
-                  />
+                  <span className="text-2xl mr-3">
+                    {index === 0 && "💳"} {/* PAYMENT */}
+                    {index === 1 && "↩️"} {/* CANCELLATION & RETURN */}
+                    {index === 2 && "❓"} {/* QNA */}
+                    {index === 3 && "⚙️"} {/* PRODUCT & SERVICES */}
+                  </span>
                   <span className="text-base font-medium">{menu.title}</span>
                 </li>
               ))}
