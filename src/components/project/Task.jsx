@@ -7,6 +7,9 @@ import clsx from "clsx";
 import { MenuItem } from "./_CustomDropdown";
 import axiosInstance from "@/services/axios.jsx";
 import useProjectData from "../../util/useProjectData";
+import useUserStore from "../../store/useUserStore";
+
+const PROFILE_URI = "http://3.35.170.26:90/profileImg/"
 
 const getFormattedDueDate = (duedate) => {
 
@@ -88,8 +91,9 @@ const DynamicTask = React.memo(
     onAddSubTask,
     onClickSubTask,
     onAddComment,
-    onDelete,
-    onSave,
+    onDeleteComment,
+    onDeleteTask,
+    onSaveTask,
   }) => {
     const [showInput, setShowInput] = useState(false); // 입력창 표시 상태
     const [newSubTask, setNewSubTask] = useState(""); // 새로운 하위 목표 값
@@ -97,7 +101,8 @@ const DynamicTask = React.memo(
     const [isEditing, setIsEditing] = useState(false);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const {sendWebSocketMessage} = useProjectData(projectId);
-    
+    const loginUser = useUserStore((state) => state.user)
+
     // 수정 상태 토글
     const handleEditToggle = () => {
       setIsEditing((prev) => !prev);
@@ -198,7 +203,7 @@ const DynamicTask = React.memo(
             coworkers={coworkers}
             columnIndex={columnIndex}
             onSave={(updatedTask) => {
-              onSave(updatedTask,columnIndex);
+              onSaveTask(updatedTask,columnIndex);
               setIsEditing(false);
             }}
             onClose={handleEditToggle}
@@ -311,7 +316,7 @@ const DynamicTask = React.memo(
                         
                   {((assign || []).map(item => item.user)||[]).length>0 && (
                         (assign || []).map(item => item.user).map((asso, index) => (
-                          <img key={asso.id} src={asso?.img||"/images/document-folder-profile.png"} alt={asso.name}
+                          <img key={asso.id} src={PROFILE_URI+asso.profileImgPath||"/images/document-folder-profile.png"} alt={asso.name}
                             className="w-8 h-8 rounded-full border-2 border-white -ml-3 first:ml-0"
                             style={{zIndex: ((assign || []).map(item => item.user)).length - index,}}
                           />
@@ -319,11 +324,6 @@ const DynamicTask = React.memo(
                       )||"정해지지 않음"}
                       </div>
                     </section>
-                    {Object.entries(assign).map(([key, value]) => (
-                      <div key={key}>
-                        {key}: {String(value)} {/* value가 boolean일 경우 문자열로 변환 */}
-                      </div>
-                    ))}
                   {/* 마감일 및 코멘트 */}
                   <section
                     className="flex flex-wrap gap-2 mt-1.5 text-sm text-gray-600/60"
@@ -355,13 +355,14 @@ const DynamicTask = React.memo(
                         aria-labelledby={`의견-${comment.id}`}
                       >
                         <img
-                          src="https://cdn.builder.io/api/v1/image/assets/TEMP/5005caf306e020a63875ae89317ed34981ec083804afbfa938c3ea7760d10078"
+                          src={PROFILE_URI+comment.user.profileImgPath}
                           alt="댓글 사용자 프로필 이미지"
                           className="w-5 h-5 rounded-full"
                         />
                         <div className="flex-1">
-                          <span className="text-gray-600">{comment.user_id}</span>
+                          <span className="text-gray-600">{comment.writer}</span> 
                           <time className="text-gray-600 text-xs"> {getFormattedRdate(comment.rdate)}</time>
+                          {comment.user_id ===loginUser.uid&& <button className="text-xs float-right mt-1" onClick={()=>onDeleteComment(comment,id)}>삭제</button>}
                           <p>{comment.content}</p>
                         </div>
                       </article>
@@ -409,7 +410,7 @@ const DynamicTask = React.memo(
                     <MenuItem
                       className=""
                       border={'1 px-6 py-1 rounded-lg border-slate-500/50'}
-                      onClick={onDelete}
+                      onClick={onDeleteTask}
                       confirm={true}
                       tooltip={'삭제 후엔 되돌릴 수 없습니다. 정말로 삭제하시겠습니까?'}
                       aria-label="작업 삭제"
@@ -466,7 +467,7 @@ const DynamicTask = React.memo(
                         {((assign || []).map(item => item.user)).length>0 && (
                           <div className="relative flex items-center">
                           {(assign || []).map(item => item.user).map((asso, index) => (
-                            <img key={asso.id} src={asso.img||"/images/document-folder-profile.png"} alt={asso.name}
+                            <img key={asso.id} src={PROFILE_URI+asso.profileImgPath||"/images/document-folder-profile.png"} alt={asso.name}
                               className="w-6 h-6 rounded-full border-2 border-white -ml-2 first:ml-0"
                               style={{zIndex: ((assign || []).map(item => item.user)).length - index,}}
                             />

@@ -89,6 +89,10 @@ export default function Login() {
             setAlert(true)
             setMessage("비밀번호를 다시 확인해 주세요.")
             setType("warning")
+          }else if(err.status === 401){
+            setAlert(true)
+            setMessage("해당 계정은 비활성화 상태입니다.")
+            setType("warning")  
           }
         })
     }

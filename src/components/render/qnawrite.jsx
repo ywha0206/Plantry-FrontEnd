@@ -76,7 +76,7 @@ export default function QNAWrite() {
         }
     } catch (error) {
         console.error('문의 전송 실패:', error);
-        alert('문의 전송에 실패했습니다. 다시 시도해주세요.');
+        alert('문��� 전송에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
@@ -138,13 +138,12 @@ export default function QNAWrite() {
                   }`}
                   onClick={() => handleMenuClick(index, menu.path)}
                 >
-                  <img
-                    src={menu.icon}
-                    alt={menu.title}
-                    className={`w-6 h-6 mr-3 ${
-                      activeIndex === index ? "brightness-150" : ""
-                    }`}
-                  />
+                  <span className="text-2xl mr-3">
+                    {index === 0 && "💳"} {/* PAYMENT */}
+                    {index === 1 && "↩️"} {/* CANCELLATION & RETURN */}
+                    {index === 2 && "❓"} {/* QNA */}
+                    {index === 3 && "⚙️"} {/* PRODUCT & SERVICES */}
+                  </span>
                   <span className="text-base font-medium">{menu.title}</span>
                 </li>
               ))}
