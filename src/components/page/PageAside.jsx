@@ -146,7 +146,9 @@ function PageOptionsModal({ page, onClose, onDelete }) {
 
 export default function PageAside() {
   const [isMyPageOpen, setIsMyPageOpen] = useState(true);     
+  const [isMyTempleteOpen, setIsMyTempleteOpen] = useState(true);   
   const [isSharePageOpen, setIsSharePageOpen] = useState(true);
+  const [isChildPageOpen, setIsChildPageOpen] = useState(false);
   const [receiveUsers, setReceiveUsers] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const userId = useUserStore((state) => state.user?.uid);
@@ -156,6 +158,10 @@ export default function PageAside() {
   const { sendWebSocketMessage, isConnected , updateUserId } = usePageUsersSocket({ setReceiveUsers });
   const toggleMyPageSection = () => {
     setIsMyPageOpen((prev) => !prev);
+  };
+
+  const toggleMyTempleteSection = () => {
+    setIsMyTempleteOpen((prev) => !prev);
   };
 
   useEffect(()=>{
@@ -184,8 +190,8 @@ export default function PageAside() {
     }
   },[receiveUsers])
 
-  const toggleSharePageSection = () => {
-    setIsSharePageOpen((prev) => !prev);
+  const toggleChildPageSection = () => {
+    setIsChildPageOpen((prev) => !prev);
   }
 
   const postPageMutation = useMutation({
@@ -213,10 +219,33 @@ export default function PageAside() {
     }
   }
 
+  const {data : childList = [], isLoading : isLoadingChild , isError : isErrorChild} = useQuery({
+    queryKey : ["childList"],
+    queryFn : async () => {
+      try {
+        const resp = await axiosInstance.get("/api/page/child")
+        console.log(resp.data)
+        return resp.data
+      } catch (err) {
+        return err;
+      }
+    },
+    initialData : []
+  })
+
   const { data: pageList = [], isLoading, isFetching, isError } = useQuery({
     queryKey: ["pageList"],
     queryFn: async () => {
         const response = await axiosInstance.get("/api/page/list");
+        return response.data;
+    },
+    initialData: [],
+  });
+
+  const { data: templeteList = [], isLoading : isLoadingTempleteList, isFetching : isFetchingTempleteList , isError : isErrorTempleteList } = useQuery({
+    queryKey: ["templeteList"],
+    queryFn: async () => {
+        const response = await axiosInstance.get("/api/page/templete");
         return response.data;
     },
     initialData: [],
@@ -239,6 +268,31 @@ export default function PageAside() {
     }
   })
 
+  const postTempleteMutation = useMutation({
+    mutationFn : async () => {
+      try {
+        const resp = await axiosInstance.post("/api/page/templete")
+        return resp.data
+      } catch (err) {
+        return err;
+      }
+    },
+    onSuccess : (data) => {
+      navi("/page/view/"+data)
+    },
+    onError : (err) => {
+
+    }
+  })
+
+  const postTemplete = async () => {
+    try {
+      await postTempleteMutation.mutateAsync();
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
   const openModalHandler = (page) => {
     setSelectedPage(page);
   };
@@ -255,11 +309,11 @@ export default function PageAside() {
     }
   }
 
-  if (isLoading) {
+  if (isLoading && isLoadingTempleteList) {
     return <p>Loading...</p>;
   }
 
-  if (isError) {
+  if (isError && isErrorTempleteList) {
     return <p>Error loading page list.</p>;
   }
 
@@ -267,9 +321,9 @@ export default function PageAside() {
     <>
       <aside className="page-aside1 overflow-scroll flex flex-col scrollbar-none">
         <section className="flex justify-center mb-8">
-        <Link to="/page"><p className="text-lg">내 페이지 (6)</p></Link>
+        {/* <Link to="/page"><p className="text-lg">내 페이지 (6)</p></Link> */}
         </section>
-        <section className="flex justify-center mb-[15px] w-26">
+        {/* <section className="flex justify-center mb-[15px] w-26">
           <select className="outline-none border rounded-l-md opacity-80 h-11 w-[80px] text-left text-sm">
             <option>내용</option>
             <option>제목</option>
@@ -289,8 +343,8 @@ export default function PageAside() {
           <div className="flex gap-4 items-center opacity-60">
             <img src="/images/document-recent.png" alt="" />
             <p>최근 페이지</p>
-          </div>
-        </section>
+          </div> */}
+        {/* </section> */}
 
         {/* Toggleable Section */}
         <article className="pageList">
@@ -323,30 +377,132 @@ export default function PageAside() {
             {pageList.map((page) => (
               <div 
                 key={page.id} 
-                className="flex justify-between items-center"
+                className="flex flex-col"
               >
-                <Link
-                  to={`/page/view/${page.id}`}
-                  className="flex gap-4 items-center mb-1"
-                >
-                  <img src="/images/pagesIcon.png" alt="" />
-                  <p className="opacity-60 pt-1">{page.title}</p>
-                </Link>
-                {page.leader==userId &&
-                <img
-                  onClick={() => openModalHandler(page)}
-                  className="w-[16px] h-[16px] opacity-60 cursor-pointer hover:opacity-100"
-                  src="/images/calendar-setting.png"
-                />
+                <div className="flex justify-between items-center">
+                  <Link
+                    to={`/page/view/${page.id}`}
+                    className="flex gap-4 items-center mb-1"
+                  >
+                    <img src="/images/pagesIcon.png" alt="" />
+                    <p className="opacity-60 pt-1">{page.title}</p>
+                  </Link>
+                  {page.leader==userId &&
+                  <>
+                  <img
+                    onClick={() => openModalHandler(page)}
+                    className="w-[16px] h-[16px] opacity-60 cursor-pointer hover:opacity-100"
+                    src="/images/calendar-setting.png"
+                  />
+                  <img
+                  className={`cursor-pointer hover:opacity-20 w-[15px] h-[10px] opacity-60 transform transition-transform duration-300 ${
+                    isChildPageOpen ? "rotate-0" : "-rotate-90"
+                  }`}
+                  src="/images/arrow-bot.png"
+                  alt="Toggle"
+                  onClick={toggleChildPageSection}
+                  />
+                  </>
                 }
+                </div>
+                <section
+                className={`mypageArea flex flex-col pl-[20px] pr-[5px] overflow-scroll scrollbar-none transition-all duration-300 ${
+                  isChildPageOpen ? "max-h-[180px]" : "max-h-0"
+                }`}
+                style={{height:'100px'}}
+                >
+                {(!isLoadingChild && !isErrorChild && childList && Array.isArray(childList) && childList.length>0) && 
+                  childList.filter((v)=>v.type ==page.id).map((c)=>{return(
+                    <div className="flex justify-between items-center">
+                    <Link
+                      to={`/page/view/${c.id}`}
+                      className="flex gap-4 items-center mb-1"
+                    >
+                      {/* <img src="/images/pagesIcon.png" alt="" /> */}
+                      <p className="opacity-60 pt-1">{c.title}</p>
+                    </Link>
+                    {c.leader==userId &&
+                    <>
+                    <img
+                      onClick={() => openModalHandler(c)}
+                      className="w-[16px] h-[16px] opacity-60 cursor-pointer hover:opacity-100"
+                      src="/images/calendar-setting.png"
+                    />
+                    </>
+                    }
+                  </div>
+                  )})
+                }
+                </section>
               </div>
             ))}
           </section>
+          <section className="flex justify-between items-center p-4">
+            <div>
+              <p className="text-2xl font-bold">
+                나의 템플릿{" "}
+                <span className="text-xs font-normal opacity-60">
+                  ({templeteList.length})
+                </span>
+              </p>
+            </div>
+            <div>
+              <img
+                className={`cursor-pointer hover:opacity-20 w-[15px] h-[10px] opacity-60 transform transition-transform duration-300 ${
+                  isMyTempleteOpen ? "rotate-0" : "-rotate-90"
+                }`}
+                src="/images/arrow-bot.png"
+                alt="Toggle"
+                onClick={toggleMyTempleteSection}
+              />
+            </div>
+          </section>
+          <section
+            className={`mypageArea flex flex-col px-8 overflow-scroll scrollbar-none transition-all duration-300 ${
+              isMyTempleteOpen ? "max-h-[180px]" : "max-h-0"
+            }`}
+          >
+            {templeteList.map((page) => (
+              <div 
+                key={page.id} 
+                className="flex flex-col"
+              >
+                <div className="flex justify-between items-center">
+                  <Link
+                    to={`/page/view/${page.id}`}
+                    className="flex gap-4 items-center mb-1"
+                  >
+                    <img src="/images/pagesIcon.png" alt="" />
+                    <p className="opacity-60 pt-1">{page.title}</p>
+                  </Link>
+                  {page.leader==userId &&
+                  <>
+                  <img
+                    onClick={() => openModalHandler(page)}
+                    className="w-[16px] h-[16px] opacity-60 cursor-pointer hover:opacity-100"
+                    src="/images/calendar-setting.png"
+                  />
+                  {/* <img
+                  className={`cursor-pointer hover:opacity-20 w-[15px] h-[10px] opacity-60 transform transition-transform duration-300 ${
+                    isChildPageOpen ? "rotate-0" : "-rotate-90"
+                  }`}
+                  src="/images/arrow-bot.png"
+                  alt="Toggle"
+                  onClick={toggleChildPageSection}
+                  /> */}
+                  </>
+                }
+                </div>
+                
+              </div>
+            ))}
+          </section>
+          
         </article>
 
         <section className="newPage mt-auto flex flex-col gap-5 rounded-md">
           <div
-            className="newPageBtn bg-purple white h-8 rounded-md flex justify-center text-center items-center"
+            className="newPageBtn bg-purple white h-8 rounded-md flex justify-center text-center items-center cursor-pointer"
             onClick={postPage}
           >
             <img
@@ -355,6 +511,17 @@ export default function PageAside() {
               alt=""
             />
             새 페이지 생성
+          </div>
+          <div
+            className="newPageBtn bg-purple white h-8 rounded-md flex justify-center text-center items-center cursor-pointer"
+            onClick={postTemplete}
+          >
+            <img
+              className="documentPen mr-[10px]"
+              src="/images/document-pen.png"
+              alt=""
+            />
+            템플릿 생성
           </div>
         </section>
       </aside>
