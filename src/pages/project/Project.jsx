@@ -21,7 +21,7 @@ export default function Project() {
   const [isNewColumnAdded, setIsNewColumnAdded] = useState(false);
   const [isEditTitle, setIsEditTitle] = useState(false);
   const [projectId, setProjectId] = useState(1);
-  const {boardData, sendWebSocketMessage} = useProjectStore(projectId);
+  const {project, sendWebSocketMessage} = useProjectStore(projectId);
   const columnsRef = useRef(null); 
   const loginUser = useUserStore((state) => state.user)
 
@@ -80,11 +80,11 @@ export default function Project() {
     }
   }, []);
   useEffect(() => {
-    if (boardData) {
-      console.log('Updated Board Data:', [boardData]); // 상태 업데이트 후 데이터를 출력
-      setData(boardData||[])
+    if (project) {
+      console.log('Updated Board Data:', [project]); // 상태 업데이트 후 데이터를 출력
+      setData(project||[])
     }
-  }, [projectId,boardData]); 
+  }, [projectId,project]); 
   const handleTaskMove = (sourceIndex, destinationIndex, taskId) => {
     setData((prevData) => {
       const sourceColumn = { ...prevData.columns[sourceIndex] };
@@ -118,6 +118,11 @@ export default function Project() {
       setIsNewColumnAdded(true);
     }
   };
+  
+  const handleDeleteColumn = (column) => {
+    sendWebSocketMessage(column,`/app/project/${projectId}/column/deleted`);
+  };
+
   const handleAddComment = (comment, taskId) => {
     console.log(comment);
     const updatedComment = { ...comment, taskId: taskId, user: loginUser, user_id: loginUser.uid };
@@ -135,9 +140,6 @@ export default function Project() {
     sendWebSocketMessage(updatedTask ,`/app/project/${projectId}/task/${msg}`);
   };
 
-  const handleDeleteCol = (column) => {
-    sendWebSocketMessage(column,`/app/project/${projectId}/column/deleted`);
-  };
 
   const handleDeleteTask = (task, columnId) => {
     const updatedTask = { ...task, projectId: projectId,columnId: columnId };
@@ -228,7 +230,7 @@ export default function Project() {
             index={index}
             coworkers={data.coworkers}
             clearTasks={() => clearTasks(column.id)}
-            onDelete={() => handleDeleteCol(column.id)}
+            onDelete={() => handleDeleteColumn(column)}
             handleTaskUpsert={handleTaskUpsert}
           >
             {column.tasks.map((task) =>
