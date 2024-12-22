@@ -60,7 +60,7 @@ export default function DocumentAside({onStorageInfo}){
 
   // React Query를 사용하여 폴더 데이터 가져오기
     const { data: folderResponse = { folderDtoList: [],shareFolderDtoList:[], uid: "" }, isLoading, isError } = useQuery({
-        queryKey: ["driveList", location.pathname],
+        queryKey: ["driveList", user.uid],
         queryFn: async () => {
             const response = await axiosInstance.get("/api/drive/folders");
             return response.data; // 백엔드의 데이터 구조 반환
