@@ -207,10 +207,12 @@ export const AddProjectModal = ({
   
   // 멤버 클릭 핸들러 (토글 방식)
   const handleMemberClick = (member) => {
+    if(loginUser.grade==1&&project.coworkers.length>2){alert('해당 플랜은 작업자를 최대 3명까지만 지정할 수 있습니다!'); return;}
+    else if(loginUser.grade==2&&project.coworkers.length>9){alert('해당 플랜은 작업자를 최대 10명까지만 지정할 수 있습니다!'); return;}
     setProject((prev) => {
-      const isSelected = prev.coworkers.some((user) => user.id === member.id);
+      const isSelected = prev.coworkers.some((user) => user.userId === member.id);
       const updatedCoworkers = isSelected
-        ? prev.coworkers.filter((user) => user.id !== member.id) // 선택 해제
+        ? prev.coworkers.filter((user) => user.userId !== member.id) // 선택 해제
         : [...prev.coworkers, member]; // 선택 추가
       
       return {
@@ -239,16 +241,16 @@ export const AddProjectModal = ({
       const prevCoworkers = selectedUsers; // 기존 작업자 목록
       const newCoworkers = project.coworkers; // 수정 후 작업자 목록
 
-      const coworkerIds = new Set(prevCoworkers.map((coworker) => coworker.id)); // 기존 작업자 ID 집합
-      const newCoworkerIds = new Set(newCoworkers.map((user) => user.id)); // 수정 후 작업자 ID 집합
+      const coworkerIds = new Set(prevCoworkers.map((coworker) => coworker.userId)); // 기존 작업자 ID 집합
+      const newCoworkerIds = new Set(newCoworkers.map((user) => user.userId)); // 수정 후 작업자 ID 집합
 
-      const addedCoworkers = newCoworkers.filter((user) => !coworkerIds.has(user.id));
-      const removedCoworkers = prevCoworkers.filter((coworker) => !newCoworkerIds.has(coworker.id));
+      const addedCoworkers = newCoworkers.filter((user) => !coworkerIds.has(user.userId));
+      const removedCoworkers = prevCoworkers.filter((coworker) => !newCoworkerIds.has(coworker.userId));
 
       const payload = {
         projectId: projectId,
-        addedCoworkers: addedCoworkers.map((user) => user.id ),
-        removedCoworkers: removedCoworkers.map((coworker) => coworker.id),
+        addedCoworkers: addedCoworkers.map((user) => user.userId ),
+        removedCoworkers: removedCoworkers.map((coworker) => coworker.userId),
       };
       console.log(payload)
       try {
@@ -426,7 +428,7 @@ export const AddProjectModal = ({
                             key={m?.id}
                             onClick={() => handleMemberClick(m)}
                             className={`rounded-3xl px-3 py-3 flex mt-2 cursor-pointer border border-transparent ${
-                              project.coworkers.some((coworker) => coworker.id === m.id)
+                              project.coworkers.some((coworker) => coworker.userId === m.id)
                                 ? "bg-indigo-100 hover:border-indigo-300"
                                 : "bg-gray-100 hover:border-gray-300"
                             }`}
@@ -503,7 +505,7 @@ export const AddProjectModal = ({
                                         key={m.id}
                                         onClick={() => handleMemberClick(m)}
                                         className={`flex rounded-3xl p-3 mt-2 cursor-pointer border border-transparent ${
-                                          project.coworkers.some((coworker) => coworker.id === m.id)
+                                          project.coworkers.some((coworker) => coworker.userId === m.id)
                                             ? "bg-indigo-100 hover:border-indigo-300"
                                             : "bg-gray-100 hover:border-gray-300"
                                         }`}
