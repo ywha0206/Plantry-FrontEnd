@@ -81,9 +81,6 @@ export function DynamicTaskEditor({
     onSave(task, columnIndex);
     if (mode === "create") setIsAdded(false);
   };
-  const handleDeleteSubTask = (subTask) => {
-    sendWebSocketMessage(subTask, `/app/project/${projectId}/sub/deleted`);
-  };
   const getPosition = (event) =>{
     const rect = event.currentTarget.getBoundingClientRect();
       setDropdownPosition({
@@ -101,6 +98,7 @@ export function DynamicTaskEditor({
   };
 // 멤버 클릭 핸들러 (토글 방식)
 const handleMemberClick = (member) => {
+  console.log(member)
   setTask((prev) => {
     const isSelected = prev.associate.some((user) => user.id === member.id);
     const updatedCoworkers = isSelected

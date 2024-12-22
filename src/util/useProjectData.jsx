@@ -169,14 +169,17 @@ const useProjectData  = (projectId) => {
                 break;
     
             case 'SUBTASK_UPDATED':
+                console.log("payload : ",payload)
                 setProject(prevProject => ({
                     ...prevProject,
                     columns: prevProject.columns.map(column => ({
                         ...column,
                         tasks: column.tasks.map(task => ({
                             ...task,
-                            subTasks: task.subTasks.map(subtask => 
-                                subtask.id === payload.id ? payload : subtask
+                            subTasks: task.subTasks.map(subtask => {
+                                console.log("subtask : ",subtask)
+                                return subtask.id === payload.id ? payload : subtask
+                                }
                             )
                         }))
                     }))
