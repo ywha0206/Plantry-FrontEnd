@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import '@/pages/document/Document.scss';
 import { CustomSearch } from '@/components/Search';
 import { DocumentCard1 } from '../../components/document/DocumentCard1';
@@ -40,11 +40,23 @@ export default function DocumentList() {
     const [isFavorite,setIsFavorite] = useState(0);
     const [shareMenu,setShareMenu] = useState(false);
     const [saveCoworker,setSaveCoworker] = useState([]);
-
     const location = useLocation();
+    const navigate = useNavigate();
+    const [isTokenValid, setIsTokenValid] = useState(null); // null: 초기 상태, true: 유효, false: 무효
+    // URL에서 folderId 추출
+    const folderId = decodeURIComponent(location.pathname.split('/').pop());
+    // URL에서 token 추출
+    const searchParams = new URLSearchParams(location.search);
+    const token = searchParams.get("token");
+    const [isTokenLoading, setIsTokenLoading] = useState(null);
+
     const user = useUserStore((state) => state.user);
 
-    const folderId = decodeURIComponent(location.pathname.split('/').pop());
+    console.log("token",token);
+
+
+
+    // URL에서 token 추출
     const queryClient = useQueryClient();
     const [draggedFolder, setDraggedFolder] = useState(null); // 드래그된 폴더
     const fileServerBaseUrl = `http://3.35.170.26:90/download/`;
@@ -59,6 +71,37 @@ export default function DocumentList() {
         message: "",
         onConfirm: null, // 기본값은 null
       });
+      useEffect(() => {
+        const validateToken = async () => {
+          if (token) {
+            try {
+              const response = await axiosInstance.post("/api/share/token/validate", { token });
+              if (response.status === 200) {
+                setIsTokenValid(true); // 토큰 유효
+              } else {
+                setIsTokenValid(false); // 토큰 무효
+              }
+            } catch (error) {
+              console.error("Token validation failed:", error);
+              setIsTokenValid(false); // 토큰 무효
+            }
+          } else {
+            setIsTokenValid(true); // 토큰이 없더라도 기본적으로 접근 허용
+          }
+          setIsTokenLoading(false); // 로딩 상태 종료
+        };
+    
+        validateToken();
+      }, [token]);
+
+      if (isTokenValid === false) {
+        return (
+          <div>
+            <p>유효하지 않은 공유 링크입니다.</p>
+            <button onClick={() => navigate("/")}>홈으로 이동</button>
+          </div>
+        ); // 유효하지 않은 토큰 처리
+      }
 
      useEffect(()=>{
         setSelectedFolder(null);
@@ -628,6 +671,9 @@ const handleCloseFileMenu = () => {
         order: folder.order || 0, // 기본값 설정
     }))
     .sort((a, b) => (a.order || 0) - (b.order || 0)); // order 기준 정렬
+   
+    const linkToken = selectedFolder?.sharedToken || selectedFile?.sharedToken || parentFolder?.sharedToken || null;
+    const isLinkTokenAvailable = !!linkToken; // true if token exists, false otherwise
 
     
     const files = (data?.files || [])
@@ -672,7 +718,7 @@ const handleCloseFileMenu = () => {
                     ) : (
                         <>
                             <div className='flex items-center gap-4 ml-[25px]'>
-                            <span className="text-[25px]">{location.state?.folderName}</span>
+                            <span className="text-[25px]">{location.state?.folderName || parentFolder.name}</span>
                             <img
                                 className="w-6  h-6 cursor-pointer"
                                 src="/images/document-pen.png"
@@ -706,6 +752,8 @@ const handleCloseFileMenu = () => {
                             name={selectedFolder?.name || parentFolder?.name} // 선택된 폴더나 파일 이름 전달
                             sharedMember = {selectedFolder?.sharedUser || selectedFile?.sharedUser || parentFolder?.sharedUsers}
                             sharedDept = {selectedFolder?.sharedDept || selectedFile?.sharedDept || parentFolder?.shareDepts}
+                            linkToken={linkToken} // 토큰 전달
+                            isLinkTokenAvailable={isLinkTokenAvailable}
                             >
                         </DriveShareModal>
                     </ShareMember>
@@ -992,6 +1040,8 @@ const handleCloseFileMenu = () => {
                             name={selectedFolder?.name || parentFolder?.name} // 선택된 폴더나 파일 이름 전달
                             sharedMember = {selectedFolder?.sharedUser || selectedFile?.sharedUser || parentFolder?.sharedUsers}
                             sharedDept = {selectedFolder?.sharedDept || selectedFile?.sharedDept || parentFolder?.shareDepts}
+                            linkToken={linkToken} // 토큰 전달
+                            isLinkTokenAvailable={isLinkTokenAvailable}
                             >
                         </DriveShareModal>
 

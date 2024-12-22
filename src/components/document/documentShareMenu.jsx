@@ -10,7 +10,7 @@ import {
   Mail,
   Edit,
   Building2,
-  UserCheck
+  UserCheck,
 } from "lucide-react";
 import axiosInstance from "../../services/axios";
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,7 +18,7 @@ import GetAddressModal from "../calendar/GetAddressModal";
 import { multiply } from "lodash";
 import useUserStore from "../../store/useUserStore";
 import CustomAlert from "./CustomAlert";
-import { PROFILE_URI } from "../../api/_URI";
+import { API_BASE_URI, PROFILE_URI } from "../../api/_URI";
 
 // 공유 권한 타입
 const PERMISSIONS = {
@@ -64,6 +64,8 @@ const DriveShareModal = ({
   sharedMember,
   sharedDept,
   ownerId,
+  linkToken,
+  isLinkTokenAvailable,
 
 }) => {
 
@@ -82,6 +84,7 @@ const DriveShareModal = ({
   const [isAlert, setIsAlert] = useState(false);
   const [isNoneAlert, setIsNoneAlert] = useState(false);
   const user = useUserStore((state) => state.user);
+  const apiBaseUrl = API_BASE_URI;
 
 
   const [openAddress, setOpenAddress] = useState(false);
@@ -115,6 +118,14 @@ const DriveShareModal = ({
       setSelectedUsers(sharedMember);
     }
   }, [sharedMember]);
+
+  useEffect(()=>{
+    if (linkToken) {
+      
+      const newLink = `${apiBaseUrl}/document/list/${id}?token=${linkToken}`;
+      setShareLink(newLink); // URL을 상태로 설정
+  }
+  },[linkToken])
 
   useEffect(() => {
     console.log("useEffect 실행: isModalOpen 또는 sharedDept 변경");
@@ -174,10 +185,26 @@ const DriveShareModal = ({
     setShareType(type);
   };
 
-  const generateShareLink = () => {
-    const link = `https://example.com/share/${Id}`;
-    setShareLink(link);
+  const generateShareLink = async () => {
+    try {
+      const response = await axiosInstance.post('/api/share/link', {
+        id,
+        ownerId,
+      });
+      
+      if (response.status === 200) {
+        const token = response.data.shareToken; // 서버에서 반환된 보안 토큰
+        const link = `${apiBaseUrl}/document/list/${id}?token=${token}`;
+        setShareLink(link);
+        queryClient.invalidateQueries("folderContents", selectedFolder.id)
+        alert("공유 링크가 생성되었습니다.");
+      }
+    } catch (error) {
+      console.error("링크 생성 오류:", error);
+    }
   };
+
+  
 
   const fetchAllUsers = async ({ pageParam }) => {
     try {
@@ -327,7 +354,7 @@ const DriveShareModal = ({
     };
   
     // 부서 전체 공유 처리
-    const handleDepartmentShare = async (deptData) => {
+    const handleDepartmentShare = async () => {
       try {
 
         const departmentsToShare = Object.values(selectedDepartments).map((dept) => ({
@@ -345,16 +372,8 @@ const DriveShareModal = ({
   
         if (response.status === 200) {
           queryClient.invalidateQueries(['folderContents']);
-           // 선택된 부서 업데이트
-          setSelectedDepartments((prev) => ({
-            ...prev,
-            [deptData.departmentId]: {
-              id: deptData.departmentId,
-              name: deptData.departmentName, // 부서 이름
-              permission: deptData.permission || PERMISSIONS.READING, // 기본 권한 설정
-              cnt: deptData.departmentCnt || 0, // 부서 구성원 수
-            },
-          }));
+          alert('부서 공유 성공.');
+          return true; // 성공
         }
       } catch (error) {
         alert('부서 공유 중 오류가 발생했습니다.');
@@ -463,8 +482,19 @@ const DriveShareModal = ({
         sharedUsers,
       };
     } else if (shareType === SHARE_TYPES.DEPARTMENTALL) {
-      handleDepartmentShare();
-      return;
+      try {
+        await handleDepartmentShare(); // 비동기 호출 처리
+        queryClient.invalidateQueries(['folderContents']);
+        setSelectedDepartments({});
+        setSelectedUsers([]);
+        setIsAlert(false);
+        setIsModalOpen(false);
+        return; // 흐름 종료
+      } catch (error) {
+        console.error("부서 전체 공유 처리 중 오류:", error);
+        alert("부서 전체 공유 처리 중 문제가 발생했습니다.");
+        return;
+      }
     }
   
     try {
@@ -658,10 +688,11 @@ const DriveShareModal = ({
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
                   />
                   <button
-                    onClick={generateShareLink}
+                    onClick={generateShareLink} 
+                    disabled={isLinkTokenAvailable}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                   >
-                    링크 생성
+                      {isLinkTokenAvailable ? "링크" : "링크 생성"}
                   </button>
                   <button
                     onClick={copyShareLink}
