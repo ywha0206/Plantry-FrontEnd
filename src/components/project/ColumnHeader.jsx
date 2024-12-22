@@ -100,7 +100,6 @@ export const ColumnHeader = ({
 export const ColumnHeaderEdit = ({
   projectId,
   column = [],
-  setColumn,
   setMode,
   mode,
   onSave,
