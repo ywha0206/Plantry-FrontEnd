@@ -21,6 +21,7 @@ import ShareMember from "@/components/ShareMember";
 import { AddProjectModal } from '../../components/project/_Modal';
 import { AddDocumentModal } from '../../components/document/addDocumentModal';
 import DriveShareModal from '../../components/document/documentShareMenu';
+import { Check, X } from 'lucide-react';
 
 
 
@@ -108,9 +109,24 @@ export default function DocumentList() {
         setSelectedFile(null);
       },[])
      
-    const triggerAlert = (type, title, message) => {
-        setAlert({ isVisible: true, type, title, message});
-      };
+      const triggerAlert = (type, title, message, onConfirm, showCancel) => {
+        setAlert({
+            isVisible: true,
+            type,
+            title,
+            message,
+            onConfirm, // 콜백 저장
+            showCancel,
+        });
+    };
+    
+    // 확인 버튼 클릭 시 onConfirm 실행
+    const handleAlertConfirm = () => {
+        if (alert.onConfirm) {
+            alert.onConfirm(); // 콜백 실행
+        }
+        setAlert({ isVisible: false });
+    };
 
       const closeAlert = () => {
         setAlert({ isVisible: false });
@@ -204,13 +220,18 @@ export default function DocumentList() {
     const renameFolderMutation = useMutation({
         mutationFn: async (newName) => {
             if (!newName) throw new Error('Folder name cannot be empty');
-            await axiosInstance.put(`/api/drive/folder/${folderId}/rename`, { newName });
+            await axiosInstance.put(`/api/drive/rename`, { 
+                id: folderId,
+                type: "folder",
+                newName,
+             });
         },
         onError: (error) => {
             console.error('Failed to rename folder:', error.message);
         },
         onSuccess: () => {
             queryClient.invalidateQueries(['folderContents', folderId, user.uid]);
+            setNewFolderName('');
             setEditing(false);
         },
     });
@@ -232,15 +253,24 @@ export default function DocumentList() {
      // 드래그 오버 핸들러 (드롭 가능 영역 활성화)
      const handleDragOver = (e) => {
         e.preventDefault(); // 기본 동작 방지
+        e.currentTarget.classList.add('drag-over');
+
+    };
+
+    const handleDragLeave = (e) => {
+        setIsDragging(false); // 드래그 중 상태 해제
+        e.currentTarget.classList.remove('drag-over');
     };
 
     // 폴더 이동 Mutation
     const moveFolderMutation = useMutation({
-        mutationFn: async ({ folderId, targetFolderId, newOrder }) => {
+        mutationFn: async ({ folderId, targetFolderId, newOrder,orderBefore,position }) => {
             const response = await axiosInstance.put(`/api/drive/folder/${folderId}/move`, {
                 folderId,
                 targetFolderId,
                 order: newOrder,
+                currentOrder: orderBefore,
+                position,
             });
             return response; // Axios response 반환
         },
@@ -264,12 +294,14 @@ export default function DocumentList() {
         },
     });
 
+    
+
     const handleDrop = (targetFolder, position) => {
         console.log("handleDrop called with:", { targetFolder, position });
-    
+        console.log("포지션!!",position);
         // 유효성 검사
         if (!targetFolder || !draggedFolder) {
-            console.error("Invalid target or dragged folder:", targetFolder, draggedFolder);
+            console.error("Invalid target ", targetFolder," dragged folder:", draggedFolder);
             return;
         }
     
@@ -278,6 +310,29 @@ export default function DocumentList() {
             console.warn("Cannot drop folder onto itself");
             return;
         }
+
+         // 폴더 안으로 드롭했을 때
+         if (position === "inside") {
+            console.log("Position is inside");
+            triggerAlert(
+                "warning",
+                "폴더 이동 확인",
+                `${targetFolder.name} 폴더 안으로 이동하시겠습니까?`,
+                () => {
+                    console.log("Callback executed for moveFolderMutation");
+                    moveFolderMutation.mutate({
+                        folderId: draggedFolder.id,
+                        targetFolderId: targetFolder.id,
+                        newOrder: 0,
+                        currentOrder: 0,
+                        position,
+                    });
+                },
+                true,
+            );
+            return;
+        } 
+
     
         // 타겟 폴더의 인덱스 찾기
         const targetIndex = subFolders.findIndex((folder) => folder.id === targetFolder.id);
@@ -308,6 +363,7 @@ export default function DocumentList() {
     
         // 새로운 order 값 계산
         const newOrder = (orderBefore + orderAfter) / 2.0;
+        console.log("orderBefore {} ",orderBefore," orderAfter ",orderAfter);
     
         console.log("Calculated order values:", { orderBefore, orderAfter, newOrder });
     
@@ -316,11 +372,73 @@ export default function DocumentList() {
             folderId: draggedFolder.id,
             targetFolderId: targetFolder.id,
             newOrder,
+            currentOrder: draggedFolder.order,
+            position,
         });
     
         // 드래그 상태 초기화
         setDraggedFolder(null);
+        e.currentTarget.classList.remove('drag-over');
+
     };
+
+    // const handleDrop = (targetFolder, position) => {
+    //     console.log("handleDrop called with:", { targetFolder, position });
+    
+    //     // 유효성 검사
+    //     if (!targetFolder || !draggedFolder) {
+    //         console.error("Invalid target or dragged folder:", targetFolder, draggedFolder);
+    //         return;
+    //     }
+    
+    //     // 자기 자신 위로 드롭하는 경우 무시
+    //     if (draggedFolder.id === targetFolder.id) {
+    //         console.warn("Cannot drop folder onto itself");
+    //         return;
+    //     }
+    
+    //     // 타겟 폴더의 인덱스 찾기
+    //     const targetIndex = subFolders.findIndex((folder) => folder.id === targetFolder.id);
+    //     if (targetIndex === -1) {
+    //         console.error("Target folder not found in subFolders:", targetFolder);
+    //         return;
+    //     }
+    
+    //     // 정렬 계산
+    //     let orderBefore = 0;
+    //     let orderAfter = 0;
+    
+    //     if (position === "before") {
+    //         // 타겟 폴더 이전 폴더와 타겟 폴더 사이의 값 계산
+    //         if (targetIndex > 0) {
+    //             orderBefore = subFolders[targetIndex - 1]?.order || 0;
+    //         }
+    //         orderAfter = subFolders[targetIndex]?.order || (orderBefore + 1);
+    //     } else if (position === "after") {
+    //         // 타겟 폴더와 타겟 폴더 이후의 폴더 사이의 값 계산
+    //         orderBefore = subFolders[targetIndex]?.order || 0;
+    //         if (targetIndex < subFolders.length - 1) {
+    //             orderAfter = subFolders[targetIndex + 1]?.order || (orderBefore + 1);
+    //         } else {
+    //             orderAfter = orderBefore + 1; // 마지막 위치로 추가
+    //         }
+    //     }
+    
+    //     // 새로운 order 값 계산
+    //     const newOrder = (orderBefore + orderAfter) / 2.0;
+    
+    //     console.log("Calculated order values:", { orderBefore, orderAfter, newOrder });
+    
+    //     // 폴더 이동 Mutation 호출
+    //     moveFolderMutation.mutate({
+    //         folderId: draggedFolder.id,
+    //         targetFolderId: targetFolder.id,
+    //         newOrder,
+    //     });
+    
+    //     // 드래그 상태 초기화
+    //     setDraggedFolder(null);
+    // };
 
 
     //선택 삭제
@@ -648,10 +766,6 @@ const handleCloseFileMenu = () => {
         setIsDragging(true); // 드래그 중 상태로 설정
     };
 
-    const handleDragLeave = (e) => {
-        e.preventDefault(); // 기본 동작 방지
-        setIsDragging(false); // 드래그 중 상태 해제
-    };
 
     const handleD_Drop = (e) => {
         e.preventDefault(); // 기본 동작 방지
@@ -698,27 +812,56 @@ const handleCloseFileMenu = () => {
     
            <div   
                 className={`document-list-container ${isDragging ? 'dragging' : ''}`}
-                onDragOver={handleDropDragOver} // 드래그 중 이벤트
-                onDragLeave={handleDragLeave} // 드래그 종료 이벤트
                 onDrop={handleD_Drop} // 파일 드롭 이벤트
                 style={{
                     border: isDragging ? '2px dashed #0066cc' : 'none',
                     backgroundColor: isDragging ? '#f0f8ff' : 'transparent',
                 }}>
             <section className="flex gap-4 items-center justify-between">
-                    {editing ? (
-                        <input
-                            className="text-2xl ml-4 mt-4 border-b-2 border-gray-400 outline-none"
-                            value={newFolderName}
-                            onChange={(e) => setNewFolderName(e.target.value)}
-                            onBlur={handleRename}
-                            onKeyDown={handleKeyDown}
-                            autoFocus
-                        />
+            {editing ? (
+                    <div className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                            <input
+                                className="w-full px-4 py-2 text-xl font-medium bg-gray-50 
+                                         border-2 border-[#7e7edf]-100 rounded-lg outline-none
+                                         transition-all duration-200 focus:border-blue-400
+                                         focus:bg-white"
+                                value={newFolderName}
+                                placeholder={parentFolder?.name}
+                                onChange={(e) => setNewFolderName(e.target.value)}
+                                onBlur={handleRename}
+                                onKeyDown={handleKeyDown}
+                                autoFocus
+                            />
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleRename}
+                                className="inline-flex items-center px-3 py-2 text-sm 
+                                         bg-[#7e7edf] text-white rounded-lg hover:bg-purple-600
+                                         transition-colors duration-200"
+                            >
+                                <Check className="w-4 h-4 mr-1" />
+                                확인
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setEditing(false);
+                                    setNewFolderName(parentFolder?.name || '');
+                                }}
+                                className="inline-flex items-center px-3 py-2 text-sm
+                                         bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200
+                                         transition-colors duration-200"
+                            >
+                                <X className="w-4 h-4 mr-1" />
+                                취소
+                            </button>
+                        </div>
+                    </div>
                     ) : (
                         <>
                             <div className='flex items-center gap-4 ml-[25px]'>
-                            <span className="text-[25px]">{location.state?.folderName || parentFolder.name}</span>
+                            <span className="text-[25px]">{ parentFolder.name}</span>
                             <img
                                 className="w-6  h-6 cursor-pointer"
                                 src="/images/document-pen.png"
@@ -829,8 +972,9 @@ const handleCloseFileMenu = () => {
                                 isFavorite={folder.isPinned}
                                 setIsFavorite={setIsFavorite}
                                 onDragStart={handleDragStart}
-                                onDrop={(e) => handleDrop(folder, "before")}
-                                onDragOver={handleDragOver}
+                                onDrop={handleDrop}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDragLeave={handleDragLeave}
                                 onContextMenu={handleContextMenu}
                                 downloadHandler={zipDownloadHandler} // 수정: folder 객체 전달
                                 onClick={() => {
@@ -989,6 +1133,8 @@ const handleCloseFileMenu = () => {
                         message={alert.message}
                         confirmText="확인"
                         onConfirm={alert.onConfirm || closeAlert}
+                        showCancel={alert.showCancel || false}
+                        onCancel={alert.onCancel || closeAlert}
                     />
                     )}
                     {isDeleteAlert  && (

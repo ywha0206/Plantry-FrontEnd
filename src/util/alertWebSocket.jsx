@@ -8,6 +8,7 @@ const alertWebSocket = ({ initialDestination, initialMessage, initialCalendarId,
     const [isConnected, setIsConnected] = useState(false);
     const [receiveMessage, setReceiveMessage] = useState([]);
     const [userId, setUserId] = useState(initialUserId);
+    const [subscriptions, setSubscriptions] = useState([]);
 
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
     const wsUrl = "ws://" + apiBaseUrl.replace("http://", "") + "/ws-alert";
@@ -39,6 +40,7 @@ const alertWebSocket = ({ initialDestination, initialMessage, initialCalendarId,
         setStompClient(client);
     }, [wsUrl]);
 
+
     const updateSubscriptions = (client) => {
         if (userId) {
             client.unsubscribe("/topic/alert")
@@ -58,6 +60,7 @@ const alertWebSocket = ({ initialDestination, initialMessage, initialCalendarId,
                     console.error("Failed to parse user message:", error);
                 }
             });
+            
         }
         if (destination && sendMessage) {
             client.publish({
@@ -66,6 +69,33 @@ const alertWebSocket = ({ initialDestination, initialMessage, initialCalendarId,
             });
         }
     };
+    // 새 구독 추가 함수
+    const addSubscription = (path, callback) => {
+        if (stompClient && isConnected) {
+            // Declare the subscription variable
+            const subscription = stompClient.subscribe(path, (message) => {
+                try {
+                    const response = JSON.parse(message.body);
+                    callback(response); // Execute the provided callback with the parsed response
+                } catch (error) {
+                    console.error(`Failed to parse message for ${path}:`, error);
+                }
+            });
+    
+            // Add the subscription to the state
+            setSubscriptions((prev) => [...prev, { path, subscription }]);
+        } else {
+            console.error("WebSocket is not connected. Unable to add subscription.");
+        }
+    };
+    const removeSubscription = (path) => {
+        const subscription = subscriptions.find((sub) => sub.path === path);
+        if (subscription) {
+            subscription.subscription.unsubscribe();
+            setSubscriptions((prev) => prev.filter((sub) => sub.path !== path));
+        }
+    };
+
 
     useEffect(() => {
         if (!stompClient) {
@@ -84,9 +114,18 @@ const alertWebSocket = ({ initialDestination, initialMessage, initialCalendarId,
     useEffect(() => {
         if (stompClient && isConnected) {
             updateSubscriptions(stompClient);
+            addSubscription(`/user/${userId}/topic/alerts`, (message) => {
+                console.log("User Notifications:", message.body);
+                // 사용자 알림 처리 로직
+            });
+    
+            return () => {
+                removeSubscription(`/topic/updates`);
+            };
         }
     }, [userId, isConnected, stompClient]);
 
+  
 
     const sendWebSocketMessage = useCallback((message, path) => {
         if (isConnected && stompClient) {

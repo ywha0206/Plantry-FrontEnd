@@ -40,8 +40,14 @@ const MyDropzone = ({
   // 파일 업로드 함수
   const uploadFiles = async (files) => {
    
-    const totalFileSize = files.reduce((total, file) => total + file.size, 0);
-    if (totalFileSize > storageInfo.currentRemainingSize) {
+    const totalFileSize = files.reduce((total, file) => total + file.size, 0); // 파일 크기 합계 (Byte)
+    const remainingSize = storageInfo.currentRemainingSize/1024;
+
+    console.log("파일 크기(Byte):", files.map(file => file.size)); // 각 파일 크기
+    console.log("업로드 파일 총 크기(Byte):", totalFileSize);
+    console.log("남은 용량(Byte):", remainingSize);
+
+    if (totalFileSize > remainingSize) {
       triggerAlert(
         'warning',
         '용량 초과',
