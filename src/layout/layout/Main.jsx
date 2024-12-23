@@ -7,6 +7,8 @@ import MainIndex from '../../pages';
 import _ from "lodash";
 import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import axiosInstance from '../../services/axios';
+import { HardDrive } from 'lucide-react';
+import { FaGoogleDrive } from 'react-icons/fa';
 
 const profileURL = 'http://3.35.170.26:90/profileImg/';
 export default function Main() {
@@ -112,9 +114,12 @@ export default function Main() {
   }, [alarmId, patchMutation.isLoading]);
 
   const patchAndLink = async (e,type,id) => {
-    if(type==1){
-      navi("/calendar")
+    if(type===1){
+      navi("/calendar");
+    }else if(type===2){
+      navi("/document");
     }
+    
     setAlarmId(id);
   }
 
@@ -205,8 +210,13 @@ export default function Main() {
                       <div className='flex justify-between'>
                         {v.type == 1 &&
                           <img src='/images/sidebar-schedule.png' className='w-[15px] h-[15px]'></img>
+                        }{
+                          v.type==2 && //드라이브
+                          <FaGoogleDrive className='w-[15px] h-[15px]' />
                         }
-                        <div className='text-[12px]'>{v.createAt}</div>
+                        <div className='text-[12px]'>
+                          {v.createAt ? v.createAt.substring(0, 10) : ''}
+                        </div>
                       </div>
                       <div className='text-[12px] font-bold'>{v.title}</div>
                       <div className='text-[12px] overflow-hidden max-h-[20px]'>{v.content}</div>

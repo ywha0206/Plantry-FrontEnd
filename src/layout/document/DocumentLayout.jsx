@@ -8,18 +8,23 @@ import { CustomSVG } from "@/components/project/_CustomSVG";
 import ErrorBoundary from "@/services/ErrorBoundary";
 import FileDetails from "../../components/document/FileDetails";
 import FolderDetails from "../../components/document/FolderDetails";
+import { useDriveSettingsStore } from '@/store/useDriveStore';
+
 
 export default function DocumentLayout({children, isDetailVisible , selectedFolder, selectedFile, shared ,parentfolder, path, uid ,closeDetailView ,sharedUsers, storageInfo}){
-    console.log("유아이디!!!",uid);
-    console.log("selectedFolder:", selectedFolder);    
-    console.log("selectedFile:", selectedFile);
-    console.log("path:", path);
-  
 
-
-
+    const { notifications } = useDriveSettingsStore();
 
     const navigate = useNavigate();
+
+    const enhancedChildren = React.Children.map(children, (child) => {
+        // React 요소인지 확인 후 클론
+        return React.isValidElement(child)
+          ? React.cloneElement(child, {
+              notifications, // 전달할 props
+            })
+          : child; // 유효하지 않은 경우 그대로 반환
+      });
 
 
     // 액세스 권한 메시지 결정 함수
@@ -73,7 +78,7 @@ export default function DocumentLayout({children, isDetailVisible , selectedFold
             <DocumentAside/>
 
             <section  className={`document-main1 ${isDetailVisible ? 'reduced' : ''}`}>
-                    {children}
+                    {enhancedChildren}
             </section>
             {isDetailVisible && (
                     <section className="document-detail border border-color-[#ddd]">
