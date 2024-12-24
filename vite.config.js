@@ -1,9 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import ViteNodePolyfills from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
-  plugins: [react(), nodePolyfills()],
+  plugins: [react(), ViteNodePolyfills()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
