@@ -2,7 +2,7 @@
 import ProjectAsideSection from "./ProjectAsideSection";
 import { CustomSearch } from "../Search";
 import { useState } from "react";
-import { AddProjectModal, TemplateSelection } from "./_Modal";
+import { AddProjectModal, ModifyProjectModal, TemplateSelection } from "./_Modal";
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/services/axios.jsx";
 
@@ -14,11 +14,14 @@ function ProjectAside({setProjectId}) {
     completed: false,
   });
   const [activeItemId, setActiveItemId] = useState(null); // 활성화된 항목의 ID를 상태로 관리
-  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [modifyItemId, setModifyItemId] = useState(null);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [isModifyModalOpen, setIsModifyModalOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isChanging, setIsChanging] = useState(false);
 
+  const handleOpenModifyModal = () => setIsModifyModalOpen(true);
   const handleOpenTemplateModal = () => setIsTemplateModalOpen(true);
   const handleTemplateSelect = (template) => {
     setSelectedTemplate(template);
@@ -40,7 +43,7 @@ function ProjectAside({setProjectId}) {
 
   // useQuery 사용, refetch는 반환되는 객체에서 가져옴
   const { data, error, isLoading, refetch } = useQuery({
-    queryKey: ["projects", openSections, isChanging], // openSections 상태가 변경될 때마다 쿼리 새로 호출
+    queryKey: ["projects", openSections, isChanging, isModifyModalOpen], // openSections 상태가 변경될 때마다 쿼리 새로 호출
     queryFn: fetchProjectsList,
   });
 
@@ -84,6 +87,8 @@ function ProjectAside({setProjectId}) {
             toggleSection={() => toggleSection(key)}
             activeItemId={activeItemId}
             onItemClick={handleItemClick}
+            setModifyItemId={setModifyItemId}
+            handleOpenModifyModal={()=>{handleOpenModifyModal(); refetch()}}
           />
         ))}
       </section>
@@ -105,8 +110,16 @@ function ProjectAside({setProjectId}) {
       <AddProjectModal
         isOpen={isModalOpen}
         onClose={()=>{handleCloseAddModal(); refetch()}}
+        onItemClick={handleItemClick}
         text="새 프로젝트"
         selectedTemplate={selectedTemplate} // 선택된 템플릿 전달
+      />
+      <ModifyProjectModal
+        isOpen={isModifyModalOpen}
+        onClose={()=>{
+          setIsModifyModalOpen(false);
+        }}
+        projectId={modifyItemId}
       />
     </div>
   );
