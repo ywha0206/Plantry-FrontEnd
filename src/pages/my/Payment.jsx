@@ -7,7 +7,7 @@ import useUserStore from "../../store/useUserStore";
 import PaymentModal from "../../components/my/PaymentModal";
 
 export default function MyPayment(){
-    const [progress, setProgress] = useState(65)
+    const [progress, setProgress] = useState(77.4)
     const user = useUserStore((state) => state.user);
 
 
@@ -137,9 +137,9 @@ export default function MyPayment(){
             <article className="payment-arti2 border">
                 <div className='current-plan relative p-[20px]  h-[450px] '>
                     <h2 className='text-lg text-gray-600 my-sub-title'>나의 구독정보</h2>
-                    <div className='flex justify-between items-start  mt-[30px]'>
+                    <div className='flex justify-between items-start  mt-[10px]'>
                         <div className="bg-indigo-100 text-indigo-400 font-light rounded px-3">Enterprise</div>
-                        <div className='flex items-end'>
+                        <div className='flex items-end mt-10'>
                             <span className='text-indigo-500'>$</span>
                             <h2 className='text-4xl text-indigo-500'>49</h2>
                             <span className='font-extralight '>/month</span>
@@ -151,7 +151,7 @@ export default function MyPayment(){
                             <p></p>
                         </li>
                         <li className='plan-exp mt-2'>
-                            <p><strong>2024년 11월 18일</strong>부터 구독했습니다.</p>
+                            <p><strong>2024년 12월 1일</strong>부터 구독했습니다.</p>
                             <p>구독 만료시 등록된 이메일로 알림을 보내드립니다.</p>
                         </li>
                         <li className='plan-exp mt-2'>
@@ -171,7 +171,7 @@ export default function MyPayment(){
                     
                     </div>
                     <div className="alert-yeollow rounded-lg mt-10 w-full h-[50px] flex items-center px-[20px] py-10">
-                        현재 구독 중인 플랜의 이용기한이 4일 남았습니다.
+                        현재 구독 중인 플랜의 이용기한이 8일 남았습니다.
                     </div>
                     <div className="flex justify-around mt-[30px]">
                         <button onClick={upgradePlan} className='btn-profile  bg-indigo-500 text-white'>플랜 업그레이드</button>

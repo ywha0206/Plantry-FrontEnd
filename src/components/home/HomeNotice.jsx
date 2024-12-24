@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import axiosInstance from '@/services/axios.jsx'
 import useUserStore from "../../store/useUserStore";
+import { CustomSVG } from "../project/_CustomSVG";
 
 const HomeNotice = () => {
 
@@ -62,23 +63,20 @@ const HomeNotice = () => {
                                                 <div className={`px-2 h-[23px] rounded flex items-center mr-2 ${n.mandatory? 'bg-indigo-400':'bg-gray-300'}`}>
                                                     <span className="text-white text-sm">{ n.mandatory ? '필독' : '공지'}</span>
                                                 </div>
-                                                {/* <span className="mr-[20px] text-indigo-500 font-bold">{index}</span> */}
-                                                <p>{n.title}</p>
-                                                {/* <span className="text-gray-600 text-xs">{n.content}</span> */}
+                                                <p className="truncate w-[200px]">{n.title}</p>
                                             </div>
-                                            <div className="flex flex-col items-end">
+                                            <div className="flex flex-col items-end w-[70px]">
                                                     <span className='text-gray-400 text-xs font-extralight'>{create}</span>
-                                                
-                                                    {/* <span className='text-sm mr-10 text-gray-500'>{n.writer}</span> */}
-                                                    {/* <p className='text-xs'>Plantry</p> */}
                                                     <div className="flex items-center">
-                                                        <span className="text-xs flex mr-10">
-                                                            <img className="w-[15px] h-[15px] mr-2" src="/images/people-icon.png" alt="" />
-                                                            0
+                                                        <span className="text-xs flex mr-10 text-gray-500 ">
+                                                            <svg fill="#a6a6a6" width="16px" height="16px" className="ico mr-1">
+                                                                <use href={`/images/project-linked-sprite.svg#comment`} />
+                                                            </svg>
+                                                            {n.comment}
                                                         </span>
-                                                        <span className="text-xs flex">
-                                                            <img className="w-[15px] h-[15px] mr-2" src="/images/people-icon.png" alt="" />
-                                                            0
+                                                        <span className="text-xs flex text-gray-500">
+                                                            <img className="w-[15px] h-[15px] mr-1" src="/images/people-icon.png" alt="" />
+                                                            {n.hit}
                                                         </span>
                                                     </div>
                                             </div>
