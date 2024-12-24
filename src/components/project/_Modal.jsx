@@ -372,8 +372,8 @@ export const AddProjectModal = ({
     setProject((prev) => {
       const isSelected = prev.coworkers.some((user) => user.userId === member.id);
       const updatedCoworkers = isSelected
-        ? prev.coworkers.filter((user) => user.userId !== member.id) // 선택 해제
-        : [...prev.coworkers, {user:member,userId:member.id,name:member.name,img:member.profileImgPath,group:member.group}]; // 선택 추가
+        ? prev.coworkers.filter((user) => user.id !== member.id) // 선택 해제
+        : [...prev.coworkers, member]; // 선택 추가
       
       return {
         ...prev,
