@@ -7,8 +7,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
-      util: 'rollup-plugin-polyfill-node/polyfills/util',
-      stream: "rollup-plugin-polyfill-node/polyfills/stream",
+      // util: 'rollup-plugin-polyfill-node/polyfills/util',
+      // stream: "rollup-plugin-polyfill-node/polyfills/stream",
     },
   },
   server: {
