@@ -4,7 +4,7 @@ import { MenuItem } from "./_CustomDropdown";
 import { CustomSVG } from "./_CustomSVG";
 import axiosInstance from "@/services/axios.jsx";
 
-function ProjectAsideItem({ id, title, isActive, onClick, isOwner, setIsChanging }) {
+function ProjectAsideItem({ id, title, isActive, onClick, isOwner, setIsChanging,setModifyItemId, handleOpenModifyModal }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
 
@@ -49,6 +49,8 @@ function ProjectAsideItem({ id, title, isActive, onClick, isOwner, setIsChanging
             >
               <MenuItem
                 onClick={() => {
+                  setModifyItemId(id)
+                  handleOpenModifyModal();
                   setIsDropdownOpen(false);
                 }}
               >

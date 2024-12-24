@@ -50,13 +50,16 @@ export default function DocumentList() {
     const searchParams = new URLSearchParams(location.search);
     const token = searchParams.get("token");
     const [isTokenLoading, setIsTokenLoading] = useState(null);
+    const [draggedFile, setDraggedFile] = useState(null); // 드래그된 파일 상태
 
     const user = useUserStore((state) => state.user);
 
     console.log("token",token);
 
 
-
+    const handleFileDragStart = (file) => {
+        setDraggedFile(file); // 드래그된 파일 정보 저장
+    };
     // URL에서 token 추출
     const queryClient = useQueryClient();
     const [draggedFolder, setDraggedFolder] = useState(null); // 드래그된 폴더
@@ -264,13 +267,14 @@ export default function DocumentList() {
 
     // 폴더 이동 Mutation
     const moveFolderMutation = useMutation({
-        mutationFn: async ({ folderId, targetFolderId, newOrder,orderBefore,position }) => {
-            const response = await axiosInstance.put(`/api/drive/folder/${folderId}/move`, {
+        mutationFn: async ({ folderId, targetFolderId, newOrder,orderBefore,position,fileId }) => {
+            const response = await axiosInstance.put(`/api/drive/move`, {
                 folderId,
                 targetFolderId,
                 order: newOrder,
                 currentOrder: orderBefore,
                 position,
+                fileId,
             });
             return response; // Axios response 반환
         },
@@ -279,7 +283,10 @@ export default function DocumentList() {
         if (response.status === 200) {
             console.log(response.data); // "Folder updated successfully"
             
-            triggerAlert('folder')
+            triggerAlert(
+                "info",
+                "이동 성공",
+            );
             queryClient.invalidateQueries(['folderContents']);
         } else {
             alert("폴더 이동 실패: " + response.data);
@@ -299,14 +306,35 @@ export default function DocumentList() {
     const handleDrop = (targetFolder, position) => {
         console.log("handleDrop called with:", { targetFolder, position });
         console.log("포지션!!",position);
+        console.log("draggedFile",draggedFile);
         // 유효성 검사
-        if (!targetFolder || !draggedFolder) {
+        if (!targetFolder || (!draggedFolder && !draggedFile)) {
             console.error("Invalid target ", targetFolder," dragged folder:", draggedFolder);
             return;
         }
-    
+          // Handle file drop
+          if (draggedFile) {
+            console.log("Dropping file into folder:", targetFolder.name);
+            triggerAlert(
+                "warning",
+                "폴더 이동 확인",
+                `${targetFolder.name} 폴더 안으로 이동하시겠습니까?`,
+                () => {
+                    console.log("Callback executed for moveFolderMutation",draggedFile.id);
+                    moveFolderMutation.mutate({
+                        targetFolderId: targetFolder.id,
+                        newOrder: 0,
+                        currentOrder: 0,
+                        position,
+                        fileId: draggedFile.id,
+                    });
+                },
+                true,
+            );
+            return;
+        }
         // 자기 자신 위로 드롭하는 경우 무시
-        if (draggedFolder.id === targetFolder.id) {
+        if (draggedFolder.id === targetFolder.id ) {
             console.warn("Cannot drop folder onto itself");
             return;
         }
@@ -321,7 +349,7 @@ export default function DocumentList() {
                 () => {
                     console.log("Callback executed for moveFolderMutation");
                     moveFolderMutation.mutate({
-                        folderId: draggedFolder.id,
+                        folderId: draggedFolder.id ,
                         targetFolderId: targetFolder.id,
                         newOrder: 0,
                         currentOrder: 0,
@@ -382,64 +410,7 @@ export default function DocumentList() {
 
     };
 
-    // const handleDrop = (targetFolder, position) => {
-    //     console.log("handleDrop called with:", { targetFolder, position });
-    
-    //     // 유효성 검사
-    //     if (!targetFolder || !draggedFolder) {
-    //         console.error("Invalid target or dragged folder:", targetFolder, draggedFolder);
-    //         return;
-    //     }
-    
-    //     // 자기 자신 위로 드롭하는 경우 무시
-    //     if (draggedFolder.id === targetFolder.id) {
-    //         console.warn("Cannot drop folder onto itself");
-    //         return;
-    //     }
-    
-    //     // 타겟 폴더의 인덱스 찾기
-    //     const targetIndex = subFolders.findIndex((folder) => folder.id === targetFolder.id);
-    //     if (targetIndex === -1) {
-    //         console.error("Target folder not found in subFolders:", targetFolder);
-    //         return;
-    //     }
-    
-    //     // 정렬 계산
-    //     let orderBefore = 0;
-    //     let orderAfter = 0;
-    
-    //     if (position === "before") {
-    //         // 타겟 폴더 이전 폴더와 타겟 폴더 사이의 값 계산
-    //         if (targetIndex > 0) {
-    //             orderBefore = subFolders[targetIndex - 1]?.order || 0;
-    //         }
-    //         orderAfter = subFolders[targetIndex]?.order || (orderBefore + 1);
-    //     } else if (position === "after") {
-    //         // 타겟 폴더와 타겟 폴더 이후의 폴더 사이의 값 계산
-    //         orderBefore = subFolders[targetIndex]?.order || 0;
-    //         if (targetIndex < subFolders.length - 1) {
-    //             orderAfter = subFolders[targetIndex + 1]?.order || (orderBefore + 1);
-    //         } else {
-    //             orderAfter = orderBefore + 1; // 마지막 위치로 추가
-    //         }
-    //     }
-    
-    //     // 새로운 order 값 계산
-    //     const newOrder = (orderBefore + orderAfter) / 2.0;
-    
-    //     console.log("Calculated order values:", { orderBefore, orderAfter, newOrder });
-    
-    //     // 폴더 이동 Mutation 호출
-    //     moveFolderMutation.mutate({
-    //         folderId: draggedFolder.id,
-    //         targetFolderId: targetFolder.id,
-    //         newOrder,
-    //     });
-    
-    //     // 드래그 상태 초기화
-    //     setDraggedFolder(null);
-    // };
-
+   
 
     //선택 삭제
 
@@ -696,6 +667,37 @@ const handleCloseFileMenu = () => {
       setIsUploadInProgress(false);
       setUploadProgress(null); // 초기화
   
+    };
+
+    const handleFolderDragOver = (e) => {
+        e.preventDefault(); // 기본 동작 방지
+        e.currentTarget.classList.add("drag-over"); // 시각적 피드백
+    };
+
+    const handleFileDrop = async (targetFolder) => {
+        if (!draggedFile) {
+            console.error("드래그된 파일이 없습니다.");
+            return;
+        }
+    
+        try {
+            // 서버 API 호출
+            const response = await axiosInstance.put(`/api/drive/file/move`, {
+                fileId: draggedFile.id,
+                targetFolderId: targetFolder.id,
+            });
+    
+            if (response.status === 200) {
+                console.log("파일 이동 성공");
+                queryClient.invalidateQueries(["folderContents"]); // 데이터 새로고침
+            } else {
+                console.error("파일 이동 실패:", response.data);
+            }
+        } catch (error) {
+            console.error("파일 이동 중 오류:", error);
+        } finally {
+            setDraggedFile(null); // 상태 초기화
+        }
     };
 
  
@@ -1003,6 +1005,7 @@ const handleCloseFileMenu = () => {
                                         savedName={file.savedName}
                                         setSelectedFile={setSelectedFile}
                                         downloadHandler={() => downloadHandler(file)}
+                                        onDragStart={() => handleFileDragStart(file)} // 드래그 시작 핸들러
                                         />
                                 ))}
                             </section>

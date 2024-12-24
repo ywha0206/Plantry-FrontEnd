@@ -13,6 +13,7 @@ import useOnClickOutSide from "@/components/message/useOnClickOutSide";
 import { Settings, Settings2, Trash2, TrashIcon } from "lucide-react";
 import CustomAlert from "./CustomAlert";
 import { useDriveSettingsStore } from "../../store/useDriveStore";
+import useWebSocketProgress from "../../util/useWebSocketProgress";
 
 
 const customAlertInitData = {
@@ -71,6 +72,19 @@ export default function DocumentAside({onStorageInfo}){
         },
         staleTime: 300000, // 데이터 신선 유지 시간 (5분)+
     });
+
+
+    const { 
+        isConnected, 
+        notification,
+    } = useWebSocketProgress({
+        initialDestination: `/topic/folder/updates/${user.id}`,
+        initialMessage: 'Hello, WebSocket!',
+        initialUserId: user.id,
+        initialUserUid: user.uid,
+    });
+
+
 
     const calculateUsagePercentage = (currentUsedSize, maxSize) => {
         return (currentUsedSize / maxSize) * 100;

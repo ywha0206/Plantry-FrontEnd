@@ -1,15 +1,23 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Client } from '@stomp/stompjs';
 import axiosInstance from '@/services/axios.jsx';
+import { QueryClient, useQueryClient } from '@tanstack/react-query';
+import useUserStore from '../store/useUserStore';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-const useWebSocketProgress = ({ initialDestination, initialMessage, initialFolderId, initialUserId}) => {
+const useWebSocketProgress = ({ initialDestination, initialMessage, initialFolderId, initialUserId,initialUserUid}) => {
     const [destination, setDestination] = useState(initialDestination);
     const [sendMessage, setSendMessage] = useState(initialMessage);
     const [folderId, setFolderId] =  useState(initialFolderId);
     const [userId,setUserId] = useState(initialUserId);
+    const [userUid, setUserUid] = useState(initialUserUid);
     const [isConnected, setIsConnected] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [notification,setNotification] = useState(null);
     const [stompClient, setStompClient] = useState(null);
+    const queryClient = useQueryClient();
+    const navigate = useNavigate();
+    const location = useLocation(); // 현재 경로 가져오기
 
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
     const wsUrl = "ws://" + apiBaseUrl.replace("http://", "") + "/ws-progress";
@@ -58,6 +66,44 @@ const useWebSocketProgress = ({ initialDestination, initialMessage, initialFolde
                 console.error('Failed to process progress message:', error);
             }
         });
+
+        client.subscribe(`/topic/folder/updates/${userId}`, (message) => {
+            try {
+                const updateFolder = parseInt(message.body); // Parse integer progress
+                if (!isNaN(progress)) {
+                    console.log('Received uploads:', updateFolder);
+                    queryClient.invalidateQueries(["driveList"], userUid)
+                    setNotification(updateFolder); // Update the progress state
+                } else {
+                    console.warn('Invalid progress data received:', message.body);
+                }
+            } catch (error) {
+                console.error('Failed to process progress message:', error);
+            }
+        });
+
+        client.subscribe(`/topic/folder/remove/${userId}`, (message) => {
+            try {
+                const removedFolderId = message.body; // 삭제된 폴더 ID
+                if (!isNaN(progress)) {
+                    console.log('Received remove:', removedFolderId);
+                    queryClient.invalidateQueries(["driveList"], userUid);
+                    const currentFolderId = location.pathname.split("/").pop(); // URL에서 folderId 추출
+                    if (currentFolderId === removedFolderId) {
+                        console.log("Current folder deleted. Redirecting...");
+                        navigate("/document"); // 홈 화면 또는 다른 경로로 리다이렉트
+                    }
+
+                    setNotification(removedFolderId); // Update the progress state
+                } else {
+                    console.warn('Invalid progress data received:', message.body);
+                }
+            } catch (error) {
+                console.error('Failed to process progress message:', error);
+            }
+        });
+
+        
     
     };
 
@@ -101,15 +147,21 @@ const useWebSocketProgress = ({ initialDestination, initialMessage, initialFolde
     const updateUserId = (newUserId)=>{
         setUserId(newUserId);
     }
+    const updateUserUid = (newUserUid) =>{
+        setUserUid(newUserUid);
+    }
     
 
     return {
         isConnected,
         progress,
         sendMessage,
+        notification,
         updateUserId,
         updateFolderId,
-        initializeStompClient
+        updateUserUid,
+        initializeStompClient,
+
     };
 };
 
