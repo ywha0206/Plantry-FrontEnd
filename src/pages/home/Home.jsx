@@ -47,9 +47,9 @@ export default function Home() {
               <div className='my-left flex flex-col justify-between'>
                 <div>
                   <p className='gray'>WELCOME {userData?.name||''}</p>
-                  <p style={{fontSize:'20px'}}>근무 중</p>
+                  <p style={{fontSize:'20px'}}>근무 중 <span className='bg-green-500 w-[10px] h-[10px]'></span></p>
                 </div>
-                <span>{userData?.profileMessage||''}</span>
+                {/* <span>{userData?.profileMessage||''}</span> */}
                 <div className='grid grid-cols-2 gap-3 w-full '>
                   <button onClick={(e) => {e.preventDefault(); navigate("/my/attendance");}} 
                     className='btn-home'

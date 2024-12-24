@@ -41,7 +41,7 @@ export default function MyAside({}) {
               />
             </li>
           </Link>
-          <Link to="/my/approval">
+          {/* <Link to="/my/approval">
             <li className={`flex justify-between items-center h-[50px] `}>
               <span
                 className={`${
@@ -58,7 +58,7 @@ export default function MyAside({}) {
                 alt="allow"
               />
             </li>
-          </Link>
+          </Link> */}
           <Link to="/my/attendance">
             <li className={`flex justify-between items-center h-[50px] `}>
               <span
