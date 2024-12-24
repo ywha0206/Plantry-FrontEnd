@@ -181,30 +181,11 @@ export default function Project() {
           <div className="w-[30%]"></div>
 
           <header className="flex w-[40%] overflow-hidden relative justify-between items-center px-5 py-1 rounded-xl bg-zinc-100">
-            <div></div>
-
-            {isEditTitle ? (
-              <input
-                type="text"
-                className="text-lg text-center text-gray-400 w-fit overflow-visible bg-transparent"
-                value={data.title}
-                name="title"
-                onChange={handleProjectChange}
-                autoFocus
-              />
-            ) : (
-              <span className="text-lg text-center text-black">
+            
+              <span className="text-lg text-center w-full text-black">
                 {data.title}
               </span>
-            )}
 
-            <button onClick={isEditTitle?null:handleEditTitle}>
-              {isEditTitle ? (
-                <CustomSVG id="check" />
-              ) : (
-                <CustomSVG id="rename" />
-              )}
-            </button>
           </header>
 
           {/* 네비게이션 */}

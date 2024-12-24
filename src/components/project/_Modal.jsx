@@ -46,6 +46,165 @@ export const TemplateSelection = ({isOpen,onClose,onSelectTemplate}) => {
   );
 };
 
+export const ModifyProjectModal = ({ isOpen, onClose, projectId, onChangeProject, onSubmit }) => {
+  if (!isOpen) return null;
+  const [projectData, setProjectData] = useState({
+    title: "",
+    type: "",
+    status: "1",
+  });
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const typeDescriptions = {
+    1: "부서 내부에서만 진행되는 프로젝트입니다. 이 프로젝트에서는 자신이 소속한 부서 내의 인원만 작업자로 초대할 수 있습니다.",
+    2: "회사 전체에서 공유 및 진행하는 프로젝트입니다. 이 프로젝트에서는 자신이이 소속한 회사의 모든 인원을 작업자로 초대할 수 있습니다.",
+    3: "다른 회사와 협력하여 진행하는 프로젝트입니다.",
+    4: "팀 단위로 진행되는 프로젝트입니다.",
+    5: "모두가 볼 수 있는 공개 프로젝트입니다.",
+  };
+
+
+  useEffect(() => {
+    if (isOpen && projectId) {
+      fetchProjectData();
+    }
+    
+    console.log(projectData)
+  }, [isOpen, projectId]);
+
+  const fetchProjectData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.get(`/api/project/${projectId}`);
+      console.log(response.data)
+      setProjectData({
+        title: response.data.title || "",
+        type: response.data.type || "",
+        status: response.data.status || "1", // status 기본값 설정
+      });
+    } catch (err) {
+      setError("Failed to fetch project data.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    console.log("Updated projectData:", projectData);
+  }, [projectData]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setProjectData((prev) => ({ ...prev, [name]: value }));
+    if (onChangeProject) onChangeProject(name, value);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+      await axiosInstance.put(`/api/project/${projectId}`, projectData);
+      if (onSubmit) onSubmit(projectData);
+      onClose();
+    } catch (err) {
+      setError("Failed to save project.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+      <div className="bg-white rounded-lg shadow-lg p-6 w-[400px]">
+        <h2 className="text-xl font-semibold text-gray-700 mb-4">프로젝트 수정</h2>
+
+        {error && <span className="text-red-500 mb-4">{error}</span>}
+
+        {isLoading ? (
+          <p className="text-gray-500">Loading...</p>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <div className="flex flex-col mb-3">
+              <span className="bg-white text-gray-500 text-xs relative top-2 w-fit px-1 ml-2">
+                프로젝트 제목
+              </span>
+              <input
+                type="text"
+                name="title"
+                value={projectData.title}
+                onChange={handleChange}
+                className="border rounded-md h-[60px] indent-4 mr-2 text-sm"
+                required
+              />
+            </div>
+
+            <div className="flex flex-col mb-1">
+              <span className="bg-white text-gray-500 text-xs relative top-2 w-fit px-1 ml-2">
+                프로젝트 형태
+              </span>
+              <select
+                name="type"
+                value={projectData.type}
+                onChange={handleChange}
+                className="border rounded-md h-[60px] indent-4 mr-2 text-sm outline-none"
+                required
+              >
+                <option value="1">부서 내 프로젝트</option>
+                <option value="2">회사 내 프로젝트</option>
+                <option value="3">협력 프로젝트</option>
+                <option value="4">팀 프로젝트</option>
+                <option value="5">공개 프로젝트</option>
+              </select>
+            </div>
+            <div className="flex flex-col mb-3">
+              <span className="text-xs text-gray-600 px-1">{typeDescriptions[projectData.type]}</span>
+            </div>
+
+            <div className="flex flex-col mb-6">
+              <span className="bg-white text-gray-500 text-xs relative top-2 w-fit px-1 ml-2">
+                프로젝트 상태
+              </span>
+              {isLoading ? (
+                <p className="text-gray-500">Loading...</p>
+              ) : (
+                  <select
+                    name="status"
+                    value={projectData.status}
+                    onChange={handleChange}
+                    className="border rounded-md h-[60px] indent-4 mr-2 text-sm outline-none"
+                    required
+                  >
+                    <option value="1">대기 중</option>
+                    <option value="2">진행 중</option>
+                    <option value="3">완료</option>
+                  </select>
+                  )}
+            </div>
+
+            <div className="flex justify-end gap-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg"
+              >
+                취소
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                disabled={isLoading}
+              >
+                저장
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export const AddProjectModal = ({
   isOpen,
@@ -55,6 +214,7 @@ export const AddProjectModal = ({
   selectedTemplate,
   setSelectedUsers,
   projectId,
+  onItemClick,
 }) => {
   if (!isOpen) return null;
 
@@ -213,7 +373,7 @@ export const AddProjectModal = ({
       const isSelected = prev.coworkers.some((user) => user.userId === member.id);
       const updatedCoworkers = isSelected
         ? prev.coworkers.filter((user) => user.userId !== member.id) // 선택 해제
-        : [...prev.coworkers, member]; // 선택 추가
+        : [...prev.coworkers, {user:member,userId:member.id,name:member.name,img:member.profileImgPath,group:member.group}]; // 선택 추가
       
       return {
         ...prev,
@@ -274,6 +434,7 @@ export const AddProjectModal = ({
         console.log(project);
         const res = await axiosInstance.post('/api/project', project);
         console.log(res.data)
+        onItemClick(res.data)
         onClose();
       } catch (err) {
         console.error(err);
@@ -338,7 +499,7 @@ export const AddProjectModal = ({
                   <div className="border rounded h-[60px] p-3 flex items-center gap-1 overflow-x-auto overflow-y-hidden scrollbar-thin">
                     {project.coworkers.map((user, index) => (
                       <span
-                        key={user.id}
+                        key={index}
                         className="flex items-center flex-shrink-0 gap-[2px] px-2 py-[2px] rounded-2xl bg-indigo-200 bg-opacity-70 text-xs text-indigo-500"
                       >
                         <img src={`${ProfileURI}${user.profileImgPath}`} className="h-[24px]" />
@@ -375,7 +536,7 @@ export const AddProjectModal = ({
               <div className="border rounded-md h-[60px] p-3 flex items-center gap-1 overflow-x-auto overflow-y-hidden scrollbar-thin w-full">
                 {project.coworkers.map((user, index) => (
                   <span
-                    key={user.id}
+                    key={index}
                     className="flex items-center flex-shrink-0 gap-[2px] px-2 py-[2px] rounded-2xl bg-indigo-200 bg-opacity-70 text-xs text-indigo-500"
                   >
                     <img src={user.img} className="h-[24px]" />
