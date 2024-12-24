@@ -1044,6 +1044,7 @@ const handleCloseFileMenu = () => {
                             <th>Title</th>
                             <th>Type</th>
                             <th>Size</th>
+                            <th>Owner</th>
                             <th>Last Modified</th>
                         </tr>
                     </thead>
@@ -1087,6 +1088,7 @@ const handleCloseFileMenu = () => {
                             </td>
                             <td>{isFolder ? "Folder" : "File"}</td>
                             <td>{item.size || "-"}</td>
+                            <td>{item.ownerId}</td>
                             <td  className='w-[2
                             00px]'>{item.updatedAt || "Unknown"}</td>
                         </tr>
