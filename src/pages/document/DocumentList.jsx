@@ -526,9 +526,21 @@ const handleCloseFileMenu = () => {
 
     const handleContextMenu = (e, folder) => {
         e.preventDefault(); // 기본 컨텍스트 메뉴 방지
+
+         // 화면 크기 가져오기
+        const { clientX, clientY } = e;
+        const { innerWidth, innerHeight } = window;
+        const menuWidth = 400; // 예상 메뉴 너비
+        const menuHeight = 150; // 예상 메뉴 높이
+
+        // 화면 경계를 초과하지 않도록 위치 조정
+        const adjustedX = clientX + menuWidth > innerWidth ? innerWidth - menuWidth : clientX;
+        const adjustedY = clientY + menuHeight > innerHeight ? innerHeight - menuHeight : clientY;
+
+    // ContextMenu 상태 업데이트
         setContextMenu({
             visible: true,
-            position: { top: e.clientY, left: e.clientX },
+            position: { top: adjustedY, left: adjustedX },
             folder,
             folderId : folder.id,
             isPinned : folder.isPinned,

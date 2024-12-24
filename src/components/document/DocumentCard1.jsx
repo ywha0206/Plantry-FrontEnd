@@ -49,7 +49,6 @@ export const DocumentCard1 = ({
         const mouseY = e.clientY - rect.top;
         const mouseX = e.clientX - rect.left;
     
-        console.log(`mouseY: ${mouseY}, mouseX: ${mouseX}, rectHeight: ${rectHeight}, rectWidth: ${rectWidth}`);
     
         if (mouseY < rectHeight * 0.25 && mouseX < rectWidth * 0.25) {
             setDragZone('before'); // 왼쪽 상단

@@ -327,7 +327,7 @@ export default function ContextMenu({
             ref={contextMenuRef}
             className="bg-gray-100 rounded-xl shadow-md p-4 absolute z-10"
             style={{
-                top: position.top,
+                top: position.top-50,
                 left: position.left,
                 background: "#fff",
                 boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
