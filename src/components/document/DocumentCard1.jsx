@@ -279,6 +279,7 @@ export const DocumentCard1 = ({
                         ${isFavorite ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400'}`}
                     onClick={(e) => {
                         e.stopPropagation();
+                        handleFavoriteToggle();
                         setIsFavorite(!isFavorite);
                     }}
                 />
