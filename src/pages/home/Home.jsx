@@ -9,6 +9,7 @@ import HomeAttendance from '../../components/home/HomeAttendance';
 import HomeSchedule from '../../components/home/HomeSchedule';
 import HomeProject from '../../components/home/HomeProject';
 import HomeNotice from '../../components/home/HomeNotice';
+import HomePage from '../../components/home/HomePage';
 
 const profileURL = 'http://3.35.170.26:90/profileImg/';
 
@@ -16,6 +17,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [isActive, setIsActive] = useState(true); // 페이지 활성화 상태 관리
   const user = useUserStore((state)=> state.user);
+  const role = user.role;
 
   const getUserAPI = async () => {
     if (!user?.uid) {
@@ -32,6 +34,7 @@ export default function Home() {
     enabled: Boolean(user?.uid),
   });
 
+
     return (
       <div id='home-container'>
         <section className='admin-index-top'>
@@ -44,9 +47,9 @@ export default function Home() {
               <div className='my-left flex flex-col justify-between'>
                 <div>
                   <p className='gray'>WELCOME {userData?.name||''}</p>
-                  <p style={{fontSize:'20px'}}>근무 중</p>
+                  <p style={{fontSize:'20px'}}>근무 중 <span className='bg-green-500 w-[10px] h-[10px]'></span></p>
                 </div>
-                <span>{userData?.profileMessage||''}</span>
+                {/* <span>{userData?.profileMessage||''}</span> */}
                 <div className='grid grid-cols-2 gap-3 w-full '>
                   <button onClick={(e) => {e.preventDefault(); navigate("/my/attendance");}} 
                     className='btn-home'
@@ -76,8 +79,12 @@ export default function Home() {
           </article>
         </section>
         <section className='home-index-bot'>
-          <div className='home-bot border' >
-          <HomeNotice/>
+          <div className='home-bot2 border' >
+            {role === 'USER' ? (
+              <HomePage/>
+            ) : (
+              <HomeNotice/>
+            )}
           </div>
           <div className='home-bot border'>
             <HomeSchedule/>

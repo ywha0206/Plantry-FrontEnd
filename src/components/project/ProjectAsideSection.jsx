@@ -2,7 +2,7 @@
 import ProjectAsideItem from "./ProjectAsideItem";
 import { CustomSVG } from "./_CustomSVG";
 
-function ProjectAsideSection({ data, isCompleted, isOpen, toggleSection, activeItemId, onItemClick, setIsChanging }) {
+function ProjectAsideSection({ data, isCompleted, isOpen, toggleSection, activeItemId, onItemClick, setIsChanging, setModifyItemId, handleOpenModifyModal }) {
   const { title, items } = data;
 
   return (
@@ -38,6 +38,8 @@ function ProjectAsideSection({ data, isCompleted, isOpen, toggleSection, activeI
               isActive={item.id === activeItemId} // 선택된 항목만 활성화
               onClick={() => onItemClick(item.id)} // 항목 클릭 시 활성화
               setIsChanging = {setIsChanging}
+              setModifyItemId={setModifyItemId}
+              handleOpenModifyModal={handleOpenModifyModal}
             />
           ))}
         </div>

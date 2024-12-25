@@ -184,12 +184,11 @@ export default function ContextMenu({
            );
            if (response.status === 200) {
             queryClient.invalidateQueries(['folderContents']); // Replace with the relevant query key
-            setAlert({
-                type: 'info',
-                title: '삭제 성공',
-                message: '휴지통으로 이동했습니다.',
-                onConfirm: () => setAlert(null),
-            });
+            triggerAlert(
+                "info",
+                "삭제 성공",
+                "휴지통으로 이동했습니다.",
+            );
           } else{
             const message = response.data;
             console.log("message",message);
@@ -327,7 +326,7 @@ export default function ContextMenu({
             ref={contextMenuRef}
             className="bg-gray-100 rounded-xl shadow-md p-4 absolute z-10"
             style={{
-                top: position.top,
+                top: position.top-50,
                 left: position.left,
                 background: "#fff",
                 boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",

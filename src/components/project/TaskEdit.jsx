@@ -3,25 +3,40 @@ import { useEffect, useRef, useState } from "react";
 import { CustomSVG } from "./_CustomSVG";
 import useUserStore from "@/store/useUserStore"
 import { createPortal } from "react-dom";
-import useProjectData from "../../util/useProjectData";
+import { PROFILE_URI } from "../../api/_URI";
 
 function Portal({ children }) {
   return createPortal(children, document.body);
+}
+
+function MoveTaskModal({ isOpen, onClose, task, onMoveTask }) {
+  if (!isOpen) return null;
+  
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h2>이 태스크를 이동하시겠습니까?</h2>
+        <button onClick={onClose}>취소</button>
+        <button onClick={() => onMoveTask(task)}>이동</button>
+      </div>
+    </div>
+  );
 }
 
 export function DynamicTaskEditor({
   projectId,
   mode,
   taskToEdit,
+  onDeleteSubTask,
   columnIndex,
   columnId,
   setIsAdded,
   onSave,
   onClose,
   coworkers =[],
+  
 }) {
    
-  const {sendWebSocketMessage} = useProjectData(projectId);
   const loginUser = useUserStore((state) => state.user)
   const [task, setTask] = useState({
     columnId: columnId,
@@ -81,9 +96,6 @@ export function DynamicTaskEditor({
     onSave(task, columnIndex);
     if (mode === "create") setIsAdded(false);
   };
-  const handleDeleteSubTask = (subTask) => {
-    sendWebSocketMessage(subTask, `/app/project/${projectId}/sub/deleted`);
-  };
   const getPosition = (event) =>{
     const rect = event.currentTarget.getBoundingClientRect();
       setDropdownPosition({
@@ -101,6 +113,7 @@ export function DynamicTaskEditor({
   };
 // 멤버 클릭 핸들러 (토글 방식)
 const handleMemberClick = (member) => {
+  console.log(member)
   setTask((prev) => {
     const isSelected = prev.associate.some((user) => user.id === member.id);
     const updatedCoworkers = isSelected
@@ -134,6 +147,7 @@ const handleDeleteTag = (index) => {
   const colClassName =
     "flex gap-1.5 items-start pt-1.5 mt-1.5 max-w-full tracking-normal leading-none rounded-lg min-h-[26px] text-gray-600/60 w-[231px]";
 
+  const ProfileURI = PROFILE_URI;
   return (
     <form
       onSubmit={handleSubmit}
@@ -225,7 +239,8 @@ const handleDeleteTag = (index) => {
                     key={user.id}
                     className="flex items-center flex-shrink-0 gap-[2px] px-2 py-[2px] rounded-2xl bg-indigo-200/70 text-xs text-indigo-500"
                   >
-                    <img src={user.img} className="h-[24px]" />
+                    <img src={user.profile!=null?ProfileURI+user.profile:"/images/user_face_icon.png"}
+                               className="h-[24px] w-[24px] object-cover rounded-full" />
                     <span className="">{user.name}</span>
                     <span className="text-indigo-400">({user?.group})</span>
                     <button onClick={() => handleDeleteTag(index)}>
@@ -252,9 +267,9 @@ const handleDeleteTag = (index) => {
                                       ? "bg-indigo-100 hover:border-indigo-300"
                                       : "bg-gray-100 hover:border-gray-300"}`}>
                                   <img
-                                    src={m?.img}
+                                    src={m.profile!=null?ProfileURI+m.profile:"/images/user_face_icon.png"}
                                     alt="user-img"
-                                    className="w-[12px] h-[12px]"
+                                    className="w-[20px] h-[20px] rounded-full object-cover"
                                   />
                                   <div className="ml-10 flex flex-col text-left">
                                     <span className="font-light text-black text-xs">
@@ -317,7 +332,7 @@ const handleDeleteTag = (index) => {
                   {subTask.name}
                 </label>
                 <button
-                    onClick={() => handleDeleteSubTask(subTask)}
+                    onClick={() => {onDeleteSubTask(subTask)}}
                     aria-label="Delete SubTask"
                     className="ml-auto text-sm"
                   >

@@ -65,6 +65,7 @@ import ProductServicesWrite from "./components/render/productserviceswrite";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import ValidateLinkPage from "./pages/tmp";
 import AdminFAQDashboard from "./pages/admindashboard/adminfaq";
+import DriveSettings from "./pages/document/DocumentSetting.jsx";
 const MainIndexComponent = lazy(() => import("./components/render/main"));
 
 function App() {
@@ -212,6 +213,8 @@ function App() {
               <Route path="write/services" element={<ProductServicesWrite />} />
             </Route>
           </Route>
+          <Route path="/accept-invitation/:invitationId" element={<ValidateLinkPage />} />
+
 
           {/* 홈 */}
           <Route path="/home" element={<Main />}>
@@ -290,6 +293,7 @@ function App() {
             <Route path=":dynamicPart" element={<Favorite />} />
             <Route path="trash" element={<Trash />} />
             <Route path="list/:dynamicPart" element={<DocumentList />} />
+            <Route path="settings" element={<DriveSettings />} />
           </Route>
 
           {/* 달력 */}

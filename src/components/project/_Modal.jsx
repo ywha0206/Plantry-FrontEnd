@@ -7,6 +7,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import axiosInstance from "@/services/axios.jsx";
 import templates from "./templates.json";
 import { PROFILE_URI } from "../../api/_URI";
+import { name } from "file-loader";
 
 export const TemplateSelection = ({isOpen,onClose,onSelectTemplate}) => {
   if (!isOpen) return null;
@@ -46,6 +47,165 @@ export const TemplateSelection = ({isOpen,onClose,onSelectTemplate}) => {
   );
 };
 
+export const ModifyProjectModal = ({ isOpen, onClose, projectId, onChangeProject, onSubmit }) => {
+  if (!isOpen) return null;
+  const [projectData, setProjectData] = useState({
+    title: "",
+    type: "",
+    status: "1",
+  });
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const typeDescriptions = {
+    1: "부서 내부에서만 진행되는 프로젝트입니다. 이 프로젝트에서는 자신이 소속된 부서 내의 인원만 작업자로 초대할 수 있습니다.",
+    2: "회사 전체에서 공유 및 진행하는 프로젝트입니다. 이 프로젝트에서는 자신이 소속된 회사의 모든 인원을 작업자로 초대할 수 있습니다.",
+    3: "다른 회사와 협력하여 진행하는 프로젝트입니다.",
+    4: "팀 단위로 진행되는 프로젝트입니다.",
+    5: "모두가 볼 수 있는 공개 프로젝트입니다.",
+  };
+
+
+  useEffect(() => {
+    if (isOpen && projectId) {
+      fetchProjectData();
+    }
+    
+    console.log(projectData)
+  }, [isOpen, projectId]);
+
+  const fetchProjectData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.get(`/api/project/${projectId}`);
+      console.log(response.data)
+      setProjectData({
+        title: response.data.title || "",
+        type: response.data.type || "",
+        status: response.data.status || "1", // status 기본값 설정
+      });
+    } catch (err) {
+      setError("Failed to fetch project data.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    console.log("Updated projectData:", projectData);
+  }, [projectData]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setProjectData((prev) => ({ ...prev, [name]: value }));
+    if (onChangeProject) onChangeProject(name, value);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+      await axiosInstance.put(`/api/project/${projectId}`, projectData);
+      if (onSubmit) onSubmit(projectData);
+      onClose();
+    } catch (err) {
+      setError("Failed to save project.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+      <div className="bg-white rounded-lg shadow-lg p-6 w-[400px]">
+        <h2 className="text-xl font-semibold text-gray-700 mb-4">프로젝트 수정</h2>
+
+        {error && <span className="text-red-500 mb-4">{error}</span>}
+
+        {isLoading ? (
+          <p className="text-gray-500">Loading...</p>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <div className="flex flex-col mb-3">
+              <span className="bg-white text-gray-500 text-xs relative top-2 w-fit px-1 ml-2">
+                프로젝트 제목
+              </span>
+              <input
+                type="text"
+                name="title"
+                value={projectData.title}
+                onChange={handleChange}
+                className="border rounded-md h-[60px] indent-4 mr-2 text-sm"
+                required
+              />
+            </div>
+
+            <div className="flex flex-col mb-1">
+              <span className="bg-white text-gray-500 text-xs relative top-2 w-fit px-1 ml-2">
+                프로젝트 형태
+              </span>
+              <select
+                name="type"
+                value={projectData.type}
+                onChange={handleChange}
+                className="border rounded-md h-[60px] indent-4 mr-2 text-sm outline-none"
+                required
+              >
+                <option value="1">부서 내 프로젝트</option>
+                <option value="2">회사 내 프로젝트</option>
+                <option value="3">협력 프로젝트</option>
+                <option value="4">팀 프로젝트</option>
+                <option value="5">공개 프로젝트</option>
+              </select>
+            </div>
+            <div className="flex flex-col mb-3">
+              <span className="text-xs text-gray-600 px-1">{typeDescriptions[projectData.type]}</span>
+            </div>
+
+            <div className="flex flex-col mb-6">
+              <span className="bg-white text-gray-500 text-xs relative top-2 w-fit px-1 ml-2">
+                프로젝트 상태
+              </span>
+              {isLoading ? (
+                <p className="text-gray-500">Loading...</p>
+              ) : (
+                  <select
+                    name="status"
+                    value={projectData.status}
+                    onChange={handleChange}
+                    className="border rounded-md h-[60px] indent-4 mr-2 text-sm outline-none"
+                    required
+                  >
+                    <option value="1">대기 중</option>
+                    <option value="2">진행 중</option>
+                    <option value="3">완료</option>
+                  </select>
+                  )}
+            </div>
+
+            <div className="flex justify-end gap-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg"
+              >
+                취소
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                disabled={isLoading}
+              >
+                저장
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export const AddProjectModal = ({
   isOpen,
@@ -55,17 +215,19 @@ export const AddProjectModal = ({
   selectedTemplate,
   setSelectedUsers,
   projectId,
+  onItemClick,
+  type
 }) => {
   if (!isOpen) return null;
 
   const ProfileURI = PROFILE_URI;
   const loginUser = useUserStore((state) => state.user)
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [selectedGroupId, setSelectedGroupId] = useState(loginUser.groupId);
+  const [selectedGroupId, setSelectedGroupId] = useState((type==null||type===1)?loginUser.groupId:0);
   const [listType, setListType] = useState(1);
   const [project, setProject] = useState({
     title: "새 프로젝트",
-    type: 1,
+    type: type||1,
     template: selectedTemplate,
     coworkers: selectedUsers,
     ...(selectedTemplate && { columns: templates[selectedTemplate].columns }) // selectedTemplate이 있을 때만 columns 설정
@@ -207,11 +369,13 @@ export const AddProjectModal = ({
   
   // 멤버 클릭 핸들러 (토글 방식)
   const handleMemberClick = (member) => {
+    if(loginUser.grade==1&&project.coworkers.length>2){alert('해당 플랜은 작업자를 최대 3명까지만 지정할 수 있습니다!'); return;}
+    else if(loginUser.grade==2&&project.coworkers.length>9){alert('해당 플랜은 작업자를 최대 10명까지만 지정할 수 있습니다!'); return;}
     setProject((prev) => {
-      const isSelected = prev.coworkers.some((user) => user.id === member.id);
+      const isSelected = prev.coworkers.some((user) => user.userId == member.id);
       const updatedCoworkers = isSelected
-        ? prev.coworkers.filter((user) => user.id !== member.id) // 선택 해제
-        : [...prev.coworkers, member]; // 선택 추가
+        ? prev.coworkers.filter((user) => user.userId != member.id) // 선택 해제
+        : [...prev.coworkers, {userId:member.id, name:member.name, group:member.group, profile:member.profile, level:member.level, email:member.email}]; // 선택 추가
       
       return {
         ...prev,
@@ -239,16 +403,16 @@ export const AddProjectModal = ({
       const prevCoworkers = selectedUsers; // 기존 작업자 목록
       const newCoworkers = project.coworkers; // 수정 후 작업자 목록
 
-      const coworkerIds = new Set(prevCoworkers.map((coworker) => coworker.id)); // 기존 작업자 ID 집합
-      const newCoworkerIds = new Set(newCoworkers.map((user) => user.id)); // 수정 후 작업자 ID 집합
+      const coworkerIds = new Set(prevCoworkers.map((coworker) => coworker.userId)); // 기존 작업자 ID 집합
+      const newCoworkerIds = new Set(newCoworkers.map((user) => user.userId)); // 수정 후 작업자 ID 집합
 
-      const addedCoworkers = newCoworkers.filter((user) => !coworkerIds.has(user.id));
-      const removedCoworkers = prevCoworkers.filter((coworker) => !newCoworkerIds.has(coworker.id));
+      const addedCoworkers = newCoworkers.filter((user) => !coworkerIds.has(user.userId));
+      const removedCoworkers = prevCoworkers.filter((coworker) => !newCoworkerIds.has(coworker.userId));
 
       const payload = {
         projectId: projectId,
-        addedCoworkers: addedCoworkers.map((user) => user.id ),
-        removedCoworkers: removedCoworkers.map((coworker) => coworker.id),
+        addedCoworkers: addedCoworkers.map((user) => user.userId ),
+        removedCoworkers: removedCoworkers.map((coworker) => coworker.userId),
       };
       console.log(payload)
       try {
@@ -272,6 +436,7 @@ export const AddProjectModal = ({
         console.log(project);
         const res = await axiosInstance.post('/api/project', project);
         console.log(res.data)
+        onItemClick(res.data)
         onClose();
       } catch (err) {
         console.error(err);
@@ -336,10 +501,10 @@ export const AddProjectModal = ({
                   <div className="border rounded h-[60px] p-3 flex items-center gap-1 overflow-x-auto overflow-y-hidden scrollbar-thin">
                     {project.coworkers.map((user, index) => (
                       <span
-                        key={user.id}
+                        key={index}
                         className="flex items-center flex-shrink-0 gap-[2px] px-2 py-[2px] rounded-2xl bg-indigo-200 bg-opacity-70 text-xs text-indigo-500"
                       >
-                        <img src={`${ProfileURI}${user.profileImgPath}`} className="h-[24px]" />
+                        <img src={`${ProfileURI}${user.profile}`} className="h-[24px] w-[24px] object-cover rounded-full" />
                         <span className="">{user.name}</span>
                         <span className="text-indigo-400">({user.group})</span>
                         <button onClick={() => handleDeleteTag(index)}>
@@ -373,10 +538,10 @@ export const AddProjectModal = ({
               <div className="border rounded-md h-[60px] p-3 flex items-center gap-1 overflow-x-auto overflow-y-hidden scrollbar-thin w-full">
                 {project.coworkers.map((user, index) => (
                   <span
-                    key={user.id}
+                    key={index}
                     className="flex items-center flex-shrink-0 gap-[2px] px-2 py-[2px] rounded-2xl bg-indigo-200 bg-opacity-70 text-xs text-indigo-500"
                   >
-                    <img src={user.img} className="h-[24px]" />
+                    <img src={`${ProfileURI}${user.profile}`} className="h-[24px] w-[24px] object-cover rounded-full" />
                         <span className="">{user.name}</span>
                         <span className="text-indigo-400"> ({user.group})</span>
                     <button onClick={() => handleDeleteTag(index)}>
@@ -406,7 +571,7 @@ export const AddProjectModal = ({
               ) : null
             ) : (
               <>
-                {project.type === "2" && (
+                {project.type == "2" && (
                   <div className="cursor-pointer text-xs sticky bg-white top-0 text-left z-30 py-2 mt-0">
                     <span onClick={() => { setListType(1); selectGroup(0); }}> 전체 보기 </span> | 
                     <span onClick={() => setListType(2)}> 부서별 보기 </span>
@@ -426,15 +591,15 @@ export const AddProjectModal = ({
                             key={m?.id}
                             onClick={() => handleMemberClick(m)}
                             className={`rounded-3xl px-3 py-3 flex mt-2 cursor-pointer border border-transparent ${
-                              project.coworkers.some((coworker) => coworker.id === m.id)
+                              project.coworkers.some((coworker) => coworker.userId === m.id)
                                 ? "bg-indigo-100 hover:border-indigo-300"
                                 : "bg-gray-100 hover:border-gray-300"
                             }`}
                           >
                             <img
-                              src={m?.img}
+                              src={m.profile!=null?ProfileURI+m.profile:"/images/user_face_icon.png"}
                               alt="user-img"
-                              className="w-[45px] h-[45px]"
+                              className="w-[45px] h-[45px] rounded-full object-cover"
                             />
                             <div className="ml-10 flex flex-col text-left">
                               <p className="font-light text-black">
@@ -503,15 +668,15 @@ export const AddProjectModal = ({
                                         key={m.id}
                                         onClick={() => handleMemberClick(m)}
                                         className={`flex rounded-3xl p-3 mt-2 cursor-pointer border border-transparent ${
-                                          project.coworkers.some((coworker) => coworker.id === m.id)
+                                          project.coworkers.some((coworker) => coworker.userId === m.id)
                                             ? "bg-indigo-100 hover:border-indigo-300"
                                             : "bg-gray-100 hover:border-gray-300"
                                         }`}
                                       >
                                         <img
-                                          src={m.img}
+                                          src={m.profile!=null?ProfileURI+m.profile:"/images/user_face_icon.png"}
                                           alt="user-img"
-                                          className="w-[45px] h-[45px]"
+                                          className="w-[45px] h-[45px] rounded-full"
                                         />
                                         <div className="ml-10 flex flex-col text-left">
                                           <p className="font-light text-black">

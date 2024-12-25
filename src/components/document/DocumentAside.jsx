@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {CustomSearch} from '@/components/Search'
 import { Modal } from "../Modal";
 import NewDrive from "./NewDrive";
@@ -10,8 +10,10 @@ import { FaTrash, FaDownload, FaEdit, FaStar, FaShareAlt, FaBarcode } from 'reac
 import ContextMenu from "./ContextMenu";
 import useStorageStore from "../../store/useStorageStore";
 import useOnClickOutSide from "@/components/message/useOnClickOutSide";
-import { Trash2, TrashIcon } from "lucide-react";
+import { Settings, Settings2, Trash2, TrashIcon } from "lucide-react";
 import CustomAlert from "./CustomAlert";
+import { useDriveSettingsStore } from "../../store/useDriveStore";
+import useWebSocketProgress from "../../util/useWebSocketProgress";
 
 
 const customAlertInitData = {
@@ -28,12 +30,15 @@ const customAlertInitData = {
 }
 
 export default function DocumentAside({onStorageInfo}){
-   
+
+    const { notifications } = useDriveSettingsStore();
+    
     // const [folders, setFolders] = useState([]); // 폴더 목록 상태
     const [drive, setDrive] = useState(false);
     const makeDrive = () => {
         setDrive(true)
     }
+    const navigate = useNavigate();
 
     const [isPinnedOpen, setIsPinnedOpen] = useState(true); // State to track "My Page" section visibility    
     const [isSharedOpen, setIsSharedOpen] = useState(true);
@@ -60,7 +65,7 @@ export default function DocumentAside({onStorageInfo}){
 
   // React Query를 사용하여 폴더 데이터 가져오기
     const { data: folderResponse = { folderDtoList: [],shareFolderDtoList:[], uid: "" }, isLoading, isError } = useQuery({
-        queryKey: ["driveList", location.pathname],
+        queryKey: ["driveList", user.uid],
         queryFn: async () => {
             const response = await axiosInstance.get("/api/drive/folders");
             return response.data; // 백엔드의 데이터 구조 반환
@@ -68,6 +73,22 @@ export default function DocumentAside({onStorageInfo}){
         staleTime: 300000, // 데이터 신선 유지 시간 (5분)+
     });
 
+
+    const { 
+        isConnected, 
+        notification,
+    } = useWebSocketProgress({
+        initialDestination: `/topic/folder/updates/${user.id}`,
+        initialMessage: 'Hello, WebSocket!',
+        initialUserId: user.id,
+        initialUserUid: user.uid,
+    });
+
+
+
+    const calculateUsagePercentage = (currentUsedSize, maxSize) => {
+        return (currentUsedSize / maxSize) * 100;
+    };
 
     const { data: size , isDataLoading, isDataError } = useQuery({
         queryKey: ["driveSize", user.uid],
@@ -87,6 +108,16 @@ export default function DocumentAside({onStorageInfo}){
                 currentUsedSize,
                 currentRemainingSize,
             });
+            const percent = calculateUsagePercentage(currentUsedSize,maxSize);
+            if(notifications.storageAlerts && percent >= 90 ){
+               console.log("스토리지 초과!!! ",percent)
+                // WebSocket 알림 전송
+                axiosInstance.post("/api/drive/notify", {
+                    message: `스토리지 사용량 90%: ${percent.toFixed(2)}%`,
+                    percent,
+                });
+              
+            }
         },
     });
 
@@ -133,6 +164,19 @@ export default function DocumentAside({onStorageInfo}){
             currentUsedSize,
             currentRemainingSize,
         });
+        const percent = calculateUsagePercentage(currentUsedSize,maxSize);
+        console.log("ㅠㅓ센테지:::",percent);
+        console.log("notifications!!!",notifications.storageAlerts);
+        if(notifications.storageAlerts && percent >= 80 ){
+           console.log("스토리지 초과!!! ",percent);
+            // WebSocket 알림 전송
+            axiosInstance.post("/api/drive/notify", {
+                message: `스토리지 사용량 90%: ${percent.toFixed(2)}%`,
+                percent,
+            });
+          
+        }
+
 
     }, [size]); // `size`와 `userGrade`가 변경될 때 계산
    
@@ -332,7 +376,18 @@ export default function DocumentAside({onStorageInfo}){
     return(<>
     
     <aside className='document-aside1 overflow-scroll flex flex-col scrollbar-none'>
-                <section className='flex justify-center mb-8'><Link to="/document" className='text-lg'>드라이브 ({totalSize})</Link></section>
+                <section className='flex justify-between mb-8'>
+                    <div></div>
+                    <Link to="/document" className='text-lg'>드라이브 ({totalSize})</Link>
+                    <button
+                        onClick={() => navigate('/document/settings')}
+                        className="hover:bg-gray-100 rounded-full"
+                        title="드라이브 설정"
+                    >
+                        <Settings2 className="w-5 h-5" />
+                    </button>
+
+                </section>
                 <section className='flex justify-center mb-8 w-26'>
                     <select className='outline-none border rounded-l-md opacity-80 h-11 w-24 text-center text-sm'>
                         <option>참여자</option>
@@ -412,6 +467,7 @@ export default function DocumentAside({onStorageInfo}){
                 <section className='flex justify-between items-center p-4 mb-2'>
                     <div>
                         <p className='text-2xl font-bold'>나의 드라이브 <span className='text-xs font-normal opacity-60'>(  {personalFolders.length})</span></p>
+                        
                     </div>
                     <div>
                         <img
@@ -488,8 +544,10 @@ export default function DocumentAside({onStorageInfo}){
                         <p>남은 용량: {(remainingSize / 1024 / 1024).toFixed(2)} MB</p>
                     </div>
                     <button onClick={makeDrive} className='bg-purple white h-8 rounded-md'>드라이브 생성</button>
-
+                      {/* 설정 아이콘 추가 */}
+                   
                 </section>
+
 
                {/*  <section className='mt-auto flex flex-col gap-5'>
                     <button onClick={makeDrive} className='bg-purple white h-8 rounded-md'>드라이브 생성</button>

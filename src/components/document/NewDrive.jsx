@@ -102,7 +102,7 @@ export default function NewDrive({ order, isOpen, onClose, user }) {
       return response.data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['driveList'] });
+      queryClient.invalidateQueries({ queryKey: ['driveList', user.uid] });
       onClose();
     },
     onError: (error) => {

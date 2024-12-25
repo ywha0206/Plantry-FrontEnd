@@ -131,7 +131,7 @@ export default function Document() {
     }
 
     const { data: folderResponse = { folderDtoList: [], shareFolderDtoList: [], uid: "" }, isLoading, isError } = useQuery({
-        queryKey: ["driveList"], // 동일한 queryKey
+        queryKey: ["driveList",user.uid], // 동일한 queryKey
         queryFn: async () => {
             const response = await axiosInstance.get("/api/drive/folders");
             return response.data;
@@ -154,15 +154,7 @@ export default function Document() {
     console.log("필터터터",filteredSharedFolders);
     console.log("personallll",personalFolders);
 
-    // driveList 데이터 가져오기
-    // const { data: driveListData, isLoading: isDriveListLoading, isError: isDriveListError } = useQuery({
-    //     queryKey: ['driveList'],
-    //     queryFn: async () => {
-    //         const response = await axiosInstance.get(`/api/drive/folders`);
-    //         return response.data;
-    //     },
-    //     staleTime: 300000, // 데이터가 5분 동안 신선하다고 간주
-    // });
+   
 
     // 폴더 이름 변경 Mutation
     const renameFolderMutation = useMutation({
@@ -373,7 +365,7 @@ export default function Document() {
                                 cnt={drive.fileCount || 0}
                                 fileName={drive.name}
                                 onContextMenu={handleContextMenu}
-                                onClick={() => setActiveCard(drive.name)}
+                                onClick={() => setActiveCard(drive?.name )}
                                 folderId={drive.id}
                                 downloadHandler={zipDownloadHandler} // 수정: folder 객체 전달
                                 folder={drive}

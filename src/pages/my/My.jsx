@@ -13,7 +13,7 @@ export default function MyMain() {
 
   const params = useParams();
   const navigate = useNavigate();
-  const [progress, setProgress] = useState(65)
+  const [progress, setProgress] = useState(77.4)
   const [menuActive, setMenuActive] = useState("")
   const user = useUserStore(state => state.user);
 
@@ -147,17 +147,17 @@ export default function MyMain() {
             <div className='current-plan relative border p-[20px]  h-[450px] '>
               <h2 className='text-lg text-gray-600 my-sub-title'>나의 구독정보</h2>
               <div className='flex justify-between items-center  mt-[30px]'>
-                <img className='plan-img' src="/images/current-plan-standard.png" alt="plan-icon" />
+                <div className="bg-indigo-100 text-indigo-400 font-light rounded px-3">Enterprise</div>
                 <div className='flex items-end'>
                   <span className='text-indigo-500'>$</span>
-                  <h2 className='text-4xl text-indigo-500'>49</h2>
+                  <h2 className='text-4xl text-indigo-500'>499</h2>
                   <span className='font-extralight '>/month</span>
                 </div>
               </div>
               <ul className='ml-[20px] mt-[30px]'>
-                <li className='plan-exp'> 기본 플랜</li>
-                <li className='plan-exp'> 최대 100명 협업</li>
-                <li className='plan-exp'>10GB 드라이브 사용</li>
+                <li className='plan-exp'> 비즈니스 플랜</li>
+                <li className='plan-exp'> 협업자 제한 없음</li>
+                <li className='plan-exp'>5GB 드라이브 사용</li>
               </ul>
               <div>
                 <div className='flex justify-between mt-[30px]'>
@@ -167,7 +167,7 @@ export default function MyMain() {
                 <div className="progress-bar">
                   <div className="progress-fill bg-indigo-400" style={{width: `${progress}%`}}></div>
                 </div>
-                <span className='text-sm text-gray-500'>4일 후 만료</span>
+                <span className='text-sm text-gray-500'>8일 후 만료</span>
               
               </div>
               <button onClick={upgradePlan} className='btn-profile border border-indigo-500 text-indigo-800 absolute bottom-[20px] right-[203px]'>플랜 업그레이드</button>

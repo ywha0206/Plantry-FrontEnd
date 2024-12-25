@@ -1,8 +1,7 @@
 /* eslint-disable react/prop-types */
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { CustomSVG } from "./_CustomSVG";
 import { DynamicTaskEditor } from "@/components/project/TaskEdit";
-import { v4 as uuidv4 } from "uuid";
 import clsx from "clsx";
 import { MenuItem } from "./_CustomDropdown";
 import axiosInstance from "@/services/axios.jsx";
@@ -90,6 +89,7 @@ const DynamicTask = React.memo(
     columnIndex,
     onAddSubTask,
     onClickSubTask,
+    onDeleteSubTask,
     onAddComment,
     onDeleteComment,
     onDeleteTask,
@@ -97,7 +97,6 @@ const DynamicTask = React.memo(
   }) => {
     const [showInput, setShowInput] = useState(false); // 입력창 표시 상태
     const [newSubTask, setNewSubTask] = useState(""); // 새로운 하위 목표 값
-    const [nowSubTasks, setNowSubTasks] = useState(subTasks);
     const [isEditing, setIsEditing] = useState(false);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const {sendWebSocketMessage} = useProjectData(projectId);
@@ -139,8 +138,8 @@ const DynamicTask = React.memo(
 
 
     const checkedCount = useMemo(() => { // 체크된 서브태스크 계산
-      return (nowSubTasks||[]).filter((task) => task.isChecked).length;
-    }, [nowSubTasks]);
+      return (subTasks||[]).filter((task) => task.checked).length;
+    }, [subTasks]);
     const formattedDueDate = useMemo(() => getFormattedDueDate(duedate), [duedate]); // D-day 계산
     const dateColor = useMemo(() => getDateColor(formattedDueDate), [formattedDueDate]); // D-day 표시 색상 선택
 
@@ -156,32 +155,6 @@ const DynamicTask = React.memo(
       setShowInput(false); // 입력창 닫기
     };
 
-    const renderedSubTasks = useMemo(() => {
-      return (nowSubTasks||[]).map((subTask, index) => (
-        <div key={subTask.id} className="flex items-center gap-1.5 h-[22px]">
-          <input
-            id={`check${index}`}
-            checked={subTask.isChecked}
-            type="checkbox"
-            className="screen-reader"
-            onChange={() => onClickSubTask(subTask)}
-            aria-checked={subTask.isChecked}
-          />
-          <label
-            aria-label={`하위목표 - ${subTask.name}`}
-            htmlFor={`check${index}`}
-            className="flex flex-row items-center gap-1 text-neutral-500 text-sm"
-          >
-            <CustomSVG
-              id={subTask.isChecked ? "checkbox-checked" : "checkbox"}
-              color={subTask.isChecked ? "#A2A2E6" : "#8A8AE2"}
-            />
-            {subTask.name}
-          </label>
-        </div>
-      ));
-    }, [nowSubTasks]);
-
     return (
       <>
         {isEditing ? (
@@ -196,7 +169,7 @@ const DynamicTask = React.memo(
               priority,
               status,
               duedate,
-              subTasks: [...nowSubTasks],
+              subTasks: [...subTasks],
               comments,
               assign,
             }}
@@ -206,6 +179,7 @@ const DynamicTask = React.memo(
               onSaveTask(updatedTask,columnIndex);
               setIsEditing(false);
             }}
+            onDeleteSubTask={onDeleteSubTask}
             onClose={handleEditToggle}
           />
         ) : (
@@ -261,7 +235,30 @@ const DynamicTask = React.memo(
                     <h2 id="subtasks-title" className="sr-only">
                       하위 목표
                     </h2>
-                    {renderedSubTasks}
+                    {(subTasks||[]).map((subTask) => (
+                      <div key={subTask.id} className="flex items-center gap-1.5 h-[22px]">
+                        <input
+                          id={`check${subTask.id}`}
+                          checked={subTask.checked}
+                          type="checkbox"
+                          className="screen-reader"
+                          name="isChecked"
+                          onChange={() => onClickSubTask(subTask)}
+                          aria-checked={subTask.checked}
+                        />
+                        <label
+                          aria-label={`하위목표 - ${subTask.name}`}
+                          htmlFor={`check${subTask.id}`}
+                          className="flex flex-row items-center gap-1 text-neutral-500 text-sm cursor-pointer"
+                        >
+                          <CustomSVG
+                            id={subTask.checked ? "checkbox-checked" : "checkbox"}
+                            color={subTask.checked ? "#A2A2E6" : "#8A8AE2"}
+                          />
+                          {subTask.name}
+                        </label>
+                      </div>
+                    ))}
 
                     {/* 새 하위 목표 추가 버튼 및 입력창 */}
                     {showInput ? (
@@ -316,7 +313,7 @@ const DynamicTask = React.memo(
                         
                   {((assign || []).map(item => item.user)||[]).length>0 && (
                         (assign || []).map(item => item.user).map((asso, index) => (
-                          <img key={asso.id} src={PROFILE_URI+asso.profileImgPath||"/images/document-folder-profile.png"} alt={asso.name}
+                          <img key={asso.id} src={asso.profile!==null?PROFILE_URI+asso.profile:"/images/user_face_icon.png"} title={asso.name} alt={asso.name}
                             className="w-8 h-8 rounded-full border-2 border-white -ml-3 first:ml-0"
                             style={{zIndex: ((assign || []).map(item => item.user)).length - index,}}
                           />
@@ -443,7 +440,7 @@ const DynamicTask = React.memo(
                   <div className="flex flex-col flex-1 shrink basis-0 text-black text-opacity-50" onClick={handleDetailToggle}>
                     <div
                       className={clsx("text-sm leading-4 min-h-[24px]", {
-                        "line-through": status !== 1,
+                        "line-through": status > 1,
                       })}
                     >
                       {title}
@@ -454,7 +451,7 @@ const DynamicTask = React.memo(
                         className={clsx(
                           "max-w-[200px] leading-4 truncate text-xs",
                           {
-                            "line-through": status !== 1,
+                            "line-through": status > 1,
                           }
                         )}
                       >
@@ -467,7 +464,7 @@ const DynamicTask = React.memo(
                         {((assign || []).map(item => item.user)).length>0 && (
                           <div className="relative flex items-center">
                           {(assign || []).map(item => item.user).map((asso, index) => (
-                            <img key={asso.id} src={PROFILE_URI+asso.profileImgPath||"/images/document-folder-profile.png"} alt={asso.name}
+                            <img key={asso.id} src={asso.profile!==null?PROFILE_URI+asso.profile:"/images/document-folder-profile.png"} title={asso.name} alt={asso.name}
                               className="w-6 h-6 rounded-full border-2 border-white -ml-2 first:ml-0"
                               style={{zIndex: ((assign || []).map(item => item.user)).length - index,}}
                             />

@@ -7,6 +7,7 @@ import axiosInstance from '../../services/axios';
 import { useQueryClient } from '@tanstack/react-query';
 import { MenuToggle } from './MenuToggle';
 import ContextMenu from './ContextMenu';
+import { Star } from 'lucide-react';
 
 export const DocumentCard1 = ({
     cnt,
@@ -25,8 +26,7 @@ export const DocumentCard1 = ({
     isFavorite,
     setIsFavorite,
     handleDelete,
-    type
-
+    type,
 }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false); // 토글 상태 관리
     // const [isAlertOpen, setIsAlertOpen] = useState(false);
@@ -39,8 +39,52 @@ export const DocumentCard1 = ({
     const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 }); // 메뉴 위치
 
     const [alert, setAlert] = useState(null); // 알림 상태 관리
+    const [dragZone, setDragZone] = useState(null);
+    const handleDragOver = (e, zone) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const rect = e.currentTarget.getBoundingClientRect();
+        const rectHeight = rect.height || 1; // 기본값 추가
+        const rectWidth = rect.width || 1;  // 가로 방향 계산을 위해 추가
+        const mouseY = e.clientY - rect.top;
+        const mouseX = e.clientX - rect.left;
+    
+    
+        if (mouseY < rectHeight * 0.25 && mouseX < rectWidth * 0.25) {
+            setDragZone('before'); // 왼쪽 상단
+        } else if (mouseY < rectHeight * 0.25 && mouseX > rectWidth * 0.75) {
+            setDragZone('before'); // 오른쪽 상단
+        } else if (mouseY > rectHeight * 0.75 && mouseX < rectWidth * 0.25) {
+            setDragZone('after'); // 왼쪽 하단
+        } else if (mouseY > rectHeight * 0.75 && mouseX > rectWidth * 0.75) {
+            setDragZone('after'); // 오른쪽 하단
+        } else if (mouseY < rectHeight * 0.25) {
+            setDragZone('before'); // 상단
+        } else if (mouseY > rectHeight * 0.75) {
+            setDragZone('after'); // 하단
+        } else if (mouseX < rectWidth * 0.25) {
+            setDragZone('before'); // 왼쪽
+        } else if (mouseX > rectWidth * 0.75) {
+            setDragZone('after'); // 오른쪽
+        } else {
+            setDragZone('inside'); // 가운데
+        }
+    };
 
+    const handleDragLeave = () => {
+        setDragZone(null);
+    };
 
+    const handleDrop = (e, zone) => {
+        e.preventDefault();
+        e.stopPropagation();
+    
+        if (zone) {
+            console.log(`Dropped in zone: ${zone}`);
+            onDrop(folder, zone);
+        }
+        setDragZone(null);
+    };
     const handleFavoriteToggle = async () => {
         const newFavoriteState = !isFavorite; // 새로운 상태
         setIsFavorite(newFavoriteState); // UI 업데이트
@@ -197,49 +241,55 @@ export const DocumentCard1 = ({
     };
     
 
-    return (
-        <div className="document-card1 flex flex-row items-center z-1"  draggable
-                    onContextMenu={(e) => onContextMenu(e, folder)} // Trigger the context menu
+    return (<>
+           <div className="relative w-full max-w-[400px] mx-2 my-2"
+                  onDragOver={(e) => handleDragOver(e)}
+                  onDragLeave={() => setDragZone(null)}
+                  onDrop={(e) => handleDrop(e, dragZone)}
+           >
+            {/* Before drop zone */}
+             {/* Drop indicators */}
+             {dragZone === 'before' && (
+                <div className="absolute top-0 left-0 w-full h-1 bg-blue-500 transform -translate-y-1" />
+            )}
+            
+            {/* Main card */}
+            <div 
+                className={`flex items-center p-3 bg-white rounded-lg
+                    ${dragZone === 'inside' ? 'border-2 border-blue-400 bg-blue-50' : 'border border-gray-200'}
+                    hover:shadow transition-all duration-200`}
+                draggable
+                onDragStart={(e) => onDragStart(folder)}
+                onContextMenu={(e) => onContextMenu(e, folder)}
+                onClick={() => setSelectedFolder(folder)}
+            >
+                <img 
+                    className="w-10 h-10 mr-3" 
+                    src="/images/document-open-folder.png" 
+                    alt="folder"
+                    onClick={navigateHandler}
+                />
+                
+                <div className="flex-1 cursor-pointer" onClick={navigateHandler}>
+                    <h3 className="text-gray-800">{folderName}</h3>
+                </div>
 
-                    onDragStart={(e) => {
-                        e.stopPropagation(); // Prevent event propagation
-                        onDragStart(folder); // Call the passed onDragStart function
-                    }}                 
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={() => onDrop(folder)}
-                    style={{
-                        border: '1px solid #ccc',
-                        padding: '10px',
-                        margin: '5px',
-                        cursor: 'grab',
-                        position: 'relative', // Ensure this is relative for child absolute positioning
-                    }}
-                    onClick={() => setSelectedFolder(folder)} // 폴더 선택
-
-        >
-               
-            <div className=" flex flex-row mr-[20px]">
-            <button>
-                <img className=" w-[50px] h-[60px]" src="/images/document-open-folder.png" />
-            </button>
-            </div>
-
-            <div className="flex-row mr-[20px] w-[50px]">
-                    <p className="text-xs" onClick={(e)=> { e.preventDefault; navigateHandler()}}>{cnt} files</p>
-            </div>
-            <div className="flex-row mt-2 w-[200px]">
-
-                <p className="w-1/2 text-center text-blue-900 text-sm" onClick={(e)=> { e.preventDefault; navigateHandler()}}>{folderName}</p>
-            </div>
-            <img
-                    className="absolute cursor-pointer right-[20px] w-[25px] "
-                    src={isFavorite ? '/images/star_on.png' : '/images/star_off.png'} // 상태에 따라 이미지 변경                    
-                    alt="즐겨찾기"
+                <Star 
+                    className={`w-5 h-5 cursor-pointer
+                        ${isFavorite ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400'}`}
                     onClick={(e) => {
-                        e.stopPropagation(); // 클릭 이벤트 전파 방지
+                        e.stopPropagation();
                         handleFavoriteToggle();
+                        setIsFavorite(!isFavorite);
                     }}
                 />
+            </div>
+
+            {dragZone === 'after' && (
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-blue-500 transform translate-y-1" />
+            )}
+
+
             {isMenuOpen && (
                  <ContextMenu
                     type={"folder"}
@@ -267,5 +317,7 @@ export const DocumentCard1 = ({
 
 
         </div>
+       
+        </>
     );
 };

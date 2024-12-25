@@ -11,6 +11,7 @@
       { 
           "title": "할 일",
           "color": "#F5234B",
+          "role": 1,
           "position":1,
           "tasks": [
                       {
@@ -18,30 +19,38 @@
                           "status": 1,
                           "position":1,
                           "content": "이곳에서 당신의 계획을 구체화하고 실천해 현실로 실현시켜보세요!",
-                          "priority": 2,
+                          "priority": "P2",
                           "subTasks": [
                               { "isChecked": false, "name": "프로젝트 사용 방법 확인하기" }
                           ],
-                          "tags": [],
                           "comments": [
                             {
-                              "user_id": "plantry",
+                              "user_id" : "plantry",
+                              "user": {"id":18, "uid":"plantry", "name":"plantry","profileImgPath":null},
                               "content": "플랜트리에서 함께 만들어보세요"
                             }
                           ]
                       }
           ]
-      },
+      },{
+        "title": "대기 중", 
+        "color": "#",
+        "role": 2,
+        "position":2,
+        "tasks": []
+    },
       {
           "title": "진행 중", 
-          "color": "#0070F5",
-          "position":2,
+          "color": "#ffdd00",
+          "role": 3,
+          "position":3,
           "tasks": []
       },
       {
           "title": "✅ 완료",
           "color": "#1EC337",
-          "position":3,
+          "role": 4,
+          "position":4,
           "tasks": []
       }
     ]
