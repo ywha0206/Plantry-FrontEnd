@@ -108,20 +108,25 @@ function CommunityWrite() {
       alert("내용을 입력해주세요!");
       return;
     }
+    if (!selectedBoardId) {
+      alert("게시판을 선택해주세요!");
+      return;
+    }
 
     const formData = new FormData();
 
-    // 선택된 파일 추가
+    formData.append(
+      "postDto",
+      JSON.stringify({
+        boardId: parseInt(selectedBoardId),
+        boardTitle: title,
+        boardContent: content,
+        writerId: currentUser?.id,
+        isPinned: isPinned,
+        writerName: currentUser.username,
+      })
+    );
 
-    // FormData에 필드별 데이터 추가
-    formData.append("boardId", selectedBoardId);
-    formData.append("title", title);
-    formData.append("content", content);
-    formData.append("isPinned", isPinned);
-    formData.append("writer", currentUser.username);
-    formData.append("uid", currentUser?.id);
-
-    // 선택된 파일 추가
     files.forEach((file) => {
       formData.append("files", file);
     });
@@ -139,7 +144,11 @@ function CommunityWrite() {
       });
     } catch (error) {
       console.error("작성 실패:", error);
-      alert("글 작성에 실패했습니다. 다시 시도해주세요.");
+      alert(
+        `글 작성에 실패했습니다: ${
+          error.response?.data?.message || error.message
+        }`
+      );
     }
   };
   return (
