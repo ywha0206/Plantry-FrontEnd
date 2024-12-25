@@ -4,6 +4,7 @@ import CommunitySidebar from "@/components/community/CommunitySidebar";
 import useUserStore from "../../store/useUserStore";
 import axiosInstance from "../../services/axios";
 import ReactQuill from "react-quill";
+import { list } from "postcss";
 
 function CommunityModify() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ function CommunityModify() {
   const [files, setFiles] = useState([]);
   const [data, setData] = useState([]); // To store board data
   const [loading, setLoading] = useState(true);
+  const [boardName, setBoardName] = useState("게시판");
 
   // 게시글 데이터 불러오기
   useEffect(() => {
@@ -44,14 +46,28 @@ function CommunityModify() {
       try {
         const response = await axiosInstance.get(`/api/community/boards`);
         setData(response.data);
-        setLoading(false);
+
+        console.log("selectedBoardId:", selectedBoardId);
+        console.log("API 응답 데이터:", response.data);
+        // 선택된 게시판 ID에 따라 이름 설정
+        const currentBoard = response.data.find(
+          (board) => board.boardId === parseInt(selectedBoardId)
+        );
+        if (currentBoard) {
+          setBoardName(currentBoard.boardName); // 게시판 이름 설정
+        } else {
+          setBoardName("알 수 없음"); // 기본값
+        }
+
+        setLoading(false); // 로딩 상태 갱신
       } catch (error) {
         console.error("게시판 목록 불러오기 실패:", error);
+        setBoardName("알 수 없음"); // 기본값 설정
       }
     };
 
     fetchBoards(); // 게시판 목록 불러오기
-  }, []);
+  }, [selectedBoardId]);
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
@@ -72,6 +88,8 @@ function CommunityModify() {
       const formData = new FormData();
       formData.append("title", title);
       formData.append("content", content);
+      formData.append("boardId", selectedBoardId);
+
       if (files.length > 0) {
         files.forEach((file) => formData.append("files", file));
       }
@@ -87,7 +105,7 @@ function CommunityModify() {
       );
 
       alert("게시글이 수정되었습니다.");
-      navigate(`/community/${boardId}/view/${postId}`);
+      navigate(`/community/${selectedBoardId}/list`, { state: { boardName } });
     } catch (error) {
       console.error("게시글 수정 실패:", error);
       alert("게시글 수정에 실패했습니다.");
@@ -99,7 +117,7 @@ function CommunityModify() {
       <CommunitySidebar currentUser={currentUser} />
 
       <div className="community-modify">
-        <h2>{`${boardId} 수정`}</h2>
+        <h2>{`${boardName} 수정`}</h2>
         <form onSubmit={handleSubmit}>
           {/* 게시판 선택 */}
           <div className="form-group">

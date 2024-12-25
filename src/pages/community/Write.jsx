@@ -103,43 +103,52 @@ function CommunityWrite() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("handleSubmit 함수 호출됨");
-    console.log("선택된 boardId:", selectedBoardId);
 
-    if (selectedBoardId) {
-      const postData = {
-        boardId: selectedBoardId,
-        title: title,
-        content: content,
-        files: files,
-        isPinned,
-        fileCount: fileCount,
-        favoritePost: false,
-        isMandatory: isPinned,
-        writer: currentUser.username,
-        uid: currentUser?.id,
-      };
+    if (!content.trim()) {
+      alert("내용을 입력해주세요!");
+      return;
+    }
 
-      console.log("전송할 데이터:", postData);
+    
 
-      try {
-        console.log("axios를 이용해 게시글 작성 요청 시작");
-        const response = await axiosInstance.post(
-          `/api/community/write`,
-          postData
-        );
-        console.log("작성 성공:", response.data);
-        alert("글 작성이 완료되었습니다!");
-        navigate(`/community/${boardId}/list`);
-      } catch (error) {
-        console.error("작성 실패:", error);
-        alert("글 작성에 실패했습니다. 다시 시도해주세요.");
-      }
-    } else {
-      console.error("Board ID가 설정되지 않았습니다.");
+    const formData = new FormData();
+
+    // 선택된 파일 추가
+
+    // FormData에 필드별 데이터 추가
+    formData.append("boardId", selectedBoardId);
+    formData.append("title", title);
+    formData.append("content", content);
+    formData.append("isPinned", isPinned);
+    formData.append("writer", currentUser.username);
+    formData.append("uid", currentUser?.id);
+  
+    // 선택된 파일 추가
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
+
+    try {
+      const response = await axiosInstance.post(
+        "/api/community/write",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      alert("글 작성이 완료되었습니다!");
+
+      // boardName도 함께 전달
+      navigate(`/community/${boardId}/list`, {
+        state: { boardName },
+      });
+    } catch (error) {
+      console.error("작성 실패:", error);
+      alert("글 작성에 실패했습니다. 다시 시도해주세요.");
     }
   };
-
   return (
     <div id="community-container">
       <CommunitySidebar currentUser={currentUser} boardId={boardId} />
@@ -207,6 +216,7 @@ function CommunityWrite() {
               <input
                 id="file-upload"
                 type="file"
+                name="file"
                 className="file-upload-input"
                 multiple
                 onChange={handleFileChange}

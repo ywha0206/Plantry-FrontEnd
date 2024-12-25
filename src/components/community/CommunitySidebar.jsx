@@ -37,11 +37,16 @@ export default function CommunitySidebar({
   });
 
   useEffect(() => {
-    const currentBoardId = location.pathname.split("/")[2];
-    if (currentBoardId) {
-      handleBoardChange(currentBoardId);
+    const currentBoardId = boardId || location.pathname.split("/")[2];
+    const selected = boards.find(
+      (board) => board.boardId === parseInt(currentBoardId)
+    );
+
+    if (selected) {
+      setSelectedBoard(selected); // 현재 선택된 게시판 설정
+      onBoardChange(selected.boardId, selected.boardName); // 부모 컴포넌트에 알림
     }
-  }, [location.pathname]);
+  }, [boardId, location.pathname, boards]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,37 +57,29 @@ export default function CommunitySidebar({
 
       try {
         setLoading(true);
-        const [
-          userBoardsResponse,
-          departmentBoardsResponse,
-          favoritesResponse,
-        ] = await Promise.all([
-          axiosInstance.get("/api/community/boards"),
-          axiosInstance.get("/api/community/boards/group/1"),
-          axiosInstance.get(`/api/community/favorites/${currentUser.id}`),
+        const responses = await Promise.allSettled([
+          axiosInstance.get("/api/community/boards"), // 사용자 게시판
+          axiosInstance.get("/api/community/boards/group/1"), // 부서별 게시판
+          axiosInstance.get(`/api/community/favorites/${currentUser.id}`), // 즐겨찾기
         ]);
 
-        const boards = userBoardsResponse?.data || [];
-        setBoards(boards);
+        // 성공한 응답만 처리
+        const userBoardsResponse = responses[0];
+        const departmentBoardsResponse = responses[1];
+        const favoritesResponse = responses[2];
 
-        setDepartmentBoards(
-          Array.isArray(departmentBoardsResponse?.data)
-            ? departmentBoardsResponse.data
-            : []
-        );
-
-        setFavoriteIds(
-          favoritesResponse?.data?.map((fav) => fav.itemId || fav.boardId) || []
-        );
-
-        if (boardId && boards.length > 0) {
-          const currentBoard = boards.find(
-            (board) => board.boardId === parseInt(boardId)
+        if (userBoardsResponse.status === "fulfilled") {
+          setBoards(userBoardsResponse.value?.data || []);
+        }
+        if (departmentBoardsResponse.status === "fulfilled") {
+          setDepartmentBoards(departmentBoardsResponse.value?.data || []);
+        }
+        if (favoritesResponse.status === "fulfilled") {
+          setFavoriteIds(
+            favoritesResponse.value?.data?.map(
+              (fav) => fav.itemId || fav.boardId
+            ) || []
           );
-          if (currentBoard) {
-            handleBoardChange(boardId, currentBoard);
-            setSelectedBoard(currentBoard);
-          }
         }
       } catch (err) {
         console.error("데이터 로드 실패:", err);
@@ -105,13 +102,13 @@ export default function CommunitySidebar({
 
   const handleBoardClick = (board) => {
     setSelectedBoard(board);
-    handleBoardChange(board.boardId, board);
     navigate(`/community/${board.boardId}/list`, {
       state: {
         boardData: board,
         boardName: board.boardName,
       },
     });
+    onBoardChange(board.boardId, board.boardName);
   };
 
   const toggleSection = (section) => {
@@ -196,7 +193,7 @@ export default function CommunitySidebar({
 
   const renderBoardItem = (board, isFavoriteSection = false) => (
     <div
-      key={board.board_id}
+      key={board.boardId}
       className="flex items-center px-8 py-1 cursor-pointer"
       onClick={() => handleBoardClick(board)}
     >
