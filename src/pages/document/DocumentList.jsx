@@ -54,9 +54,6 @@ export default function DocumentList() {
 
     const user = useUserStore((state) => state.user);
 
-    console.log("token",token);
-
-
     const handleFileDragStart = (file) => {
         setDraggedFile(file); // 드래그된 파일 정보 저장
     };
@@ -75,42 +72,7 @@ export default function DocumentList() {
         message: "",
         onConfirm: null, // 기본값은 null
       });
-      useEffect(() => {
-        const validateToken = async () => {
-          if (token) {
-            try {
-              const response = await axiosInstance.post("/api/share/token/validate", { token });
-              if (response.status === 200) {
-                setIsTokenValid(true); // 토큰 유효
-              } else {
-                setIsTokenValid(false); // 토큰 무효
-              }
-            } catch (error) {
-              console.error("Token validation failed:", error);
-              setIsTokenValid(false); // 토큰 무효
-            }
-          } else {
-            setIsTokenValid(true); // 토큰이 없더라도 기본적으로 접근 허용
-          }
-          setIsTokenLoading(false); // 로딩 상태 종료
-        };
-    
-        validateToken();
-      }, [token]);
-
-      if (isTokenValid === false) {
-        return (
-          <div>
-            <p>유효하지 않은 공유 링크입니다.</p>
-            <button onClick={() => navigate("/")}>홈으로 이동</button>
-          </div>
-        ); // 유효하지 않은 토큰 처리
-      }
-
-     useEffect(()=>{
-        setSelectedFolder(null);
-        setSelectedFile(null);
-      },[])
+     
      
       const triggerAlert = (type, title, message, onConfirm, showCancel) => {
         setAlert({
@@ -212,10 +174,68 @@ export default function DocumentList() {
         },
         staleTime: 300000, // 데이터가 5분 동안 신선하다고 간주
     });
-
+    const parentFolder = (data?.parentFolder || []);
+    console.log(parentFolder);
     const [parsedSharedUsers, setParsedSharedUsers] = useState([]);
 
+    useEffect(() => {
+        const validateToken = async () => {
+          if (token) {
+            try {
+              const response = await axiosInstance.post("/api/share/token/validate", { token });
+              if (response.status === 200) {
+                setIsTokenValid(true); // 토큰 유효
+              } else {
+                setIsTokenValid(false); // 토큰 무효
+              }
+            } catch (error) {
+              console.error("Token validation failed:", error);
+              setIsTokenValid(false); // 토큰 무효
+            }
+          } else {
+            const isUserShared = parentFolder.sharedUsers?.some(user => user.id === user.uid);
+            if(parentFolder.ownerId === user.uid || isUserShared){
+                setIsTokenValid(true); // 토큰이 없더라도 기본적으로 접근 허용
 
+            }else{
+                setIsTokenValid(false);
+                setAlert({
+                    isVisible: true,
+                    type: "warning",
+                    title: "허용되지 않은 사용자입니다.",
+                    message: "",
+                    onConfirm: () => navigate("/document"),
+                    showCancel: false,
+                });
+            }
+
+          }
+          setIsTokenLoading(false); // 로딩 상태 종료
+        };
+    
+        validateToken();
+    }, [token, parentFolder.sharedUsers, parentFolder.ownerId, user.uid, navigate]);
+
+      const handleToken=()=>{
+
+        if (isTokenValid === false) {
+            return (
+              <div>
+                <p>유효하지 않은 공유 링크입니다.</p>
+                <button onClick={() => navigate("/")}>홈으로 이동</button>
+              </div>
+            ); // 유효하지 않은 토큰 처리
+          }
+
+      }
+    
+
+    
+
+     useEffect(()=>{
+        setSelectedFolder(null);
+        setSelectedFile(null);
+      },[])
 
     
 
@@ -650,8 +670,7 @@ const handleCloseFileMenu = () => {
 
   
 
-    const parentFolder = (data?.parentFolder || []);
-    console.log(parentFolder);
+    
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [isShareModalOpen,setIsShareModalOpen] = useState(false);
