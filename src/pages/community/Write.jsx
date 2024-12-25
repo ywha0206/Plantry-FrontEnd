@@ -109,8 +109,6 @@ function CommunityWrite() {
       return;
     }
 
-    
-
     const formData = new FormData();
 
     // 선택된 파일 추가
@@ -122,7 +120,7 @@ function CommunityWrite() {
     formData.append("isPinned", isPinned);
     formData.append("writer", currentUser.username);
     formData.append("uid", currentUser?.id);
-  
+
     // 선택된 파일 추가
     files.forEach((file) => {
       formData.append("files", file);
@@ -131,12 +129,7 @@ function CommunityWrite() {
     try {
       const response = await axiosInstance.post(
         "/api/community/write",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        formData
       );
       alert("글 작성이 완료되었습니다!");
 
