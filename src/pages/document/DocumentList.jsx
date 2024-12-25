@@ -208,12 +208,10 @@ export default function DocumentList() {
         };
     
         validateToken();
-    }, [token, folderId,navigate]);
+    }, [token, folderId,data,navigate]);
 
     const handleValidate = (fetchedData) => {
-        // 데이터 성공적으로 가져온 후 처리
-        console.log("Fetched Data:", fetchedData);
-
+        
         // parentFolder와 관련된 로직 초기화
         if (fetchedData?.parentFolder) {
             const isUserShared = fetchedData.parentFolder.sharedUsers?.some(
@@ -226,12 +224,9 @@ export default function DocumentList() {
             } else {
                 setIsTokenValid(false);
             }
-        } else {
-            console.warn("Parent folder is not available.");
-            setIsTokenValid(false);
+            setIsTokenLoading(false); // 로딩 상태 종료
         }
 
-        setIsTokenLoading(false); // 로딩 상태 종료
     }
 
 
