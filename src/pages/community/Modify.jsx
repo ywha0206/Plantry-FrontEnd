@@ -86,15 +86,9 @@ function CommunityModify() {
 
     try {
       const formData = new FormData();
-      formData.append(
-        "postDto",
-        JSON.stringify({
-          boardId: parseInt(selectedBoardId),
-          boardTitle: title,
-          boardContent: content,
-          writerId: currentUser?.id,
-        })
-      );
+      formData.append("title", title);
+      formData.append("content", content);
+      formData.append("boardId", parseInt(selectedBoardId)); // 숫자로 변환
 
       if (files.length > 0) {
         files.forEach((file) => formData.append("files", file));
