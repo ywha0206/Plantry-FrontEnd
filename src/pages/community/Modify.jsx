@@ -86,9 +86,15 @@ function CommunityModify() {
 
     try {
       const formData = new FormData();
-      formData.append("title", title);
-      formData.append("content", content);
-      formData.append("boardId", selectedBoardId);
+      formData.append(
+        "postDto",
+        JSON.stringify({
+          boardId: parseInt(selectedBoardId),
+          boardTitle: title,
+          boardContent: content,
+          writerId: currentUser?.id,
+        })
+      );
 
       if (files.length > 0) {
         files.forEach((file) => formData.append("files", file));
@@ -96,12 +102,7 @@ function CommunityModify() {
 
       await axiosInstance.put(
         `/api/community/posts/${boardId}/view/${postId}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        formData
       );
 
       alert("게시글이 수정되었습니다.");
