@@ -213,6 +213,8 @@ function App() {
               <Route path="write/services" element={<ProductServicesWrite />} />
             </Route>
           </Route>
+          <Route path="/accept-invitation/:invitationId" element={<ValidateLinkPage />} />
+
 
           {/* 홈 */}
           <Route path="/home" element={<Main />}>
