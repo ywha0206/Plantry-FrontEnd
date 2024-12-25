@@ -68,6 +68,54 @@ function CommunityView() {
     }
   };
 
+  const fileServerBaseUrl = " http://3.35.170.26:90/";
+
+  const downloadHandler = async (file) => {
+    if (!file || !file.id || !file.path) {
+      console.error("Invalid file:", file);
+      alert("파일 경로가 유효하지 않습니다.");
+      return;
+    }
+
+    // 경로가 잘못된 경우에 대한 체크 추가
+    const downloadUrl = file.path ? `${fileServerBaseUrl}${file.path}` : "";
+
+    console.log("Download URL:", downloadUrl); // 제대로 된 경로가 출력되는지 확인
+
+    if (!downloadUrl) {
+      console.error("Download URL is invalid:", downloadUrl);
+      alert("잘못된 파일 경로입니다.");
+      return;
+    }
+
+    console.log("Download URL:", downloadUrl); // 디버깅용
+
+    try {
+      const response = await axiosInstance.get(downloadUrl, {
+        responseType: "blob", // 파일을 blob 형태로 응답받기
+      });
+
+      // 파일 다운로드가 성공한 경우
+      if (response.status === 200) {
+        const link = document.createElement("a");
+        const blob = response.data;
+        const url = window.URL.createObjectURL(blob);
+        link.href = url;
+        link.setAttribute("download", file.originalName); // 원본 파일명으로 다운로드
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        alert("파일 다운로드 성공!");
+      } else {
+        console.error("파일 다운로드 실패:", response);
+        alert("파일 다운로드에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("다운로드 중 오류 발생:", error);
+      alert("파일 다운로드 중 오류가 발생했습니다.");
+    }
+  };
+
   useEffect(() => {
     const fetchBoardName = async () => {
       try {
@@ -358,7 +406,6 @@ function CommunityView() {
             </div>
           )}
         </div>
-
         <div className="post-content">
           <div
             dangerouslySetInnerHTML={{
@@ -366,28 +413,38 @@ function CommunityView() {
             }}
           />
 
-          {post?.attachments?.length > 0 && (
+          {post?.savedFiles && post.savedFiles.length > 0 ? (
             <div className="attachments">
               <h4>
                 <Paperclip size={18} />
                 첨부파일
               </h4>
               <div className="attachment-list">
-                {post.attachments.map((file, index) => (
+                {post.savedFiles.map((file, index) => (
                   <div key={index} className="attachment-item">
                     <Paperclip size={16} />
-                    {file.name}
+                    {file.originalName || file.name}
+                    <button
+                      onClick={() => downloadHandler(file)}
+                      className="download-button"
+                    >
+                      다운로드
+                    </button>
                   </div>
                 ))}
               </div>
             </div>
+          ) : (
+            <p>첨부파일이 없습니다.</p>
           )}
         </div>
 
         <div className="view-footer">
           <div className="footer-left">
             <button
-              onClick={() => navigate(`/community/${boardId}/list`)}
+              onClick={() =>
+                navigate(`/community/${boardId}/list`, { state: { boardName } })
+              }
               className="list-button"
             >
               목록
