@@ -173,61 +173,83 @@ export default function DocumentList() {
             return response.data;
         },
         staleTime: 300000, // 데이터가 5분 동안 신선하다고 간주
+        onSuccess: (fetchedData) => {
+            // 데이터 성공적으로 가져온 후 처리
+            console.log("Fetched Data:", fetchedData);
+    
+            // parentFolder와 관련된 로직 초기화
+            if (fetchedData?.parentFolder) {
+                const isUserShared = fetchedData.parentFolder.sharedUsers?.some(
+                    (u) => u.id === user.id
+                );
+    
+                // 유효성 검사 로직
+                if (fetchedData.parentFolder.ownerId === user.uid || isUserShared) {
+                    setIsTokenValid(true);
+                } else {
+                    setIsTokenValid(false);
+                }
+            } else {
+                console.warn("Parent folder is not available.");
+                setIsTokenValid(false);
+            }
+    
+            setIsTokenLoading(false); // 로딩 상태 종료
+        },
+        onError: (error) => {
+            console.error("Error fetching folder contents:", error);
+            setIsTokenLoading(false);
+            setIsTokenValid(false);
+        },
     });
     const parentFolder = (data?.parentFolder || []);
     console.log(parentFolder);
     const [parsedSharedUsers, setParsedSharedUsers] = useState([]);
 
-    useEffect(() => {
-        const validateToken = async () => {
-          if (token) {
-            try {
-              const response = await axiosInstance.post("/api/share/token/validate", { token });
-              if (response.status === 200) {
-                setIsTokenValid(true); // 토큰 유효
-              } else {
-                setIsTokenValid(false); // 토큰 무효
-              }
-            } catch (error) {
-              console.error("Token validation failed:", error);
-              setIsTokenValid(false); // 토큰 무효
-            }
-          } else {
-            const isUserShared = parentFolder.sharedUsers?.some(user => user.id === user.uid);
-            if(parentFolder.ownerId === user.uid || isUserShared){
-                setIsTokenValid(true); // 토큰이 없더라도 기본적으로 접근 허용
+    // useEffect(() => {
+    //     const validateToken = async () => {
+    //             if (!parentFolder) {
+    //                 console.warn("Parent folder is not loaded yet.");
+    //                 return; // parentFolder가 준비되지 않으면 실행하지 않음
+    //             }
+    //       if (token) {
+    //         try {
+    //           const response = await axiosInstance.post("/api/share/token/validate", { token });
+    //           if (response.status === 200) {
+    //             setIsTokenValid(true); // 토큰 유효
+    //           } else {
+    //             setIsTokenValid(false); // 토큰 무효
+    //           }
+    //         } catch (error) {
+    //           console.error("Token validation failed:", error);
+    //           setIsTokenValid(false); // 토큰 무효
+    //         }
+    //       } else {
+    //         const isUserShared = parentFolder.sharedUsers?.some(u => u.id === user.id);
+    //         if( parentFolder.ownerId === user.uid ||isUserShared){
+    //             setIsTokenValid(true); // 토큰이 없더라도 기본적으로 접근 허용
+    //         }else{
+    //             setIsTokenValid(false);
+    //         }
 
-            }else{
-                setIsTokenValid(false);
-                setAlert({
-                    isVisible: true,
-                    type: "warning",
-                    title: "허용되지 않은 사용자입니다.",
-                    message: "",
-                    onConfirm: () => navigate("/document"),
-                    showCancel: false,
-                });
-            }
-
-          }
-          setIsTokenLoading(false); // 로딩 상태 종료
-        };
+    //       }
+    //       setIsTokenLoading(false); // 로딩 상태 종료
+    //     };
     
-        validateToken();
-    }, [token, parentFolder.sharedUsers, parentFolder.ownerId, user.uid, navigate]);
+    //     validateToken();
+    // }, [token, user.uid]);
 
-      const handleToken=()=>{
 
-        if (isTokenValid === false) {
-            return (
-              <div>
-                <p>유효하지 않은 공유 링크입니다.</p>
-                <button onClick={() => navigate("/")}>홈으로 이동</button>
-              </div>
-            ); // 유효하지 않은 토큰 처리
-          }
-
-      }
+      useEffect(() => {
+        if (isTokenValid === false && !isTokenLoading) {
+            triggerAlert(
+                "warning",
+                "허용되지 않은 사용자입니다.",
+                "해당 폴더에 접근할 수 없습니다.",
+                () => navigate("/document")
+            );
+        }
+    }, [isTokenValid, isTokenLoading]);
     
 
     
