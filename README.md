@@ -1,3 +1,3 @@
-# React + Vite
+<img src="https://raw.githubusercontent.com/jptrnmrs/jptrnmrs/refs/heads/main/plantry-top.svg" style="width: 100%; height: 100%;">
 
-클론한 후에 터미널열고 root폴더로 가서 npm install 하면 package.json에 있는 디펜던시 알아서 npm install해줌 안하면 의존성문제로 실행안됨
+이거 내용 좀 적어주세요
